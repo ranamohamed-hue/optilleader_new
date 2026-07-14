@@ -1,0 +1,47 @@
+{
+  "dashboard": {
+    "main_cards": {
+      "new": "طلبات جديدة",
+      "reviewing": "تحت التحكيم",
+      "evaluated": "تم تحكيمها",
+      "request": "طلب"
+    }
+  },
+  "dashboardJudge": {
+    "welcome": "أهلاً بك",
+    "welcome_title": "أهلاً بك!",
+    "welcome_body": "يسعدنا انضمامك لمنصة OptiLeader.\nيمكنك البدء في استكشاف الميزات الخاصة بك من القائمة.",
+    "lets_start": "لنبدأ!",
+    "default_name": "محكم",
+    "default_job": "محكم معتمد",
+    "system_overview": "نظرة عامة على النظام",
+    "welcome_back": "مرحباً بعودتك",
+    "no_requests": "لا توجد طلبات لتقييمها حالياً",
+    "nomination_for_role": "ترشح لدور: {role}",
+    "notifications": "التنبيهات",
+    "cards": {
+      "under_review": "طلبات قيد المراجعة"
+    },
+    "tooltips": {
+      "profile": "الرئيسية",
+      "logout": "الإعدادات"
+    },
+    "recent_requests_title": "أحدث الطلبات",
+    "view_all": "عرض الكل",
+    "categories": {
+      "title": "التصنيفات",
+      "dean": "عميد الكلية",
+      "vice_dean": "وكيل الكلية",
+      "head_dept": "رئيس القسم",
+      "other": "أخرى",
+       "quality_manager": "مدير الجودة",
+      "admin_manager": "مدير الإدارة"
+    }
+  },
+  "judge_orders": {
+    "title": "الطلبات المحولة",
+    "no_requests": "لا توجد طلبات لتقييمها حالياً",
+    "evaluate": "تقييم",
+    "role_label": "ترشح لدور:"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "dashboard": {
+    "welcome": "Welcome",
+    "system_overview": "System Overview",
+    "manage_data": "Manage Data",
+    "doctors": "Doctors",
+    "judges": "Judges",
+    "admins": "Admins",
+    "add_doctor": "Add New User",
+    "add_admin": "Add New Admin",
+    "add_judge": "Add New Judge",
+    "search": "Search for Employee",
+    "error": "An error occurred",
+    "home": "Home",
+    "notifications": "Alerts",
+    "settings": "Settings",
+    "welcome_title": "Welcome!",
+    "welcome_message": "We are glad you joined OptiLeader platform.\nYou can start exploring your features from the menu.",
+    "lets_start": "Let's Start!"
+  }
+}

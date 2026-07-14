@@ -1,0 +1,21 @@
+{
+  "dashboard": {
+    "welcome": "مرحباً بك",
+    "system_overview": "نظرة عامة على النظام",
+    "manage_data": "إدارة البيانات",
+    "doctors": "الأطباء",
+    "judges": "المحكّمين",
+    "admins": "المسؤولين",
+    "add_doctor": "إضافة مستخدم جديد",
+    "add_admin": "إضافة مسؤول جديد",
+    "add_judge": "إضافة محكّم جديد",
+    "search": "بحث عن موظف",
+    "error": "حدث خطأ",
+    "home": "الرئيسية",
+    "notifications": "التنبيهات",
+    "settings": "الإعدادات",
+    "welcome_title": "أهلاً بك!",
+    "welcome_message": "يسعدنا انضمامك لمنصة OptiLeader.\nيمكنك البدء في استكشاف الميزات الخاصة بك من القائمة.",
+    "lets_start": "لنبدأ!"
+  }
+}

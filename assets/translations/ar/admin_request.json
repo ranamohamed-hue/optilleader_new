@@ -1,0 +1,83 @@
+{
+  "admin_pending": {
+    "title": "الطلبات المعلقة",
+    "no_pending": "لا توجد طلبات معلقة حالياً",
+    "review_count": "لديه {0} طلب مراجعة",
+    "papers_count": "{0} بحث",
+    "activities_count": "{0} نشاط",
+    "journal": "مجلة:",
+    "organization": "جهة:",
+    "pending_review": "قيد المراجعة",
+    "reject_dialog": {
+      "title": "سبب الرفض",
+      "body": "يرجى كتابة سبب الرفض",
+      "hint": "اكتب سبب الرفض هنا...",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد الرفض"
+    },
+    "default_rejection": "مرفوض"
+  },
+  "admin_request": {
+    "title_paper": "تفاصيل البحث العلمي",
+    "title_activity": "تفاصيل النشاط",
+    "success_msg": "تم تنفيذ الإجراء بنجاح",
+    "info_card": {
+      "basic_info": "البيانات الأساسية",
+      "label_title_ar": "العنوان بالعربية:",
+      "label_title_en": "العنوان بالإنجليزية:",
+      "label_year": "سنة النشر:",
+      "label_journal": "رابط المجلة:",
+      "label_status": "الحالة:",
+      "status_pending": "معلق"
+    },
+    "journal_card": {
+      "title": "بيانات المجلة",
+      "label_name": "اسم المجلة:",
+      "label_issn": "ISSN:",
+      "label_if": "معامل التأثير (IF):",
+      "label_scope": "نطاق المجلة:",
+      "label_level": "مستوى المجلة:",
+      "label_indexing": "قاعدة الفهرسة:",
+      "label_top_tier": "مجلة درجة أولى (Top Tier):"
+    },
+    "authors_card": {
+      "title": "بيانات المؤلفين (مادة 22)",
+      "label_order": "ترتيب المؤلف:",
+      "label_total": "إجمالي المؤلفين:",
+      "label_same_spec": "المؤلفين في نفس التخصص:"
+    },
+    "files_section": {
+      "title": "الملفات المرفوعة",
+      "label_paper": "ملف البحث",
+      "label_proof": "إثبات الفهرسة"
+    },
+    "activity_card": {
+      "basic_info": "بيانات النشاط الأساسية",
+      "label_title": "عنوان النشاط:",
+      "label_org": "الجهة المنظمة:",
+      "label_date": "التاريخ:",
+      "label_hours": "عدد الساعات:",
+      "label_part_type": "نوع المشاركة:",
+      "label_type": "النوع:"
+    },
+    "course_card": {
+      "title": "بيانات الدورة التدريبية",
+      "label_cat": "تصنيف الدورة:",
+      "label_scope": "نطاق الدورة:"
+    },
+    "file_row": {
+      "url_error": "الرابط غير متاح",
+      "open_fail": "فشل في فتح الملف"
+    },
+    "actions": {
+      "approve": "موافقة",
+      "reject": "رفض"
+    },
+    "reject_dialog": {
+      "title": "سبب الرفض",
+      "hint": "اكتب سبب الرفض هنا...",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد الرفض"
+    }
+  }
+}

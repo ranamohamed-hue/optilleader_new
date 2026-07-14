@@ -1,0 +1,29 @@
+{
+  "nomination.app_bar_title": "تقديم على الإعلان",
+  "nomination.role_label": "الدرجة الوظيفية:",
+  "nomination.scores_title": "درجات التقييم الآلي",
+  "nomination.points_unit": "نقطة",
+  "nomination.total_label": "الإجمالي",
+  "nomination.declarations_title": "ملف الإقرارات",
+  "nomination.declarations_instructions": "يرجى رفع ملف الإقرارات الموقع (PDF, DOCX, JPG, ZIP)",
+  "nomination.pick_file": "اختيار ملف",
+  "nomination.error_no_file": "يرجى اختيار ملف الإقرارات أولاً",
+  "nomination.button_submitting": "جاري الإرسال...",
+  "nomination.button_submit": "إرسال الطلب",
+  
+  "error_fetch_requests": "فشل في جلب الطلبات",
+  "error_fetch_evaluator_requests": "فشل في جلب طلبات التقييم",
+  "error_upload_declaration": "فشل في رفع ملف الإقرارات",
+  "error_submit_request": "فشل في إرسال الطلب",
+  "error_update_request": "فشل في تحديث حالة الطلب",
+  "error_evaluation_submit": "فشل في إرسال التقييم",
+  "error_unexpected": "حدث خطأ غير متوقع",
+  "success_submit_request": "تم إرسال طلب الترشح بنجاح",
+  "success_action_taken": "تم تنفيذ الإجراء بنجاح",
+  "success_evaluation_submitted": "تم إرسال التقييم بنجاح",
+  "nomination.mandatory_criteria": "الشروط الإجبارية", 
+  "nomination.no_criteria": "لا توجد شروط إجبارية لهذا المنصب",
+  "nomination.course_points": "نقاط الدورات التدريبية",
+  "error_duplicate_request": "لديك طلب سابق لنفس المنصب تحت المراجعة حالياً"
+
+}

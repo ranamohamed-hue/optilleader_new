@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "706730887819",
+    "project_id": "optileader",
+    "storage_bucket": "optileader.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:706730887819:android:022897f2579f4462f1a28e",
+        "android_client_info": {
+          "package_name": "com.example.optialeader"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "706730887819-gc7m1uk365ks349ct073gtqu5mko1pv3.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.optialeader",
+            "certificate_hash": "8e09af72f24157d191caa9e9289e166f2fd8e899"
+          }
+        },
+        {
+          "client_id": "706730887819-rmtgta5nfpn7vdr9n19d3m77ql7qhi7o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPLCk4-sIdz5x2RiXRbnV106Q99iwifM8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "706730887819-rmtgta5nfpn7vdr9n19d3m77ql7qhi7o.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

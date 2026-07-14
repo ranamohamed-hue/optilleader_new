@@ -1,0 +1,27 @@
+{"acadimic_Data":{
+  "statuses": {
+    "active": "نشط",
+    "inactive": "غير نشط"
+  },
+  "academicData": {
+    "title": "البيانات الأكاديمية",
+    "personal_section": "المعلومات الشخصية",
+    "academic_section": "السجل الأكاديمي والمهني",
+    "contact_section": "معلومات الاتصال",
+    "name": "الاسم",
+    "phone": "رقم الهاتف",
+    "social_status": "الحالة الاجتماعية",
+    "birth_date": "تاريخ الميلاد",
+    "job": "الوظيفة",
+    "email": "البريد الإلكتروني",
+    "address": "العنوان",
+    "save_btn": "حفظ البيانات"
+  },
+  "add_doctor": {
+    "university": "الجامعة",
+    "faculty": "الكلية",
+    "department": "القسم"
+  },
+  "error_message": "حدث خطأ غير متوقع",
+  "retry": "إعادة المحاولة"
+}}

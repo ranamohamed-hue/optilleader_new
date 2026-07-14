@@ -1,0 +1,71 @@
+{
+  "addResearch": {
+    "title": "Add New Research Paper",
+    "titleAr": "Research Title (Arabic)",
+    "titleEn": "Research Title (English)",
+    "journalName": "Journal Name",
+    "journalScopeLabel": "Journal Scope",
+    "scopeSpecialized": "Specialized",
+    "scopeNonSpecialized": "Non-Specialized",
+    "journalLevelLabel": "Journal Level",
+    "levelInternational": "International",
+    "levelLocal": "Local",
+    "indexingDatabaseLabel": "Indexing Database",
+    "dbScopus": "Scopus",
+    "dbWebOfScience": "Web of Science",
+    "dbLocal": "Local",
+    "issn": "ISSN",
+    "impactFactor": "Impact Factor",
+    "publicationYear": "Publication Year",
+    "authorOrder": "Author Order",
+    "totalAuthors": "Total Authors",
+    "authorsInSameSpecialty": "Number of Authors in Same Specialty",
+    "authorsInSameSpecialtyHint": "Must be greater than or equal to your order",
+    "isTopTierJournal": "Top-Tier Journal",
+    "isTopTierJournalHint": "Is the journal classified in the top tiers?",
+    "journalUrl": "Journal URL",
+    "paperFile": "Research Paper File (PDF/Image)",
+    "indexingProof": "Indexing Proof",
+    "indexingProofLabelDynamic": "Indexing Proof",
+    "fileRequired": "Please select the research paper file",
+    "indexingProofRequired": "Please select the indexing proof file",
+    "success": "Research added successfully",
+    "submit": "Save and Submit"
+  },
+  "addActivity": {
+    "title": "Add New Activity",
+    "type": "Activity Type",
+    "activityTitle": "Activity Title",
+    "organization": "Organization",
+    "date": "Date",
+    "durationHours": "Number of Hours",
+    "fileRequired": "Please select the certificate file",
+    "success": "Activity added successfully"
+  },
+  "validation": {
+    "required": "This field is required"
+  },
+  "common": {
+    "other": "Other",
+    "required": "Required"
+  },
+  "filePicker": {
+    "pickFile": "Select File",
+    "fileSelected": "File selected successfully",
+    "noFile": "No file selected",
+    "required": "This file is required",
+    "selectReport": "Upload approved report file",
+    "selectProof": "Upload indexing proof",
+    "selectPaper": "Upload research paper"
+  },
+  "localJournalCriteria": {
+  "criteria1": "Recognized institution/publisher",
+  "criteria2": "Regularly published",
+  "criteria3": "Indexed in databases",
+  "criteria4": "Peer-reviewed",
+  "criteria5": "Specialized",
+  "criteria6": "Electronic management system",
+  "criteria7": "Full official website",
+  "criteria8": "Distinguished editorial board"
+}
+}

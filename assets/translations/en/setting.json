@@ -1,0 +1,30 @@
+{
+  "settings": {
+    "title": "Settings",
+    "username": "Username",
+    "email": "Email",
+    "address": "Address",
+    "phone": "Phone Number",
+    "save": "Save Changes",
+    "success": "Data updated successfully",
+    "image_success": "Profile image updated successfully",
+    "error": "An error occurred while updating",
+    "error_user_not_found": "User data not found in the system",
+    "error_db": "Database connection error",
+    "error_unknown": "An unexpected error occurred",
+    "personal_info": "Personal Information",
+    "name_ar": "Name in Arabic",
+    "name_en": "Name in English",
+    "university_email": "University Email",
+    "address_ar": "Address in Arabic",
+    "address_en": "Address in English",
+    "app_settings": "App Settings",
+    "change_language": "Change Language (عربي / English)",
+    "dark_mode": "Dark Mode",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "logout": "Logout",
+    "logout_confirm": "Are you sure you want to logout?",
+    "cancel": "Cancel"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "pending_details": {
+    "generic_title": "Request Details",
+    "generic_body": "Details view for other types",
+    "appbar_title": "Research Paper Details",
+    "success_msg": "Research approved successfully",
+    "cannot_open": "Cannot open the file",
+    
+    "journal_name": "Journal Name",
+    "journal_scope": "Journal Scope",
+    "scope_specialized": "Specialized",
+    "scope_non_specialized": "Non-Specialized",
+    "database": "Database",
+    "db_local": "Local Database",
+    "db_other": "Other Database",
+    "journal_level": "Journal Level",
+    "level_local": "Local",
+    "level_international": "International",
+    "quartile": "Quartile",
+    "issn": "ISSN",
+    "journal_url": "Journal URL",
+    "year": "Publication Year",
+    
+    "authors_info": "Authors Information",
+    "author_order": "Author Order",
+    "total_authors": "Total Authors",
+    "same_specialty": "Authors in Same Specialty",
+    "participation_pct": "Participation %",
+    
+    "local_criteria": "Local Journal Criteria",
+    "local_points_total": "Total Journal Points",
+    
+    "attached_files": "Attached Files",
+    "paper_file": "Research Paper File",
+    "indexing_proof": "Indexing Proof",
+    "certified_report": "Certified Report",
+    "not_attached": "Not Attached",
+    
+    "points_summary": "Points Summary",
+    "journal_points": "Journal Points",
+    "admin_score": "Admin Score",
+    "final_points": "Final Points",
+    
+    "no_report_note": "Note: No certified report from the Digital Libraries Committee was uploaded for this paper.",
+    "report_title": "Digital Libraries Committee Report",
+    "open_report": "Open Certified Report File",
+    "score_label": "Enter the committee score found in the report:",
+    "score_hint": "Example: 90.0",
+    "score_note": "* Research points will be calculated automatically based on this score upon nomination.",
+    
+    "approve_btn": "Approve Research",
+    "reject_btn": "Reject Research",
+    "reject_dialog_title": "Reject Research",
+    "reject_hint": "Write the reason for rejection...",
+    "cancel": "Cancel",
+    "confirm_reject": "Confirm Rejection",
+    "rank": "Researcher Rank"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "employee_dashboard": {
+    "welcome": "Welcome",
+    "nav": {
+      "home": "Home",
+      "notifications": "Notifications",
+      "settings": "Settings"
+    },
+    "actions": {
+      "upload_files": "Upload Files",
+      "career_info": "Career Info",
+      "courses": "Courses & Certificates",
+      "promotions": "Promotions"
+    },
+    "sections": {
+      "latest_announcements": "Latest Announcements",
+      "no_announcements": "No announcements available"
+    },
+    "announcement": {
+      "no_title": "No title"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "users_list_doctors": "Users List",
+  "users_list_judges": "Judges List",
+  "users_list_admins": "Admins List",
+  "unknown_error": "Unknown Error",
+  "invalid_role": "Invalid Role",
+  "no_users_found": "No users found"
+}

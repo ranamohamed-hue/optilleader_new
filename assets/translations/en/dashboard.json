@@ -1,0 +1,47 @@
+{
+  "dashboard": {
+    "main_cards": {
+      "new": "New Requests",
+      "reviewing": "Under Review",
+      "evaluated": "Evaluated",
+      "request": "Request"
+    }
+  },
+  "dashboardJudge": {
+    "welcome": "Welcome, {0}",
+    "welcome_title": "Welcome!",
+    "welcome_body": "We are happy to have you on the OptiLeader platform.\nYou can start exploring your features from the menu.",
+    "lets_start": "Let's Start!",
+    "default_name": "Judge",
+    "default_job": "Authorized Evaluator",
+    "system_overview": "System Overview",
+    "welcome_back": "Welcome Back",
+    "no_requests": "No requests to evaluate at the moment",
+    "nomination_for_role": "Nominated for: {role}",
+    "notifications": "Notifications",
+    "cards": {
+      "under_review": "Requests Under Review"
+    },
+    "tooltips": {
+      "profile": "Home",
+      "logout": "Settings"
+    },
+    "recent_requests_title": "Recent Requests",
+    "view_all": "View All",
+    "categories": {
+      "title": "Categories",
+      "dean": "College Dean",
+      "vice_dean": "Vice Dean",
+      "head_dept": "Head of Department",
+      "other": "Other",
+      "quality_manager": "Quality Manager",  
+      "admin_manager": "Admin Manager"
+    }
+  },
+  "judge_orders": {
+    "title": "Assigned Requests",
+    "no_requests": "No requests to evaluate currently",
+    "evaluate": "Evaluate",
+    "role_label": "Running for role:"
+  }
+}

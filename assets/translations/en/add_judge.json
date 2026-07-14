@@ -1,0 +1,33 @@
+{
+  "add_judge": {
+    "add_title": "Add New Judge",
+    "edit_title": "Edit Judge Details",
+    "personal_info": "Personal Information",
+    "job_info": "Work Information",
+    "name_ar": "Name (Arabic)",
+    "name_en": "Name (English)",
+    "email": "Email Address",
+    "phone": "Phone Number",
+    "national_id": "National ID",
+    "employee_id": "Employee ID",
+    "job_ar": "Job Title (Arabic)",
+    "job_en": "Job Title (English)",
+    "address_ar": "Address (Arabic)",
+    "address_en": "Address (English)",
+    "save_changes": "Save Changes",
+    "add_button": "Add Judge",
+    "required": "This field is required",
+    "invalid_email": "Invalid email format",
+    "edit_success": "Updated successfully",
+    "add_success": "Judge added successfully",
+    "email_in_use": "This email is already in use",
+    "weak_password": "Weak password (National ID must be at least 6 digits)",
+    "auth_error": "An error occurred while creating the account",
+    "view_profile": "View Profile",
+    "edit_mode": "Edit",
+    "lock_mode": "Lock Editing",
+    "digital_archive": "Digital Archive",
+    "no_archive": "No files in archive",
+    "add_archive": "Add File to Archive"
+  }
+}

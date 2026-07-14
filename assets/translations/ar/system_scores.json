@@ -1,0 +1,30 @@
+    {
+        "system_scores": {
+      "title": "درجات النظام الآلي",
+      "point_unit": "نقطة",
+      "summary": {
+        "courses": "الدورات التدريبية",
+        "conferences": "المؤتمرات",
+        "exhibitions": "المعارض الفنية",
+        "research": "الأبحاث العلمية",
+        "activities": "الأنشطة الأكاديمية"
+      },
+      "details_title": "تفاصيل الإنجازات",
+      "no_details": "لا توجد إنجازات مُقيّمة",
+      "no_title": "بدون عنوان",
+      "chip_labels": {
+        "type": "النوع",
+        "category": "التصنيف",
+        "details": "التفاصيل"
+      },
+      "types": {
+        "training_course": "دورة تدريبية",
+        "conference": "مؤتمر",
+        "art_exhibition": "معرض فني",
+        "art_exhibition_suspended": "معرض فني (بحث معلق)",
+        "research_paper": "بحث علمي",
+        "teaching_activity": "نشاط تدريسي",
+        "research_activity": "نشاط بحثي",
+        "community_activity": "نشاط مجتمعي"
+      }}}
+    

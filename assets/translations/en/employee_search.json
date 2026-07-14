@@ -1,0 +1,14 @@
+{
+  "employee_search": {
+    "title": "Search Employees",
+    "by_name": "Search by Name",
+    "by_id": "Search by ID",
+    "hint_name": "Type employee name...",
+    "hint_id": "Type employee ID...",
+    "start_searching": "Start typing name or ID to search",
+    "error": "An error occurred during search",
+    "no_users": "No results match the search",
+    "employee_id_label": "Employee ID: {0}",
+    "edit": "Edit"
+  }
+}

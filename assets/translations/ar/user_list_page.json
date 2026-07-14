@@ -1,0 +1,8 @@
+{
+  "users_list_doctors": "قائمة المستخدمين",
+  "users_list_judges": "قائمة المحكمين",
+  "users_list_admins": "قائمة الإداريين",
+  "unknown_error": "خطأ غير معروف",
+  "invalid_role": "دور غير صالح",
+  "no_users_found": "لا يوجد مستخدمين حالياً"
+}

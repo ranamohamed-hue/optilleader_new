@@ -1,0 +1,29 @@
+{
+  "dashboard": {
+    "welcome": "Welcome",
+    "welcome_title": "Welcome!",
+    "welcome_body": "We are happy to have you on the OptiLeader platform.\nYou can start exploring your features from the side menu.",
+    "lets_start": "Let's Start!",
+    "system_admin": "System Admin",
+    "admin_role": "Admin",
+    "greeting": "Welcome",
+    "new_requests": "New Requests",
+    "under_review": "Under Review",
+    "add_announcement": "Add Announcement",
+    "pending_approvals": "Pending Approvals (Research/Activities)",
+    "no_data": "No Data Available",
+    "retry": "Retry",
+    "error": "An error occurred"
+  },
+
+  "sidebar": {
+    "home": "Home",
+    "profile": "Profile",
+    "orders": "Orders",
+    "announcements": "Announcements",
+    "search": "Search Users",
+    "notifications": "Notifications",
+    "settings": "Settings",
+    "logout": "Logout"
+  }
+}

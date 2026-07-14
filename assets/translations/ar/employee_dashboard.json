@@ -1,0 +1,23 @@
+{
+  "employee_dashboard": {
+    "welcome": "أهلاً بك",
+    "nav": {
+      "home": "الرئيسية",
+      "notifications": "الإشعارات",
+      "settings": "الإعدادات"
+    },
+    "actions": {
+      "upload_files": "رفع الملفات",
+      "career_info": "البيانات الوظيفية",
+      "courses": "الدورات والشهادات",
+      "promotions": "الترقيات"
+    },
+    "sections": {
+      "latest_announcements": "أحدث الإعلانات",
+      "no_announcements": "لا توجد إعلانات حالياً"
+    },
+    "announcement": {
+      "no_title": "بدون عنوان"
+    }
+  }
+}

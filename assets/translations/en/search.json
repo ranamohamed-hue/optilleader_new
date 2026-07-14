@@ -1,0 +1,11 @@
+{
+  "search": {
+    "app_bar_title": "Search Employee",
+    "hint": "Search by name or ID...",
+    "employee_services": "Staff Data",
+    "no_users": "No employees found",
+    "loading": "Loading data...",
+    "error_message": "Error occurred: {}",
+    "employee_id_label": "Employee ID: {}"
+  }
+}

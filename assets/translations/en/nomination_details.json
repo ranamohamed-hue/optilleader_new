@@ -1,0 +1,87 @@
+{
+  "nomination_details": {
+    "title": "Request Details",
+    "loading": "Loading...",
+    "doctor_info": {
+      "submission_date": "Submission Date"
+    },
+    "info_card": {
+      "title": "Request Information",
+      "id": "Request ID",
+      "college": "College",
+      "department": "Department",
+      "status": "Current Status",
+      "rejection_reason": "Rejection Reason"
+    },
+    "declaration": {
+      "title": "Declaration File",
+      "view_file": "View File",
+      "no_file": "No file attached"
+    },
+    "evaluator": {
+      "title": "Evaluator Assessment",
+      "evaluator_name": "Evaluator",
+      "interview_date": "Interview Date",
+      "interview_location": "Interview Location",
+      "interview_time": "Interview Time",
+      "notes": "Evaluator Notes",
+      "no_notes": "No notes available"
+    },
+   "actions": {
+    "transfer": "Transfer to Evaluator",
+    "reject": "Reject Request",
+    "final_approval": "Final Approval",
+    "final_reject": "Final Reject",
+    "cancel": "Cancel",
+    "confirm_reject": "Confirm Rejection",
+    "select_evaluator": "Select Evaluator",
+    "no_evaluators": "No available evaluators currently"
+},
+    "statuses": {
+      "pending_admin": "Pending Admin Review",
+      "pending_evaluator": "Pending Evaluator Assessment",
+      "evaluated": "Evaluated",
+      "final_approved": "Final Approved",
+      "final_approved_pending": "Accepted - Pending Announcement",
+      "rejected_admin": "Rejected by Admin",
+      "final_rejected": "Final Rejected"
+    },
+    "evaluation": {
+      "scores": {
+        "scientific": "Scientific Section",
+        "leadership": "Development & Leadership",
+        "student_activities": "Student Activities",
+        "community_activities": "Community Activities",
+        "human_relation": "Human Relations"
+      }
+    },
+    "system_scores": {
+      "title": "System Scores",
+      "point_unit": "Points",
+      "details_title": "Score Details",
+      "no_details": "No details available",
+      "no_title": "Not specified",
+      "summary": {
+        "courses": "Courses",
+        "conferences": "Conferences",
+        "exhibitions": "Exhibitions",
+        "research": "Research",
+        "activities": "Activities"
+      },
+      "chip_labels": {
+        "type": "Type",
+        "category": "Category",
+        "details": "Details"
+      },
+      "types": {
+        "training_course": "Training Course",
+        "conference": "Conference",
+        "art_exhibition": "Art Exhibition",
+        "research_paper": "Research Paper",
+        "teaching_activity": "Teaching Activity",
+        "research_activity": "Research Activity",
+        "community_activity": "Community Activity"
+      }
+    }
+  }
+}

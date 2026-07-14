@@ -1,0 +1,27 @@
+{"acadimic_Data":{
+  "statuses": {
+    "active": "Active",
+    "inactive": "Inactive"
+  },
+  "academicData": {
+    "title": "Academic Data",
+    "personal_section": "Personal Information",
+    "academic_section": "Academic & Professional Record",
+    "contact_section": "Contact Information",
+    "name": "Name",
+    "phone": "Phone Number",
+    "social_status": "Social Status",
+    "birth_date": "Date of Birth",
+    "job": "Current Job",
+    "email": "Email Address",
+    "address": "Address",
+    "save_btn": "Save Data"
+  },
+  "add_doctor": {
+    "university": "University",
+    "faculty": "Faculty",
+    "department": "Department"
+  },
+  "error_message": "An unexpected error occurred",
+  "retry": "Retry"
+}}

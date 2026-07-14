@@ -1,0 +1,29 @@
+{
+  "dashboard": {
+    "welcome": "مرحباً",
+    "welcome_title": "أهلاً بك!",
+    "welcome_body": "يسعدنا انضمامك لمنصة OptiLeader.\nيمكنك البدء في استكشاف الميزات الخاصة بك من القائمة الجانبية.",
+    "lets_start": "لنبدأ!",
+    "system_admin": "مدير النظام",
+    "admin_role": "مدير النظام",
+    "greeting": "مرحباً",
+    "new_requests": "طلبات جديدة",
+    "under_review": "قيد المراجعة",
+    "add_announcement": "إضافة إعلان",
+    "pending_approvals": "الموافقات المعلقة (أبحاث/أنشطة)",
+    "no_data": "لا توجد بيانات",
+    "retry": "إعادة المحاولة",
+    "error": "حدث خطأ"
+  },
+
+  "sidebar": {
+    "home": "الرئيسية",
+    "profile": "الملف الشخصي",
+    "orders": "الطلبات",
+    "announcements": "الإعلانات",
+    "search": "بحث المستخدمين",
+    "notifications": "الإشعارات",
+    "settings": "الإعدادات",
+    "logout": "تسجيل الخروج"
+  }
+}

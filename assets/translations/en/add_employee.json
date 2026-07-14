@@ -1,0 +1,29 @@
+{
+  "add_employee": {
+    "title": "Add Administrative Employee",
+    "save_data": "Save Data",
+    "success_message": "Employee added successfully",
+    "fields": {
+      "name_ar": "Name (Arabic)",
+      "name_en": "Name (English)",
+      "national_id": "National ID",
+      "employee_id": "Employee ID",
+      "email": "University Email",
+      "phone": "Phone Number",
+      "job_ar": "Current Job (Arabic)",
+      "job_en": "Current Job (English)",
+      "degree": "Academic Degree",
+      "grad_year": "Graduation Year",
+      "experience_years": "Years of Administrative Experience"
+    },
+    "switches": {
+      "criminal_record": "Has criminal record",
+      "party_position": "Holds a party position",
+      "disciplinary_clearance": "Has disciplinary penalties (not cleared)",
+      "excellent_reports": "Excellent rating in the last 4 reports"
+    }
+  },
+  "validation": {
+    "required": "This field is required"
+  }
+}

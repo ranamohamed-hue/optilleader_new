@@ -1,0 +1,29 @@
+{
+  "nomination.app_bar_title": "Apply for Announcement",
+  "nomination.role_label": "Job Role:",
+  "nomination.scores_title": "Automated Evaluation Scores",
+  "nomination.points_unit": "Points",
+  "nomination.total_label": "Total",
+  "nomination.declarations_title": "Declarations File",
+  "nomination.declarations_instructions": "Please upload the signed declarations file (PDF, DOCX, JPG, ZIP)",
+  "nomination.pick_file": "Pick File",
+  "nomination.error_no_file": "Please select the declarations file first",
+  "nomination.button_submitting": "Submitting...",
+  "nomination.button_submit": "Submit Request",
+  
+  "error_fetch_requests": "Failed to fetch requests",
+  "error_fetch_evaluator_requests": "Failed to fetch evaluation requests",
+  "error_upload_declaration": "Failed to upload declarations file",
+  "error_submit_request": "Failed to submit request",
+  "error_update_request": "Failed to update request status",
+  "error_evaluation_submit": "Failed to submit evaluation",
+  "error_unexpected": "An unexpected error occurred",
+  "success_submit_request": "Nomination request submitted successfully",
+  "success_action_taken": "Action taken successfully",
+  "success_evaluation_submitted": "Evaluation submitted successfully",
+  "nomination.mandatory_criteria": "Mandatory Criteria",
+  "nomination.no_criteria": "No mandatory criteria for this role",
+  "nomination.course_points": "Training Courses Points",
+  "error_duplicate_request": "You already have a pending request for this position"
+
+}

@@ -1,0 +1,59 @@
+{
+  "pending_details": {
+    "generic_title": "تفاصيل الطلب",
+    "generic_body": "عرض التفاصيل للأنواع الأخرى",
+    "appbar_title": "تفاصيل البحث العلمي",
+    "success_msg": "تم اعتماد البحث بنجاح",
+    "cannot_open": "لا يمكن فتح الملف",
+    
+    "journal_name": "اسم المجلة",
+    "journal_scope": "نطاق المجلة",
+    "scope_specialized": "متخصصة",
+    "scope_non_specialized": "غير متخصصة",
+    "database": "قاعدة البيانات",
+    "db_local": "قاعدة بيانات محلية",
+    "db_other": "قاعدة بيانات أخرى",
+    "journal_level": "مستوى المجلة",
+    "level_local": "محلية",
+    "level_international": "دولية",
+    "quartile": "التصنيف (Quartile)",
+    "issn": "الرقم الدولي (ISSN)",
+    "journal_url": "رابط المجلة",
+    "year": "سنة النشر",
+    
+    "authors_info": "بيانات الباحثين",
+    "author_order": "ترتيب الباحث",
+    "total_authors": "إجمالي الباحثين",
+    "same_specialty": "باحثين في نفس التخصص",
+    "participation_pct": "نسبة المشاركة",
+    
+    "local_criteria": "شروط المجلات المحلية",
+    "local_points_total": "إجمالي نقاط المجلة",
+    
+    "attached_files": "الملفات المرفقة",
+    "paper_file": "ملف البحث",
+    "indexing_proof": "إثبات الفهرسة",
+    "certified_report": "التقرير المعتمد",
+    "not_attached": "غير مرفق",
+    
+    "points_summary": "ملخص النقاط الآلي",
+    "journal_points": "نقاط المجلة",
+    "admin_score": "درجة الأدمن",
+    "final_points": "المجموع النهائي",
+    
+    "no_report_note": "ملاحظة: لم يتم رفع تقرير لجنة المكتبات الرقمية لهذا البحث.",
+    "report_title": "تقرير لجنة المكتبات الرقمية",
+    "open_report": "فتح ملف التقرير المعتمد",
+    "score_label": "أدخل درجة اللجنة الموجودة في التقرير:",
+    "score_hint": "مثال: 90.0",
+    "score_note": "* سيتم حساب نقاط البحث أوتوماتيكياً بناءً على هذه الدرجة عند الترشيح.",
+    
+    "approve_btn": "اعتماد البحث",
+    "reject_btn": "رفض البحث",
+    "reject_dialog_title": "رفض البحث",
+    "reject_hint": "اكتب سبب الرفض...",
+    "cancel": "إلغاء",
+    "confirm_reject": "تأكيد الرفض",
+    "rank": "ترتيب الباحث"
+  }
+}

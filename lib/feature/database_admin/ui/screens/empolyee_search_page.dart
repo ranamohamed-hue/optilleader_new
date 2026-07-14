@@ -1,0 +1,258 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:go_router/go_router.dart';
+import 'package:optialeader/core/routing/routes.dart';
+import 'package:optialeader/feature/database_admin/logic/search/search_cubit.dart';
+import 'package:optialeader/feature/database_admin/logic/search/search_state.dart';
+import 'package:optialeader/feature/database_admin/data/models/search_user_model.dart';
+import 'dart:ui' as ui;
+
+class UserSearchScreen extends StatefulWidget {
+  const UserSearchScreen({super.key});
+
+  @override
+  State<UserSearchScreen> createState() => _UserSearchScreenState();
+}
+
+class _UserSearchScreenState extends State<UserSearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _currentSearchField = 'username'; // افتراضي بالاسم
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _performSearch() {
+    if (_searchController.text.trim().isNotEmpty) {
+      context.read<SearchCubit>().searchUsers(
+            query: _searchController.text.trim(),
+            searchField: _currentSearchField,
+          );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isAr = context.locale.languageCode == 'ar';
+
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text('search.app_bar_title'.tr()),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back_ios_new, size: 20.sp),
+          onPressed: () {
+            if (context.canPop()) {
+              context.pop();
+            } else {
+              context.go(Routes.admin);
+            }
+          },
+        ),
+      ),
+      body: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          children: [
+            // ✅ [رجعنا] أزرار الاختيار (بالعربي عشان السهولة)
+            Row(
+              children: [
+                ChoiceChip(
+                  label: const Text("بحث بالاسم"),
+                  selected: _currentSearchField == 'username',
+                  selectedColor: colorScheme.secondary,
+                  onSelected: (bool selected) {
+                    if (selected) {
+                      setState(() => _currentSearchField = 'username');
+                      _performSearch();
+                    }
+                  },
+                ),
+                SizedBox(width: 10.w),
+                ChoiceChip(
+                  label: const Text("بحث بالرقم الوظيفي"),
+                  selected: _currentSearchField == 'employee_id',
+                  selectedColor: colorScheme.secondary,
+                  onSelected: (bool selected) {
+                    if (selected) {
+                      setState(() => _currentSearchField = 'employee_id');
+                      _performSearch();
+                    }
+                  },
+                ),
+              ],
+            ),
+            SizedBox(height: 15.h),
+
+            // حقل البحث
+            TextField(
+              controller: _searchController,
+              textAlign: isAr ? TextAlign.right : TextAlign.left,
+              decoration: InputDecoration(
+                hintText: _currentSearchField == 'username' ? "اكتب اسم الموظف..." : "اكتب الرقم الوظيفي...",
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    context.read<SearchCubit>().searchUsers(
+                          query: '',
+                          searchField: _currentSearchField,
+                        );
+                  },
+                ),
+              ),
+              onChanged: (value) {
+                if (value.length >= 2) {
+                  _performSearch();
+                } else if (value.isEmpty) {
+                  context.read<SearchCubit>().searchUsers(
+                        query: '',
+                        searchField: _currentSearchField,
+                      );
+                }
+              },
+            ),
+            SizedBox(height: 20.h),
+
+            // عرض النتائج
+            Expanded(
+              child: BlocBuilder<SearchCubit, SearchState>(
+                builder: (context, state) {
+                  if (state is SearchLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (state is SearchSuccess) {
+                    final users = state.users;
+
+                    if (users.isEmpty) {
+                      return const Center(child: Text("لا توجد بيانات مطابقة"));
+                    }
+
+                    return ListView.builder(
+                      itemCount: users.length,
+                      itemBuilder: (context, index) {
+                        return _buildUserCard(context, users[index]);
+                      },
+                    );
+                  }
+
+                  if (state is SearchError) {
+                    return const Center(child: Text("حدث خطأ في البحث"));
+                  }
+
+                  return const Center(child: Text("ابدأ بكتابة الاسم أو الرقم الوظيفي"));
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildUserCard(BuildContext context, SearchUserModel user) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isAr = context.locale.languageCode == 'ar';
+
+    return Card(
+      margin: EdgeInsets.only(bottom: 16.h),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+      child: InkWell(
+        onTap: () {
+          // ✅ تحديد المسار بناءً على دور الموظف
+          String route = '';
+          if (user.role == 'doctor') {
+            route = Routes.addDoctorPage;
+          } else if (user.role == 'judge') {
+            route = Routes.addJudgePage;
+          } else if (user.role == 'admin') {
+            route = Routes.addAdminPage;
+          }
+
+          // ✅ الانتقال لصفحة العرض المجمد
+          if (route.isNotEmpty) {
+            context.push(
+              route,
+              extra: {
+                'existingUid': user.uid, // تأكدي إن الـ SearchUserModel فيه متغير uid
+                'isViewMode': true,
+              },
+            );
+          }
+        },
+        borderRadius: BorderRadius.circular(12.r),
+        child: Padding(
+          padding: EdgeInsets.all(16.w),
+          child: Row(
+            textDirection: isAr ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+            children: [
+              _buildProfileImage(colorScheme, user.profileImage),
+              SizedBox(width: 15.w),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isAr ? user.nameAr : user.nameEn,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14.sp,
+                      ),
+                    ),
+                    SizedBox(height: 5.h),
+                    Chip(
+                      padding: EdgeInsets.zero,
+                      labelPadding: EdgeInsets.symmetric(horizontal: 8.w),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      label: Text(
+                        user.role,
+                        style: TextStyle(color: Colors.white, fontSize: 10.sp),
+                      ),
+                      backgroundColor: colorScheme.primary,
+                    ),
+                    SizedBox(height: 5.h),
+                    Text(
+                      'رقم وظيفي: ${user.employeeId}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 11.sp,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.email_outlined, color: colorScheme.secondary, size: 18.sp),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildProfileImage(ColorScheme colorScheme, String imageUrl) {
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(color: colorScheme.secondary, width: 2),
+      ),
+      child: CircleAvatar(
+        radius: 30.r,
+        backgroundColor: colorScheme.surfaceContainerHighest,
+        backgroundImage: imageUrl.isNotEmpty ? NetworkImage(imageUrl) : null,
+        child: imageUrl.isEmpty ? Icon(Icons.person, color: colorScheme.primary, size: 30.sp) : null,
+      ),
+    );
+  }
+}

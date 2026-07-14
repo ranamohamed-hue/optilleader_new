@@ -1,0 +1,45 @@
+{
+  "employee_courses": {
+    "page_title": "الدورات والشهادات",
+    "add_button": "إضافة دورة",
+    "no_courses": "لا توجد دورات مسجلة",
+    "no_courses_hint": "اضغط على زر الإضافة لتسجيل دوراتك التدريبية وشهاداتك",
+    "hours": "ساعة",
+    "rejection_reason": "سبب الرفض",
+    "view_pdf": "عرض ملف PDF",
+    "delete_confirm_title": "تأكيد الحذف",
+    "delete_confirm_body": "هل أنت متأكد من حذف هذه الدورة؟ لا يمكن التراجع عن هذا الإجراء.",
+    "pick_file_title": "اختر مصدر الشهادة",
+    "pick_image": "المعرض",
+    "pick_camera": "الكاميرا",
+    "success_added": "تم إضافة الدورة بنجاح وستتم مراجعتها",
+    "error_upload": "حدث خطأ أثناء رفع البيانات",
+    "error_certificate_required": "يجب إرفاق صورة الشهادة",
+    "add_new_title": "إضافة دورة جديدة",
+    "error_delete": "فشل حذف الدورة",
+    "status": {
+      "pending": "قيد المراجعة",
+      "approved": "مقبولة",
+      "rejected": "مرفوضة"
+    },
+    "types": {
+      "general": "عامة",
+      "specialized": "متخصصة",
+      "administrative": "إدارية",
+      "mandatory_leadership": "قيادية إجبارية"
+    },
+    "form": {
+      "title": "اسم الدورة",
+      "hint_title": "أدخل اسم الدورة التدريبية",
+      "organization": "الجهة المنظمة",
+      "hint_org": "مثال: مركز التدريب - جامعة المنصورة",
+      "type": "نوع الدورة",
+      "date": "تاريخ الإتمام",
+      "hours": "عدد الساعات",
+      "certificate": "شهادة إتمام الدورة",
+      "hint_certificate": "اضغط لاختيار صورة الشهادة",
+      "submit": "حفظ وإرسال للمراجعة",
+      "required": "هذا الحقل مطلوب"
+    }
+  }
+}

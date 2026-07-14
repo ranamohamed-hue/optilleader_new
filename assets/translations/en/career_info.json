@@ -1,0 +1,36 @@
+{
+  "career": {
+    "title": "Career Information",
+    "sections": {
+      "credentials": "Academic Credentials",
+      "path": "Career Path",
+      "current_employment": "Current Employment Data"
+    },
+    "degrees": {
+      "phd": "Ph.D.",
+      "msc": "Master's Degree",
+      "bsc": "Bachelor's Degree"
+    },
+    "specs": {
+      "computer_eng": "Computer Engineering",
+      "software_eng": "Software Engineering",
+      "computer_science": "Computer Science"
+    },
+    "current_role": "Current Position: {}",
+    "experience": "Years of experience: {} years",
+    "previous_positions": "Previous Positions:",
+    "no_history": "No Academic History",
+    "no_previous_roles": "No Previous Positions",
+    "roles": {
+      "lecturer": "Lecturer",
+      "ta": "Teaching Assistant"
+    },
+    "labels": {
+      "dept": "Department:",
+      "type": "Employment Type:",
+      "hire_date": "Original Hire Date:"
+    },
+    "employment_type": {
+      "permanent": "Permanent",
+"temporary": "Temporary"    }
+  }}

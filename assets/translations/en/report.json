@@ -1,0 +1,70 @@
+{
+  "report": {
+    "title": "Request Details",
+    "header": {
+      "role_label": "Running for role:"
+    },
+    "system_points": {
+      "title": "Automated Evaluation Scores",
+      "point_unit": "Points",
+      "total": "Total Score"
+    },
+    "declaration": {
+      "open_link_msg": "Declaration file will open in the browser",
+      "view_file": "View attached declaration file"
+    },
+    "actions": {
+      "transfer_title": "Transfer to Evaluator",
+      "choose_judge": "Choose Evaluator",
+      "judge_required": "Please select an evaluator first",
+      "reject": "Reject",
+      "transfer": "Transfer",
+      "approve": "Approve"
+    },
+    "reject_dialog": {
+      "title": "Rejection Reason",
+      "hint": "Write the reason here...",
+      "cancel": "Cancel",
+      "confirm": "Confirm Rejection"
+    },
+    "evaluation_report": {
+      "title": "Psychological & Behavioral Evaluation Report",
+      "evaluator_name": "Evaluator Name:",
+      "not_specified": "Not Specified",
+      "interview_date": "Interview Date:",
+      "not_set": "Not Set",
+      "score": "Evaluation Score:",
+      "notes_label": "Evaluator Notes:",
+      "no_notes": "No notes",
+      "final_decision": "Final Decision:",
+      "final_reject": "Final Reject",
+      "final_approve": "Final Approve"
+    },
+    "messages": {
+      "update_success": "Score updated successfully",
+      "error_calculate": "An error occurred during calculation",
+      "repeat_calculate": "Recalculate"
+    },
+        "categories": {
+      "activity_or_research": "Activity/Research",
+      "type": "Type",
+      "details": "Details",
+      "degree": "Degree",
+      "no_degree": "No scores calculated for this request",
+      "judge_error": "Error loading evaluators",
+      "no_judge": "No active evaluators currently",
+      "category": "Category",
+      "scope": "Scope",
+      "status": "Status"
+    },
+    "evaluation": {
+      "scores": {
+        "scientific": "Scientific Score",
+        "leadership": "Leadership & Development",
+        "student_activities": "Student Activities",
+        "community_activities": "Community Activities",
+        "human_relation": "Human Relation"
+      }
+    }
+  }
+}

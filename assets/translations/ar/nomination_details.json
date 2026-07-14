@@ -1,0 +1,87 @@
+{
+  "nomination_details": {
+    "title": "تفاصيل الطلب",
+    "loading": "جار التحميل ..",
+    "doctor_info": {
+      "submission_date": "تاريخ التقديم"
+    },
+    "info_card": {
+      "title": "معلومات الطلب",
+      "id": "رقم الطلب",
+      "college": "الكلية",
+      "department": "القسم",
+      "status": "الحالة الحالية",
+      "rejection_reason": "سبب الرفض"
+    },
+    "declaration": {
+      "title": "ملف الإقرار",
+      "view_file": "عرض الملف",
+      "no_file": "لا يوجد ملف مرفق"
+    },
+    "evaluator": {
+      "title": "تقييم المقيم",
+      "evaluator_name": "المقيم",
+      "interview_date": "تاريخ المقابلة",
+      "interview_location": "مكان المقابلة",
+      "interview_time": "موعد المقابلة",
+      "notes": "ملاحظات المقيم",
+      "no_notes": "لا توجد ملاحظات"
+    },
+   "actions": {
+    "transfer": "تحويل إلى المقيم",
+    "reject": "رفض الطلب",
+    "final_approval": "الموافقة النهائية",
+    "final_reject": "رفض نهائي",
+    "cancel": "إلغاء",
+    "confirm_reject": "تأكيد الرفض",
+    "select_evaluator": "اختيار المقيم",
+    "no_evaluators": "لا يوجد مقيمين متاحين حالياً"
+},
+    "statuses": {
+      "pending_admin": "بإنتظار مراجعة الإدارة",
+      "pending_evaluator": "بإنتظار تقييم المقيم",
+      "evaluated": "تم التقييم",
+      "final_approved": "مقبول نهائياً",
+      "final_approved_pending": "مقبول - بإنتظار الإعلان",
+      "rejected_admin": "مرفوض من الإدارة",
+      "final_rejected": "مرفوض نهائياً"
+    },
+    "evaluation": {
+      "scores": {
+        "scientific": "القسم العلمي",
+        "leadership": "التطوير والقيادة",
+        "student_activities": "الأنشطة الطلابية",
+        "community_activities": "الأنشطة المجتمعية",
+        "human_relation": "العلاقات الإنسانية"
+      }
+    },
+    "system_scores": {
+      "title": "درجات النظام",
+      "point_unit": "نقطة",
+      "details_title": "تفاصيل الدرجات",
+      "no_details": "لا توجد تفاصيل",
+      "no_title": "غير محدد",
+      "summary": {
+        "courses": "الدورات",
+        "conferences": "المؤتمرات",
+        "exhibitions": "المعارض",
+        "research": "الأبحاث",
+        "activities": "الأنشطة"
+      },
+      "chip_labels": {
+        "type": "النوع",
+        "category": "الفئة",
+        "details": "التفاصيل"
+      },
+      "types": {
+        "training_course": "دورة تدريبية",
+        "conference": "مؤتمر",
+        "art_exhibition": "معرض فني",
+        "research_paper": "بحث علمي",
+        "teaching_activity": "نشاط تدريسي",
+        "research_activity": "نشاط بحثي",
+        "community_activity": "نشاط مجتمعي"
+      }
+    }
+  }
+}

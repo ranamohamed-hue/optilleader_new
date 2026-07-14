@@ -1,0 +1,71 @@
+{
+  "addResearch": {
+    "title": "إضافة بحث علمي جديد",
+    "titleAr": "عنوان البحث (عربي)",
+    "titleEn": "عنوان البحث (إنجليزي)",
+    "journalName": "اسم المجلة",
+    "journalScopeLabel": "نطاق المجلة",
+    "scopeSpecialized": "متخصصة",
+    "scopeNonSpecialized": "غير متخصصة",
+    "journalLevelLabel": "مستوى المجلة",
+    "levelInternational": "دولية",
+    "levelLocal": "محلية",
+    "indexingDatabaseLabel": "قاعدة الفهرسة",
+    "dbScopus": "Scopus",
+    "dbWebOfScience": "Web of Science",
+    "dbLocal": "محلية",
+    "issn": "ISSN",
+    "impactFactor": "معامل التأثير",
+    "publicationYear": "سنة النشر",
+    "authorOrder": "ترتيب المؤلف",
+    "totalAuthors": "إجمالي المؤلفين",
+    "authorsInSameSpecialty": "عدد المؤلفين في نفس التخصص",
+    "authorsInSameSpecialtyHint": "يجب أن يكون أكبر من أو يساوي ترتيبك",
+    "isTopTierJournal": "مجلة ذات تصنيف متميز",
+    "isTopTierJournalHint": "هل المجلة مصنفة ضمن الفئات الأولى؟",
+    "journalUrl": "رابط المجلة",
+    "paperFile": "ملف البحث (PDF/Image)",
+    "indexingProof": "إثبات الفهرسة",
+    "indexingProofLabelDynamic": "إثبات فهرسة",
+    "fileRequired": "يرجى اختيار ملف البحث",
+    "indexingProofRequired": "يرجى اختيار ملف إثبات الفهرسة",
+    "success": "تم إضافة البحث بنجاح",
+    "submit": "حفظ وإرسال"
+  },
+  "addActivity": {
+    "title": "إضافة نشاط جديد",
+    "type": "نوع النشاط",
+    "activityTitle": "عنوان النشاط",
+    "organization": "الجهة المنظمة",
+    "date": "التاريخ",
+    "durationHours": "عدد الساعات",
+    "fileRequired": "يرجى اختيار ملف الشهادة",
+    "success": "تم إضافة النشاط بنجاح"
+  },
+  "validation": {
+    "required": "هذا الحقل مطلوب"
+  },
+  "common": {
+    "other": "أخرى",
+    "required": "مطلوب"
+  },
+  "filePicker": {
+  "pickFile": "اختر الملف",
+  "fileSelected": "تم اختيار الملف بنجاح",
+  "noFile": "لم يتم اختيار ملف",
+  "required": "هذا الملف مطلوب",
+  "selectReport": "رفع ملف التقرير المعتمد",
+  "selectProof": "رفع إثبات الفهرسة",
+  "selectPaper": "رفع ملف البحث"
+},
+"localJournalCriteria": {
+  "criteria1": "جهة معترف بها",
+  "criteria2": "منتظمة الإصدار",
+  "criteria3": "مكشفة في قواعد بيانات",
+  "criteria4": "محكمة تحكيماً علمياً",
+  "criteria5": "متخصصة",
+  "criteria6": "نظام إداري إلكتروني",
+  "criteria7": "موقع إلكتروني رسمي كامل",
+  "criteria8": "هيئة تحرير متميزة"
+}
+}

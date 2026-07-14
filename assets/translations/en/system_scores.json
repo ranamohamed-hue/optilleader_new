@@ -1,0 +1,29 @@
+{    "system_scores": {
+      "title": "Automated System Scores",
+      "point_unit": "Points",
+      "summary": {
+        "courses": "Training Courses",
+        "conferences": "Conferences",
+        "exhibitions": "Art Exhibitions",
+        "research": "Scientific Research",
+        "activities": "Academic Activities"
+      },
+      "details_title": "Achievements Details",
+      "no_details": "No evaluated achievements",
+      "no_title": "Untitled",
+      "chip_labels": {
+        "type": "Type",
+        "category": "Category",
+        "details": "Details"
+      },
+      "types": {
+        "training_course": "Training Course",
+        "conference": "Conference",
+        "art_exhibition": "Art Exhibition",
+        "art_exhibition_suspended": "Art Exhibition (Suspended Research)",
+        "research_paper": "Scientific Research",
+        "teaching_activity": "Teaching Activity",
+        "research_activity": "Research Activity",
+        "community_activity": "Community Activity"
+      }
+    }}

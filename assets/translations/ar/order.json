@@ -1,0 +1,24 @@
+{
+  "orders": {
+    "title": "قائمة الطلبات",
+    "search_hint": "ابحث عن موظف أو طلب...",
+    "no_requests": "لا توجد طلبات في هذا القسم",
+    "nomination_for_role": "ترشح لدور: {role} - {date}",
+    "tabs": {
+      "new_requests": "طلبات جديدة",
+      "pending_evaluator": "قيد التحكيم",
+      "evaluated": "تم التقييم",
+      "approved": "مقبولين نهائياً"
+    },
+    "status": {
+      "new": "طلب جديد",
+      "review": "قيد المراجعة",
+      "approved": "تمت الموافقة",
+      "evaluated": "تم التقييم",
+      "approved_final": "مقبول نهائياً",
+      "approved_pending_announcement": "مقبول (بانتظار الإعلان)",
+      "pending_evaluator": "قيد التقييم",
+      "rejected": "مرفوض"
+    }
+  }
+}

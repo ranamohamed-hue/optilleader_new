@@ -1,0 +1,19 @@
+{
+  "upload": {
+    "title": "Upload New Document",
+    "subtitle": "Add File to Archive",
+    "click_to_select": "Click to select a file or drag it here",
+    "file_types": "Supported files: PDF, PNG, JPG (Max 10MB)",
+    "label_title": "File Title",
+    "hint_title": "E.g., Master's Certificate, National ID",
+    "label_category": "Category",
+    "hint_category": "Choose the appropriate folder",
+    "label_desc": "Additional Description (Optional)",
+    "hint_desc": "Write extra details about the file here...",
+    "btn_upload": "Save and Send to Archive",
+    "error_file_required": "Please select a file first",
+    "error_title_required": "Please enter a file title",
+    "file_upload_success": "File uploaded to archive successfully!",
+    "unexpected_error": "An unexpected error occurred during upload"
+  }
+}

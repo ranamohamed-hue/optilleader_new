@@ -1,0 +1,24 @@
+{
+  "orders": {
+    "title": "Requests List",
+    "search_hint": "Search for employee or request...",
+    "no_requests": "No requests in this section",
+    "nomination_for_role": "Nominated for: {role} - {date}",
+    "tabs": {
+      "new_requests": "New Requests",
+      "pending_evaluator": "Under Evaluation",
+      "evaluated": "Evaluated",
+      "approved": "Final Approved"
+    },
+    "status": {
+      "new": "New Request",
+      "review": "Under Review",
+      "approved": "Approved",
+      "evaluated": "Evaluated",
+      "approved_final": "Final Approved",
+      "approved_pending_announcement": "Approved (Pending Announcement)",
+      "pending_evaluator": "Under Evaluation",
+      "rejected": "Rejected"
+    }
+  }
+}

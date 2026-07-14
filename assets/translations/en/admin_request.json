@@ -1,0 +1,83 @@
+{
+  "admin_pending": {
+    "title": "Pending Requests",
+    "no_pending": "No pending requests currently",
+    "review_count": "Has {0} review requests",
+    "papers_count": "{0} Papers",
+    "activities_count": "{0} Activities",
+    "journal": "Journal:",
+    "organization": "Org:",
+    "pending_review": "Under Review",
+    "reject_dialog": {
+      "title": "Rejection Reason",
+      "body": "Please provide the reason for rejection",
+      "hint": "Write the rejection reason here...",
+      "cancel": "Cancel",
+      "confirm": "Confirm Rejection"
+    },
+    "default_rejection": "Rejected"
+  },
+  "admin_request": {
+    "title_paper": "Research Paper Details",
+    "title_activity": "Activity Details",
+    "success_msg": "Action completed successfully",
+    "info_card": {
+      "basic_info": "Basic Information",
+      "label_title_ar": "Arabic Title:",
+      "label_title_en": "English Title:",
+      "label_year": "Year:",
+      "label_journal": "Journal URL:",
+      "label_status": "Status:",
+      "status_pending": "Pending"
+    },
+    "journal_card": {
+      "title": "Journal Data",
+      "label_name": "Journal Name:",
+      "label_issn": "ISSN:",
+      "label_if": "Impact Factor (IF):",
+      "label_scope": "Scope:",
+      "label_level": "Level:",
+      "label_indexing": "Indexing DB:",
+      "label_top_tier": "Top Tier Journal:"
+    },
+    "authors_card": {
+      "title": "Authors Data (Article 22)",
+      "label_order": "Author Order:",
+      "label_total": "Total Authors:",
+      "label_same_spec": "Authors in same specialty:"
+    },
+    "files_section": {
+      "title": "Uploaded Files",
+      "label_paper": "Paper File",
+      "label_proof": "Indexing Proof"
+    },
+    "activity_card": {
+      "basic_info": "Basic Activity Data",
+      "label_title": "Activity Title:",
+      "label_org": "Organization:",
+      "label_date": "Date:",
+      "label_hours": "Hours:",
+      "label_part_type": "Participation Type:",
+      "label_type": "Type:"
+    },
+    "course_card": {
+      "title": "Training Course Data",
+      "label_cat": "Course Category:",
+      "label_scope": "Scope:"
+    },
+    "file_row": {
+      "url_error": "URL not found",
+      "open_fail": "Failed to open file"
+    },
+    "actions": {
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "reject_dialog": {
+      "title": "Rejection Reason",
+      "hint": "Write the rejection reason here...",
+      "cancel": "Cancel",
+      "confirm": "Confirm Rejection"
+    }
+  }
+}

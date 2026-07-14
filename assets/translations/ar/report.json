@@ -1,0 +1,70 @@
+{
+  "report": {
+    "title": "تفاصيل الطلب",
+    "header": {
+      "role_label": "الترشح لوظيفة:"
+    },
+    "system_points": {
+      "title": "نتائج التقييم التلقائي",
+      "point_unit": "نقطة",
+      "total": "مجموع النقاط"
+    },
+    "declaration": {
+      "open_link_msg": "سيتم فتح ملف الإقرار في المتصفح",
+      "view_file": "عرض ملف الإقرار المرفق"
+    },
+    "actions": {
+      "transfer_title": "نقل إلى مقيم",
+      "choose_judge": "اختيار المحكم",
+      "judge_required": "يرجى اختيار المحكم أولاً",
+      "reject": "رفض",
+      "transfer": "نقل",
+      "approve": "اعتماد"
+    },
+    "reject_dialog": {
+      "title": "سبب الرفض",
+      "hint": "اكتب السبب هنا...",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد الرفض"
+    },
+    "evaluation_report": {
+      "title": "تقرير التقييم النفسي والسلوكي",
+      "evaluator_name": "اسم المحكم:",
+      "not_specified": "غير محدد",
+      "interview_date": "تاريخ المقابلة:",
+      "not_set": "لم يتم التحديد",
+      "score": "درجة التقييم:",
+      "notes_label": "ملاحظات المحكم:",
+      "no_notes": "لا توجد ملاحظات",
+      "final_decision": "القرار النهائي:",
+      "final_reject": "رفض نهائي",
+      "final_approve": "قبول نهائي"
+    },
+    "messages": {
+      "update_success": "تم تحديث الدرجة بنجاح",
+      "error_calculate": "حدث خطأ أثناء الحساب",
+      "repeat_calculate": "اعادة الحساب"
+    },
+        "categories":{
+      "activity_or_research":"النشاط/البحث",
+      "type":"النوع",
+      "details":"التفاصيل",
+      "degree":"الدرجة",
+      "no_degree":"لا توجد درجات محسوبة لهذا الطلب",
+      "judge_error":"خطأ في تحميل المحكمين",
+      "no_judge":"لا يوجد محكمين نشطين حالياً",
+      "category":"التصنيف",
+      "scope":"النطاق",
+      "status":"الحالة"
+    },
+    "evaluation": {
+      "scores": {
+        "scientific": "القسم العلمي",
+        "leadership": "التطوير والقيادة",
+        "student_activities": "الأنشطة الطلابية",
+        "community_activities": "الأنشطة المجتمعية",
+        "human_relation": "العلاقات الانسانية"
+      }
+    }
+  }
+}
