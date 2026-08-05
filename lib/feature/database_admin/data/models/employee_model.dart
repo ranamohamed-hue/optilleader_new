@@ -22,7 +22,9 @@ class EmployeeModel {
   final String universityEn;
   final String facultyAr;
   final String facultyEn;
-
+final bool? hasAdminExperience; // خبرة موثقة في الإدارة
+  final bool? hasAdminTraining;   // دورات إدارية متخصصة
+  
   // 3. المؤهلات
   final String degree; // بكالوريوس / ليسانس / إلخ
   final String graduationYear;
@@ -66,6 +68,8 @@ class EmployeeModel {
     this.universityEn = '',
     this.facultyAr = '',
     this.facultyEn = '',
+     this.hasAdminExperience,
+  this.hasAdminTraining,
     required this.degree,
     required this.graduationYear,
     this.yearsOfAdminExperience = 0,
@@ -111,6 +115,8 @@ class EmployeeModel {
       universityEn: profile['university_en'] ?? '',
       facultyAr: profile['faculty_ar'] ?? '',
       facultyEn: profile['faculty_en'] ?? '',
+        hasAdminExperience: adminProofs['has_admin_experience'],
+  hasAdminTraining: adminProofs['has_admin_training'],
       degree: json['admin_data']?['degree'] ?? '',
       graduationYear: json['admin_data']?['graduation_year'] ?? '',
       yearsOfAdminExperience: json['admin_data']?['years_of_experience'] ?? 0,
@@ -150,6 +156,8 @@ class EmployeeModel {
         'university_en': universityEn,
         'faculty_ar': facultyAr,
         'faculty_en': facultyEn,
+         'has_admin_experience': hasAdminExperience,
+  'has_admin_training': hasAdminTraining,
         'birth_date': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
       },
       'admin_data': {
@@ -194,6 +202,8 @@ class EmployeeModel {
     String? universityEn,
     String? facultyAr,
     String? facultyEn,
+     bool? hasAdminExperience,
+  bool? hasAdminTraining,
     String? degree,
     String? graduationYear,
     int? yearsOfAdminExperience,
@@ -228,6 +238,8 @@ class EmployeeModel {
       universityEn: universityEn ?? this.universityEn,
       facultyAr: facultyAr ?? this.facultyAr,
       facultyEn: facultyEn ?? this.facultyEn,
+        hasAdminExperience: hasAdminExperience ?? this.hasAdminExperience,
+  hasAdminTraining: hasAdminTraining ?? this.hasAdminTraining,
       degree: degree ?? this.degree,
       graduationYear: graduationYear ?? this.graduationYear,
       yearsOfAdminExperience: yearsOfAdminExperience ?? this.yearsOfAdminExperience,

@@ -95,8 +95,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                                 children: [
                                   Text(
                                     isArabic ? doctor.nameAr : doctor.nameEn,
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(
+                                    style: theme.textTheme.titleMedium?.copyWith(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18.sp,
@@ -132,10 +131,10 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                                 backgroundColor: Colors.white12,
                                 backgroundImage:
                                     (doctor.profileImage.isNotEmpty)
-                                    ? CachedNetworkImageProvider(
-                                        doctor.profileImage,
-                                      )
-                                    : null,
+                                        ? CachedNetworkImageProvider(
+                                            doctor.profileImage,
+                                          )
+                                        : null,
                                 child: (doctor.profileImage.isEmpty)
                                     ? Icon(
                                         Icons.person,
@@ -173,26 +172,24 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                         ),
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.social_status"
-                              .tr(),
+                          label: "acadimic_Data.academicData.social_status".tr(),
                           value: isArabic
                               ? doctor.socialStatusAr
                               : doctor.socialStatusEn,
                         ),
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.statuses.active".tr(),
+                          label: "acadimic_Data.academicData.status".tr(),
                           value: (doctor.isActive)
                               ? "acadimic_Data.statuses.active".tr()
                               : "acadimic_Data.statuses.inactive".tr(),
+                          valueColor: (doctor.isActive) ? Colors.green : Colors.orange,
                         ),
                         _buildInfoRow(
                           context,
                           label: "acadimic_Data.academicData.birth_date".tr(),
                           value: doctor.birthDate != null
-                              ? DateFormat(
-                                  'yyyy-MM-dd',
-                                ).format(doctor.birthDate!)
+                              ? DateFormat('yyyy-MM-dd').format(doctor.birthDate!)
                               : '-',
                         ),
                       ],
@@ -233,23 +230,21 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                       ],
                     ),
 
-                    // ✅ ===== قسم القيادات (بالتحقق الحقيقي) =====
+                    // ===== قسم القيادات والأهلية =====
                     _buildSectionCard(
                       context,
                       icon: Icons.military_tech_outlined,
-                      title: "add_doctor.leadership_section".tr(),
+                      title: "acadimic_Data.add_doctor.leadership_section".tr(),
                       children: [
                         _buildInfoRow(
                           context,
-                          label: "add_doctor.hiring_date".tr(),
+                          label: "acadimic_Data.add_doctor.hiring_date".tr(),
                           value: doctor.hiringDate != null
-                              ? DateFormat(
-                                  'yyyy-MM-dd',
-                                ).format(doctor.hiringDate!)
+                              ? DateFormat('yyyy-MM-dd').format(doctor.hiringDate!)
                               : '-',
                         ),
 
-                        // ✅ تحقق حقيقي: 10 سنين خبرة
+                        // تحقق: 10 سنين خبرة إدارية
                         if (doctor.hiringDate != null)
                           _buildValidationCard(
                             context,
@@ -265,15 +260,13 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                         SizedBox(height: 10.h),
                         _buildInfoRow(
                           context,
-                          label: "add_doctor.professor_rank_date".tr(),
+                          label: "acadimic_Data.add_doctor.professor_rank_date".tr(),
                           value: doctor.professorRankDate != null
-                              ? DateFormat(
-                                  'yyyy-MM-dd',
-                                ).format(doctor.professorRankDate!)
+                              ? DateFormat('yyyy-MM-dd').format(doctor.professorRankDate!)
                               : '-',
                         ),
 
-                        // ✅ تحقق حقيقي: أستاذية 3 سنين + التحقق من درجة الأستاذية أصلاً
+                        // تحقق: أستاذية 3 سنين + درجة الأستاذية
                         if (doctor.professorRankDate != null)
                           _buildValidationCard(
                             context,
@@ -290,10 +283,11 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
 
                         SizedBox(height: 10.h),
 
-                        // ✅ تحقق حقيقي: أقدم 3 دكاترة (بيجيب الدكاترة ويقارن)
+                        // تحقق ديناميكي: أقدم 3 أساتذة بالقسم
                         _buildTop3DynamicCheck(context, doctor),
 
                         SizedBox(height: 10.h),
+
                         // اللجان الداخلية
                         _buildCommitteesWidget(
                           context,
@@ -360,7 +354,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
   }
 
   // ============================================================
-  // ✅ دالة التحقق من درجة الأستاذية زي المحرك بالظبط
+  // التحقق من درجة الأستاذية
   // ============================================================
   bool _hasProfessorDegree(DoctorProfileModel doctor) {
     return doctor.academicHistory.any((item) {
@@ -380,7 +374,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
   }
 
   // ============================================================
-  // ✅ ويدجت التحقق الديناميكي لأقدم 3 (FutureBuilder)
+  // ويدجت التحقق الديناميكي لأقدم 3
   // ============================================================
   Widget _buildTop3DynamicCheck(
     BuildContext context,
@@ -430,7 +424,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
   }
 
   // ============================================================
-  // ✅ ويدجت كارت التحقق العام (أخضر/برتقالي)
+  // ويدجت كارت التحقق (أخضر/برتقالي)
   // ============================================================
   Widget _buildValidationCard(
     BuildContext context, {
@@ -491,7 +485,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
   }
 
   // ============================================================
-  // باقي الويدجتس (اللجان - الكارت - الصفوف)
+  // ويدجت اللجان الداخلية
   // ============================================================
   Widget _buildCommitteesWidget(BuildContext context, List<String> committees) {
     final theme = Theme.of(context);
@@ -501,7 +495,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "add_doctor.internal_committees".tr(),
+            "acadimic_Data.add_doctor.internal_committees".tr(),
             style: theme.textTheme.labelMedium?.copyWith(
               color: theme.colorScheme.primary.withOpacity(0.7),
               fontWeight: FontWeight.w600,
@@ -511,7 +505,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
           SizedBox(height: 8.h),
           if (committees.isEmpty)
             Text(
-              "add_doctor.no_committees".tr(),
+              "acadimic_Data.add_doctor.no_committees".tr(),
               style: TextStyle(color: Colors.grey, fontSize: 13.sp),
             )
           else
@@ -559,6 +553,9 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
     );
   }
 
+  // ============================================================
+  // ويدجت كارت القسم
+  // ============================================================
   Widget _buildSectionCard(
     BuildContext context, {
     required IconData icon,
@@ -607,10 +604,14 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
     );
   }
 
+  // ============================================================
+  // ويدجت صف المعلومات
+  // ============================================================
   Widget _buildInfoRow(
     BuildContext context, {
     required String label,
     required String value,
+    Color? valueColor,
   }) {
     final theme = Theme.of(context);
     return Padding(
@@ -630,7 +631,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
           Text(
             value.isEmpty ? '-' : value,
             style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurface,
+              color: valueColor ?? theme.colorScheme.onSurface,
               fontSize: 14.sp,
               fontWeight: FontWeight.w500,
             ),

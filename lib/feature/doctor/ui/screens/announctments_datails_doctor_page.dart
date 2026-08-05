@@ -42,6 +42,8 @@ class _AnnouncementDetailsDoctorPageState
     try {
       final cubit = context.read<DoctorDataCubit>();
 
+      // ملاحظة: إذا كان محرك الشروط لديك يتطلب الـ sector داخل الـ cubit،
+      // يمكنك تعديل الاستدعاء ليكون: cubit.checkEligibility(targetRole: targetRole, sector: announcement.targetSector)
       final (isEligible, unmetCriteria) = await cubit.checkEligibility(
         targetRole: targetRole,
       );
@@ -176,10 +178,12 @@ class _AnnouncementDetailsDoctorPageState
         );
 
         final String currentLang = context.locale.languageCode;
-        final String title = data['title_$currentLang'] ??
+        final String title =
+            data['title_$currentLang'] ??
             data['title'] ??
             'announcement_details.no_title'.tr();
-        final String description = data['description_$currentLang'] ??
+        final String description =
+            data['description_$currentLang'] ??
             data['description'] ??
             'announcement_details.no_description'.tr();
         final String? imageUrl = data['imageUrl'];
@@ -270,10 +274,12 @@ class _AnnouncementDetailsDoctorPageState
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
-                              Colors.black
-                                  .withOpacity(imageUrl != null ? 0.3 : 0.0),
-                              colorScheme.primary
-                                  .withOpacity(imageUrl != null ? 0.8 : 1.0),
+                              Colors.black.withOpacity(
+                                imageUrl != null ? 0.3 : 0.0,
+                              ),
+                              colorScheme.primary.withOpacity(
+                                imageUrl != null ? 0.8 : 1.0,
+                              ),
                             ],
                           ),
                         ),
@@ -299,19 +305,20 @@ class _AnnouncementDetailsDoctorPageState
                                 children: [
                                   Text(
                                     "announce.details.badge_title_user".tr(),
-                                    style: theme.textTheme.titleMedium?.copyWith(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.5,
-                                    ),
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1.5,
+                                        ),
                                   ),
                                   Text(
                                     "common.app_name".tr(),
-                                    style:
-                                        theme.textTheme.bodySmall?.copyWith(
-                                          color: colorScheme.secondary
-                                              .withOpacity(0.9),
-                                        ),
+                                    style: theme.textTheme.bodySmall?.copyWith(
+                                      color: colorScheme.secondary.withOpacity(
+                                        0.9,
+                                      ),
+                                    ),
                                   ),
                                 ],
                               ),
@@ -346,7 +353,6 @@ class _AnnouncementDetailsDoctorPageState
                 padding: EdgeInsets.all(20.w),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
-                    // ✅ تمرير الـ announcement للميثود عشان نستخدم بياناته
                     _buildDetailCard(
                       context,
                       announcement: announcement,
@@ -368,7 +374,7 @@ class _AnnouncementDetailsDoctorPageState
 
   Widget _buildDetailCard(
     BuildContext context, {
-    required AnnouncementModel announcement, // ✅ إضافة الموديل
+    required AnnouncementModel announcement,
     required String title,
     required String description,
     required String deadline,
@@ -378,12 +384,18 @@ class _AnnouncementDetailsDoctorPageState
     final colorScheme = theme.colorScheme;
 
     // =============================================
-    // 🧠 تحديد ما يُعرض بناءً على نوع الإعلان
+    // 🧠 تحديد ما يُعرض بناءً على نوع الإعلان (متوافق مع المحركين)
     // =============================================
-    final bool showCollege =
-        MansouraUniversitiesData.targetRoleRequiresFaculty(announcement.targetRole);
+    final bool showSector =
+        announcement.targetRole == 'vice_president' ||
+        announcement.targetRole == 'vice_dean';
+    final bool showCollege = MansouraUniversitiesData.targetRoleRequiresFaculty(
+      announcement.targetRole,
+    );
     final bool showDepartment =
-        MansouraUniversitiesData.targetRoleRequiresDepartment(announcement.targetRole);
+        MansouraUniversitiesData.targetRoleRequiresDepartment(
+          announcement.targetRole,
+        );
     final bool showAdminDept = announcement.targetRole == 'admin_manager';
 
     return Container(
@@ -435,7 +447,7 @@ class _AnnouncementDetailsDoctorPageState
                   ),
                 ),
                 SizedBox(height: 25.h),
-                
+
                 // ====== العنوان ======
                 Text(
                   title,
@@ -446,7 +458,7 @@ class _AnnouncementDetailsDoctorPageState
                   ),
                 ),
                 SizedBox(height: 18.h),
-                
+
                 // ====== الوصف ======
                 Text(
                   description,
@@ -471,6 +483,18 @@ class _AnnouncementDetailsDoctorPageState
                 ),
                 SizedBox(height: 20.h),
 
+                // ✅ ====== القطاع (لنائب الرئيس ووكيل الكلية) ======
+                if (showSector && announcement.targetSector != null) ...[
+                  _buildInfoRow(
+                    context,
+                    Icons.account_tree_outlined,
+                    "edit_announcement.field_sector".tr(),
+                    "sectors.${announcement.targetSector}".tr(),
+                    Colors.deepOrange,
+                  ),
+                  SizedBox(height: 20.h),
+                ],
+
                 // ====== الموعد النهائي ======
                 if (deadline.isNotEmpty)
                   _buildInfoRow(
@@ -481,7 +505,7 @@ class _AnnouncementDetailsDoctorPageState
                     Colors.redAccent,
                   ),
                 if (deadline.isNotEmpty) SizedBox(height: 20.h),
-                
+
                 // ====== تاريخ النشر ======
                 if (postedDate.isNotEmpty)
                   _buildInfoRow(
@@ -491,12 +515,12 @@ class _AnnouncementDetailsDoctorPageState
                     postedDate,
                     Colors.blueGrey,
                   ),
+                if (postedDate.isNotEmpty) SizedBox(height: 20.h),
 
                 // =============================================
                 // 🏛️ الكلية
                 // =============================================
                 if (showCollege && announcement.collegeName != null) ...[
-                  SizedBox(height: 20.h),
                   _buildInfoRow(
                     context,
                     Icons.domain,
@@ -504,13 +528,13 @@ class _AnnouncementDetailsDoctorPageState
                     announcement.collegeName!,
                     Colors.deepPurple,
                   ),
+                  SizedBox(height: 20.h),
                 ],
 
                 // =============================================
                 // 🏢 القسم الأكاديمي
                 // =============================================
                 if (showDepartment && announcement.departmentName != null) ...[
-                  SizedBox(height: 20.h),
                   _buildInfoRow(
                     context,
                     Icons.meeting_room,
@@ -518,13 +542,13 @@ class _AnnouncementDetailsDoctorPageState
                     announcement.departmentName!,
                     Colors.teal,
                   ),
+                  SizedBox(height: 20.h),
                 ],
 
                 // =============================================
                 // 📋 القطاع / الإدارة العامة
                 // =============================================
                 if (showAdminDept && announcement.adminSectorName != null) ...[
-                  SizedBox(height: 20.h),
                   _buildInfoRow(
                     context,
                     Icons.account_balance,
@@ -532,13 +556,13 @@ class _AnnouncementDetailsDoctorPageState
                     announcement.adminSectorName!,
                     Colors.indigo,
                   ),
+                  SizedBox(height: 20.h),
                 ],
 
                 // =============================================
                 // 📁 الإدارة الفرعية
                 // =============================================
                 if (showAdminDept && announcement.adminSubDeptName != null) ...[
-                  SizedBox(height: 20.h),
                   _buildInfoRow(
                     context,
                     Icons.corporate_fare,
@@ -573,7 +597,8 @@ class _AnnouncementDetailsDoctorPageState
           child: Icon(icon, size: 20.sp, color: color),
         ),
         SizedBox(width: 15.w),
-        Expanded( // ✅ مفيد جداً هنا عشان أسماء الإدارات الطويلة متعملش overflow
+        Expanded(
+          // ✅ إضافة Expanded لمنع تجاوز النصوص للأسماء الإدارية الطويلة
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

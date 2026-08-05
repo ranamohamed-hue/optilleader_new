@@ -139,21 +139,32 @@ class LeadershipScoringEngine {
         'breakdown': reason,
       });
     }
-
-    // 5️⃣ ورش العمل (بنفس جدول الدورات لأنهم ActivityModel)
-    // ملاحظة: الكود ده معلق لحد ما تتأكدي من اسم الليست في DoctorProfileModel
-    /*
-    if (doctor.workshops != null) {
-      for (var workshop in doctor.workshops!) {
-        if (workshop.status.name == 'approved') {
-          double points = _calculateWorkshopPoints(category: workshop.courseCategory, scope: workshop.courseScope);
-          if (points > 0) workshopPoints += points;
-          // ... إضافة التفاصيل
+/*
+    try {
+      final workshops = doctor.workshops; // استبدلها بالمتغير الصحيح إذا كان اسمه مختلفاً
+      if (workshops != null && workshops.isNotEmpty) {
+        for (var workshop in workshops) {
+          if (workshop.status.name == 'approved') {
+            double points = workshop.points;
+            if (points > 0) {
+              workshopPoints += points;
+            }
+            allDetails.add({
+              'title': workshop.title,
+              'type': 'ورشة عمل',
+              'category': _getCourseCategoryAr(workshop.courseCategory),
+              'scope': _getCourseScopeAr(workshop.courseScope),
+              'points': points,
+              'breakdown': '${_getCourseCategoryAr(workshop.courseCategory)} - ${_getCourseScopeAr(workshop.courseScope)}',
+            });
+          }
         }
       }
+    } catch (e) {
+      // في حال لم تكن الخاصية موجودة بعد في الموديل، لن يتعطل التطبيق وسيتجاهل الورش
+      print('Workshops property not found or is null: $e');
     }
-    */
-
+*/
     // 6️⃣ الأنشطة الأكاديمية
     if (doctor.academicActivities != null) {
       activityPoints = doctor.academicActivities!.totalPoints;

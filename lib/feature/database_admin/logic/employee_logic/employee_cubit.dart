@@ -10,6 +10,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:optialeader/feature/database_admin/data/models/employee_model.dart';
 import 'package:optialeader/feature/database_admin/data/repo/employee_repository/employee_repo.dart';
 import 'package:optialeader/firebase_options.dart';
+import 'package:optialeader/feature/database_admin/logic/leadership_scoring_engine/leadership_criteria_engine.dart'; // ✅ أضف هذا الاستيراد
 
 class EmployeeDataCubit extends Cubit<EmployeeDataState> {
   final EmployeeRepo employeeRepo;
@@ -20,62 +21,90 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
   Future<void> getEmployeeProfile(String uid) async {
     emit(EmployeeLoading());
     final result = await employeeRepo.getEmployeeProfile(uid);
-    result.fold(
-      (error) => emit(EmployeeError(error: error)),
-      (employee) {
-        if (employee != null) {
-           emit(EmployeeLoaded(employee: employee));
-        } else {
-          emit(EmployeeError(error: "الموظف غير موجود"));
-        }
-      },
-    );
+    result.fold((error) => emit(EmployeeError(error: error)), (employee) {
+      if (employee != null) {
+        emit(EmployeeLoaded(employee: employee));
+      } else {
+        emit(EmployeeError(error: "الموظف غير موجود"));
+      }
+    });
   }
 
-  // ✅ التحقق من الأهلية (للموظف الإداري)
-  Future<(bool isEligible, List<dynamic> unmetCriteria)> checkEmployeeEligibility({
-    required String targetRole,
-    String? uid,
-  }) async {
+  // ✅ استبدل الدالة القديمة بهذه الدالة المتطابقة مع محرك الشروط
+  Future<(bool isEligible, List<CriterionStatus> unmetCriteria)>
+  checkEmployeeEligibility({required String targetRole, String? uid}) async {
     final currentUid = uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (currentUid == null) {
-      return (false, []);
+      return (false, <CriterionStatus>[]);
     }
 
     final result = await employeeRepo.getEmployeeProfile(currentUid);
 
-    return result.fold(
-      (error) => (false, []),
-      (employee) {
-        if (employee == null) {
-          return (false, []);
-        }
+    return result.fold((error) => (false, <CriterionStatus>[]), (employee) {
+      if (employee == null) {
+        return (false, <CriterionStatus>[]);
+      }
 
-        // تحقق من الشروط الإدارية
-        final unmetCriteria = <Map<String, dynamic>>[];
-        
-        if (employee.yearsOfAdminExperience < 10) {
-          unmetCriteria.add({'titleAr': 'خبرة إدارية أقل من 10 سنوات'});
-        }
-        if (!employee.hasExcellentPerformanceReports) {
-          unmetCriteria.add({'titleAr': 'لا يوجد تقدير امتياز في آخر 4 تقارير'});
-        }
-        if (!employee.disciplinaryClearance) {
-          unmetCriteria.add({'titleAr': 'يوجد جزاءات تأديبية'});
-        }
-        if (employee.hasCriminalRecord) {
-          unmetCriteria.add({'titleAr': 'يوجد سجل جنائي'});
-        }
-        if (employee.holdsPartyPosition) {
-          unmetCriteria.add({'titleAr': 'يتولى منصب حزبي'});
-        }
-        if (employee.hasICDL != true) {
-          unmetCriteria.add({'titleAr': 'لا يوجد ICDL'});
-        }
+      // بناء قائمة الشروط بنفس فورمات الدكاترة (عربي/انجليزي)
+      final criteria = <CriterionStatus>[
+        CriterionStatus(
+          titleAr: "خبرة موثقة في مجال العمل الإداري بالجامعات",
+          titleEn: "Documented university administrative experience",
+          isMet: employee.hasAdminExperience ?? false,
+          isAutoChecked: false,
+          details: "يتطلب مراجعة السيرة الذاتية",
+        ),
+        CriterionStatus(
+          titleAr: "إجادة التعامل مع برمجيات الحاسب ونظم التحول الرقمي",
+          titleEn: "Proficiency in computer software & digital transformation",
+          isMet: employee.hasICDL ?? false,
+          isAutoChecked: true,
+        ),
+        CriterionStatus(
+          titleAr: "الحصول على مؤهل جامعي عالٍ مناسب",
+          titleEn: "Appropriate higher university degree",
+          isMet: true, // طالما هو موظف جامعي فهذا شرط مستوفي
+          isAutoChecked: true,
+          details: "مستوفي",
+        ),
+        CriterionStatus(
+          titleAr: "تقدير (امتياز) في تقارير الأداء السنوية عن آخر 4 سنوات",
+          titleEn:
+              "Excellent rating in annual performance reports (last 4 years)",
+          isMet: employee.hasExcellentPerformanceReports,
+          isAutoChecked: true,
+        ),
+        CriterionStatus(
+          titleAr: "خلو السجل الوظيفي من الجزاءات التأديبية",
+          titleEn: "Clean disciplinary record",
+          isMet: employee.disciplinaryClearance,
+          isAutoChecked: true,
+        ),
+        CriterionStatus(
+          titleAr: "مشاركة إيجابية في تطوير منظومة العمل الإداري (آخر 3 سنوات)",
+          titleEn:
+              "Positive participation in developing admin systems (last 3 years)",
+          isMet: true,
+          isAutoChecked: false,
+          details: "يتطلب تقديم أوراق ثبوتية للأدمن",
+        ),
+        CriterionStatus(
+          titleAr:
+              "دورات تدريبية: (إدارة حديثة، إدارة وقت وأزمات، إدارة موارد بشرية ومالية)",
+          titleEn:
+              "Training: (Modern mgmt, Time/Crisis mgmt, HR/Financial mgmt)",
+          isMet: employee.hasAdminTraining ?? false,
+          isAutoChecked: true,
+          details: (employee.hasAdminTraining ?? false)
+              ? "✅ يوجد دورات مطابقة"
+              : "⚠️ لم يتم العثور على دورات مطابقة",
+        ),
+      ];
 
-        return (unmetCriteria.isEmpty, unmetCriteria);
-      },
-    );
+      final unmetCriteria = criteria.where((c) => !c.isMet).toList();
+
+      return (unmetCriteria.isEmpty, unmetCriteria);
+    });
   }
 
   Future<void> saveEmployeeData(EmployeeModel employee) async {
@@ -91,7 +120,10 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
     String uid,
     Map<String, dynamic> updatedFields,
   ) async {
-    final result = await employeeRepo.updateEmployeeProfileData(uid, updatedFields);
+    final result = await employeeRepo.updateEmployeeProfileData(
+      uid,
+      updatedFields,
+    );
     result.fold((error) => emit(EmployeeError(error: error)), (_) {
       getEmployeeProfile(uid);
     });
@@ -126,7 +158,10 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
       uploadResult.fold((error) => emit(EmployeeError(error: error)), (
         imageUrl,
       ) async {
-        final updateResult = await employeeRepo.updateEmployeeImage(uid, imageUrl);
+        final updateResult = await employeeRepo.updateEmployeeImage(
+          uid,
+          imageUrl,
+        );
         updateResult.fold((error) => emit(EmployeeError(error: error)), (_) {
           getEmployeeProfile(uid);
         });
@@ -150,7 +185,7 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
     _employeesSubscription?.cancel();
     _employeesSubscription = employeeRepo.watchAllEmployees().listen(
       (employeesList) {
-         emit(AllEmployeesLoaded(employees: employeesList));
+        emit(AllEmployeesLoaded(employees: employeesList));
       },
       onError: (error) {
         emit(EmployeeError(error: error.toString()));

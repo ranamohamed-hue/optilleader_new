@@ -28,11 +28,12 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     );
   }
 
-  // ✅ دالة التحقق من الأهلية (تم إضافة الـ Null Check)
-   Future<(bool isEligible, List<CriterionStatus> unmetCriteria)>
+  //  دالة التحقق من الأهلية (تم إضافة الـ Null Check)
+  Future<(bool isEligible, List<CriterionStatus> unmetCriteria)>
       checkEligibility({
     required String targetRole,
     String? uid,
+    String? sector, // <--- تم إضافته هنا
   }) async {
     final currentUid = uid ?? FirebaseAuth.instance.currentUser?.uid;
     if (currentUid == null) {
@@ -41,7 +42,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
 
     final result = await doctorRepo.getDoctorProfile(currentUid);
 
-    // ✅ استخراج الدكتور بره الـ fold عشان نتجنب مشكلة الـ async
     DoctorProfileModel? doctor;
     result.fold(
       (error) => null,
@@ -52,7 +52,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
       return (false, <CriterionStatus>[]);
     }
 
-    // ✅ الآن نحن في الـ async function الرئيسية، فالـ await هيشتغل هنا
     List<DoctorProfileModel> departmentDoctors = [];
     if (targetRole == 'head_department') {
       try {
@@ -63,6 +62,7 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     final criteria = LeadershipCriteriaEngine.checkMandatoryCriteria(
       doctor: doctor!,
       targetRole: targetRole,
+      sector: sector, // <--- تم تمريره هنا
       departmentDoctors: departmentDoctors, 
     );
 

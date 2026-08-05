@@ -39,6 +39,9 @@ class DoctorProfileModel {
   // ✅ تاريخ التعيين (لحساب الأقدمية وأقدم 3 بالقسم)
   final DateTime? hiringDate;
 
+  // ✅ تاريخ التواجد الفعلي المستمر (مطلوب لرئيس الجامعة - سنتين)
+  final DateTime? activeDutySinceDate;
+
   // القيادات الأكاديمية
   final DateTime? professorRankDate;
   final List<String> previousLeadershipRoles;
@@ -62,6 +65,11 @@ class DoctorProfileModel {
   final bool disciplinaryClearance;
   final bool hasPermanentPosition;
   final bool isOnVacation;
+  
+  // ✅ حقول الإعارة والإجازات الجديدة (مطلوبة للقانون الجديد)
+  final bool? isOnSecondment;
+  final bool? isOnUnpaidLeave;
+
   final bool isActive;
 
   // الأبحاث والأنشطة
@@ -84,8 +92,17 @@ class DoctorProfileModel {
   final bool? hasArbitrationPlan;
   final bool? hasAdminExperience;
   final bool? hasExcellentPerformanceReports;
+  
   // ✅ isTop3Senior بيحسب من hiringDate مش يدوي
   final bool? isTop3Senior;
+
+  // ✅ حقول التدريب المعتمدة الجديدة (للقانون الجديد)
+  final bool? hasSupremeCouncilTraining; // دورة المجلس الأعلى للجامعات
+  final bool? hasFLDCTraining; // دورات FLDC
+
+  // ✅ حقول خطة العمل (لرئيس الجامعة ونوابه والوكلاء)
+  final String? workPlanFileUrl;
+  final VerificationStatus? workPlanStatus;
 
   DoctorProfileModel({
     this.uid,
@@ -111,7 +128,8 @@ class DoctorProfileModel {
     this.departmentEn = '',
     this.collageAr = '',
     this.collageEn = '',
-    this.hiringDate, // ✅ جديد
+    this.hiringDate, // ✅ قديم
+    this.activeDutySinceDate, // ✅ جديد
     this.professorRankDate,
     this.previousLeadershipRoles = const [],
     this.hasCriminalRecord = false,
@@ -126,6 +144,8 @@ class DoctorProfileModel {
     required this.disciplinaryClearance,
     required this.hasPermanentPosition,
     required this.isOnVacation,
+    this.isOnSecondment, // ✅ جديد
+    this.isOnUnpaidLeave, // ✅ جديد
     this.isActive = true,
     this.cvUrl = "",
     this.researchPapers = const [],
@@ -133,8 +153,7 @@ class DoctorProfileModel {
     this.exhibitions = const [],
     this.courses = const [],
     this.academicActivities,
-    this.internalCommittees = const [], // ✅ جديد
-    // ✅ تم إزالة hasICDL
+    this.internalCommittees = const [], 
     this.hasHealthCertificate,
     this.hasCommitteeMembership,
     this.hasSelfEvaluationReport,
@@ -142,6 +161,10 @@ class DoctorProfileModel {
     this.hasAdminExperience,
     this.hasExcellentPerformanceReports,
     this.isTop3Senior,
+    this.hasSupremeCouncilTraining, // ✅ جديد
+    this.hasFLDCTraining, // ✅ جديد
+    this.workPlanFileUrl, // ✅ جديد
+    this.workPlanStatus, // ✅ جديد
   });
 
   factory DoctorProfileModel.fromJson(Map<String, dynamic> json, String id) {
@@ -149,6 +172,15 @@ class DoctorProfileModel {
       if (dateField == null) return null;
       if (dateField is Timestamp) return dateField.toDate();
       return DateTime.tryParse(dateField.toString());
+    }
+
+    // ✅ دالة مساعدة لتحويل String إلى Enum بأمان
+    VerificationStatus? parseStatus(String? statusString) {
+      if (statusString == null) return null;
+      return VerificationStatus.values.firstWhere(
+        (e) => e.name == statusString,
+        orElse: () => VerificationStatus.pending,
+      );
     }
 
     List<ResearchPaperModel> parseResearchPapers(List<dynamic>? list) {
@@ -258,16 +290,17 @@ class DoctorProfileModel {
       collageAr: profile['collage_ar'] ?? '',
       collageEn: profile['collage_en'] ?? '',
 
-      // ✅ قراءة تاريخ التعيين
       hiringDate: parseDate(
           profile['hiring_date'] ?? json['academic_profile']?['hiring_date']),
+      
+      // ✅ قراءة التواجد الفعلي
+      activeDutySinceDate: parseDate(json['academic_profile']?['active_duty_since_date']),
 
       professorRankDate:
           parseDate(json['academic_profile']?['professor_rank_date']),
       previousLeadershipRoles:
           List<String>.from(leadershipData['previous_roles'] ?? []),
 
-      // ✅ قراءة اللجان الداخلية (بأسمائها)
       internalCommittees:
           List<String>.from(leadershipData['internal_committees'] ?? []),
 
@@ -286,6 +319,11 @@ class DoctorProfileModel {
       hasPermanentPosition:
           json['eligibility_data']?['has_permanent_position'] ?? true,
       isOnVacation: json['eligibility_data']?['is_on_vacation'] ?? false,
+      
+      // ✅ قراءة الإعارة والإجازات
+      isOnSecondment: json['eligibility_data']?['is_on_secondment'] ?? false,
+      isOnUnpaidLeave: json['eligibility_data']?['is_on_unpaid_leave'] ?? false,
+
       isActive: json['is_active'] ?? json['eligibility_data']?['is_active'] ?? true,
       cvUrl: json['academic_profile']?['cv_url'],
 
@@ -298,7 +336,6 @@ class DoctorProfileModel {
               Map<String, dynamic>.from(scientificWork['academic_activities']))
           : null,
 
-      // ✅ تم إزالة hasICDL - بيحسب من الدورات
       hasHealthCertificate: adminProofs['has_health_certificate'],
       hasCommitteeMembership: adminProofs['has_committee_membership'],
       hasSelfEvaluationReport: adminProofs['has_self_evaluation_report'],
@@ -307,6 +344,12 @@ class DoctorProfileModel {
       hasExcellentPerformanceReports:
           adminProofs['has_excellent_performance_reports'],
       isTop3Senior: adminProofs['is_top3_senior'],
+      
+      // ✅ قراءة التدريب المعتمد وخطة العمل
+      hasSupremeCouncilTraining: adminProofs['has_supreme_council_training'] ?? false,
+      hasFLDCTraining: adminProofs['has_fldc_training'] ?? false,
+      workPlanFileUrl: leadershipData['work_plan_file_url'],
+      workPlanStatus: parseStatus(leadershipData['work_plan_status']),
     );
   }
 
@@ -363,7 +406,6 @@ class DoctorProfileModel {
         'department_en': departmentEn,
         'collage_ar': collageAr,
         'collage_en': collageEn,
-        // ✅ حفظ تاريخ التعيين
         'hiring_date':
             hiringDate != null ? Timestamp.fromDate(hiringDate!) : null,
       },
@@ -373,17 +415,26 @@ class DoctorProfileModel {
         'professor_rank_date': professorRankDate != null
             ? Timestamp.fromDate(professorRankDate!)
             : null,
+        // ✅ حفظ التواجد الفعلي
+        'active_duty_since_date': activeDutySinceDate != null
+            ? Timestamp.fromDate(activeDutySinceDate!)
+            : null,
       },
       'eligibility_data': {
         'is_on_vacation': isOnVacation,
         'has_permanent_position': hasPermanentPosition,
         'disciplinary_clearance': disciplinaryClearance,
         'is_active': isActive,
+        // ✅ حفظ الإعارة والإجازات
+        'is_on_secondment': isOnSecondment ?? false,
+        'is_on_unpaid_leave': isOnUnpaidLeave ?? false,
       },
       'leadership_data': {
         'previous_roles': previousLeadershipRoles,
-        // ✅ حفظ اللجان الداخلية
         'internal_committees': internalCommittees,
+        // ✅ حفظ خطة العمل
+        'work_plan_file_url': workPlanFileUrl,
+        'work_plan_status': workPlanStatus?.name, // حفظ اسم الـ Enum كـ String
       },
       'security_data': {
         'has_criminal_record': hasCriminalRecord,
@@ -398,7 +449,6 @@ class DoctorProfileModel {
         'academic_activities': academicActivities?.toJson(),
       },
       'admin_proofs': {
-        // ✅ تم إزالة has_icdl
         'has_health_certificate': hasHealthCertificate,
         'has_committee_membership': hasCommitteeMembership,
         'has_self_evaluation_report': hasSelfEvaluationReport,
@@ -406,6 +456,9 @@ class DoctorProfileModel {
         'has_admin_experience': hasAdminExperience,
         'has_excellent_performance_reports': hasExcellentPerformanceReports,
         'is_top3_senior': isTop3Senior,
+        // ✅ حفظ التدريب المعتمد
+        'has_supreme_council_training': hasSupremeCouncilTraining ?? false,
+        'has_fldc_training': hasFLDCTraining ?? false,
       },
     };
   }
@@ -432,10 +485,11 @@ class DoctorProfileModel {
     String? facultyEn,
     String? departmentAr,
     String? departmentEn,
-    DateTime? hiringDate, // ✅ جديد
+    DateTime? hiringDate,
+    DateTime? activeDutySinceDate, // ✅ جديد
     DateTime? professorRankDate,
     List<String>? previousLeadershipRoles,
-    List<String>? internalCommittees, // ✅ جديد
+    List<String>? internalCommittees,
     bool? hasCriminalRecord,
     bool? holdsPartyPosition,
     String? email,
@@ -447,6 +501,8 @@ class DoctorProfileModel {
     bool? disciplinaryClearance,
     bool? hasPermanentPosition,
     bool? isOnVacation,
+    bool? isOnSecondment, // ✅ جديد
+    bool? isOnUnpaidLeave, // ✅ جديد
     bool? isActive,
     String? cvUrl,
     List<ResearchPaperModel>? researchPapers,
@@ -462,6 +518,10 @@ class DoctorProfileModel {
     bool? hasAdminExperience,
     bool? hasExcellentPerformanceReports,
     bool? isTop3Senior,
+    bool? hasSupremeCouncilTraining, // ✅ جديد
+    bool? hasFLDCTraining, // ✅ جديد
+    String? workPlanFileUrl, // ✅ جديد
+    VerificationStatus? workPlanStatus, // ✅ جديد
     String? collageAr,
     String? collageEn,
   }) {
@@ -489,11 +549,12 @@ class DoctorProfileModel {
       departmentEn: departmentEn ?? this.departmentEn,
       collageAr: collageAr ?? this.collageAr,
       collageEn: collageEn ?? this.collageEn,
-      hiringDate: hiringDate ?? this.hiringDate, // ✅ جديد
+      hiringDate: hiringDate ?? this.hiringDate,
+      activeDutySinceDate: activeDutySinceDate ?? this.activeDutySinceDate, // ✅
       professorRankDate: professorRankDate ?? this.professorRankDate,
       previousLeadershipRoles:
           previousLeadershipRoles ?? this.previousLeadershipRoles,
-      internalCommittees: internalCommittees ?? this.internalCommittees, // ✅
+      internalCommittees: internalCommittees ?? this.internalCommittees,
       hasCriminalRecord: hasCriminalRecord ?? this.hasCriminalRecord,
       holdsPartyPosition: holdsPartyPosition ?? this.holdsPartyPosition,
       email: email ?? this.email,
@@ -506,6 +567,8 @@ class DoctorProfileModel {
       disciplinaryClearance: disciplinaryClearance ?? this.disciplinaryClearance,
       hasPermanentPosition: hasPermanentPosition ?? this.hasPermanentPosition,
       isOnVacation: isOnVacation ?? this.isOnVacation,
+      isOnSecondment: isOnSecondment ?? this.isOnSecondment, // ✅
+      isOnUnpaidLeave: isOnUnpaidLeave ?? this.isOnUnpaidLeave, // ✅
       isActive: isActive ?? this.isActive,
       cvUrl: cvUrl ?? this.cvUrl,
       researchPapers: researchPapers ?? this.researchPapers,
@@ -523,6 +586,10 @@ class DoctorProfileModel {
       hasExcellentPerformanceReports:
           hasExcellentPerformanceReports ?? this.hasExcellentPerformanceReports,
       isTop3Senior: isTop3Senior ?? this.isTop3Senior,
+      hasSupremeCouncilTraining: hasSupremeCouncilTraining ?? this.hasSupremeCouncilTraining, // ✅
+      hasFLDCTraining: hasFLDCTraining ?? this.hasFLDCTraining, // ✅
+      workPlanFileUrl: workPlanFileUrl ?? this.workPlanFileUrl, // ✅
+      workPlanStatus: workPlanStatus ?? this.workPlanStatus, // ✅
     );
   }
 

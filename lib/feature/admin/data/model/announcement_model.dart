@@ -11,28 +11,38 @@ class AnnouncementModel {
   String targetRole;
   DateTime createdAt;
 
-  // ✅✅✅ الحقل الجديد لتحديد هل تم إعلان النتيجة
+  // ✅ حقل القطاع الجديد (لنائب الرئيس ووكيل الكلية)
+  String? targetSector;
+
   bool? isResultAnnounced;
 
-  // 🏛️ بيانات الكلية والقسم (للأدوار الأكاديمية)
   String? collegeId;
   String? collegeName;
   String? departmentId;
   String? departmentName;
 
-  // 📋 بيانات الإدارة (للدور الإداري admin_manager)
   String? adminSectorId;
   String? adminSectorName;
   String? adminSubDeptId;
   String? adminSubDeptName;
 
+  // ✅ تم تحديث القائمة لتشمل كل الأدوار الموجودة في المحرك
   static const List<String> targetRoleList = [
     'general',
-    'dean',
-    'vice_dean',
-    'head_department',
-    'quality_manager',
-    'admin_manager',
+    'university_president', // ✅ رئيس الجامعة
+    'vice_president', // ✅ نائب رئيس الجامعة
+    'dean', // عميد الكلية
+    'vice_dean', // وكيل الكلية
+    'head_department', // رئيس القسم
+    'quality_manager', // مدير الجودة
+    'admin_manager', // مدير إداري
+  ];
+
+  // ✅ قائمة القطاعات الثابتة (حسب القانون)
+  static const List<String> sectorList = [
+    'postgraduate', // الدراسات العليا والبحوث
+    'education', // شؤون التعليم والطلاب
+    'environment', // خدمة المجتمع وتنمية البيئة
   ];
 
   static const List<String> statusList = ['Active', 'Pending', 'Closed'];
@@ -47,7 +57,8 @@ class AnnouncementModel {
     this.imageUrl,
     required this.targetRole,
     required this.createdAt,
-    this.isResultAnnounced, // ✅ أضيف هنا
+    this.targetSector, // ✅ إضافة الحقل للكنستركتور
+    this.isResultAnnounced,
     this.collegeId,
     this.collegeName,
     this.departmentId,
@@ -76,7 +87,8 @@ class AnnouncementModel {
       createdAt: (map['createdAt'] != null)
           ? (map['createdAt'] as dynamic).toDate()
           : DateTime.now(),
-      isResultAnnounced: map['isResultAnnounced'] ?? false, // ✅ أضيف هنا
+      targetSector: map['targetSector'], // ✅ قراءة القطاع
+      isResultAnnounced: map['isResultAnnounced'] ?? false,
       collegeId: map['collegeId'],
       collegeName: map['collegeName'],
       departmentId: map['departmentId'],
@@ -98,15 +110,12 @@ class AnnouncementModel {
       'imageUrl': imageUrl,
       'targetRole': targetRole,
       'createdAt': Timestamp.fromDate(createdAt),
-      // isResultAnnounced مش محتاج هنا لأنه بيتحدث من الكيوبت مباشرة
-      'collegeId': collegeId,
-      'collegeName': collegeName,
-      'departmentId': departmentId,
-      'departmentName': departmentName,
-      'adminSectorId': adminSectorId,
-      'adminSectorName': adminSectorName,
-      'adminSubDeptId': adminSubDeptId,
-      'adminSubDeptName': adminSubDeptName,
+      'targetSector': targetSector, // ✅ حفظ القطاع
+      'isResultAnnounced': isResultAnnounced ?? false,
+      'collegeId': collegeId, 'collegeName': collegeName,
+      'departmentId': departmentId, 'departmentName': departmentName,
+      'adminSectorId': adminSectorId, 'adminSectorName': adminSectorName,
+      'adminSubDeptId': adminSubDeptId, 'adminSubDeptName': adminSubDeptName,
     };
   }
 
@@ -120,7 +129,8 @@ class AnnouncementModel {
     String? imageUrl,
     String? targetRole,
     DateTime? createdAt,
-    bool? isResultAnnounced, // ✅ أضيف هنا
+    String? targetSector, // ✅ إضافة القطاع للنسخ
+    bool? isResultAnnounced,
     String? collegeId,
     String? collegeName,
     String? departmentId,
@@ -140,7 +150,8 @@ class AnnouncementModel {
       imageUrl: imageUrl ?? this.imageUrl,
       targetRole: targetRole ?? this.targetRole,
       createdAt: createdAt ?? this.createdAt,
-      isResultAnnounced: isResultAnnounced ?? this.isResultAnnounced, // ✅ أضيف هنا
+      targetSector: targetSector ?? this.targetSector,
+      isResultAnnounced: isResultAnnounced ?? this.isResultAnnounced,
       collegeId: collegeId ?? this.collegeId,
       collegeName: collegeName ?? this.collegeName,
       departmentId: departmentId ?? this.departmentId,

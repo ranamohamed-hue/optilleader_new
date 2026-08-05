@@ -3,15 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart'; 
 import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_cubit.dart';
-import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_state.dart';
+import 'package:optialeader/feature/admin/ui/announces/mansoura_universities_data.dart';
+
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomination_request_cubit.dart';
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomonation_request_state.dart';
-import 'package:optialeader/feature/admin/ui/announces/administrative_roles_data.dart';
-import 'package:optialeader/feature/admin/ui/announces/mansoura_universities_data.dart';
 import 'package:optialeader/feature/admin/ui/announces/competition_results_sheet.dart';
-import 'package:intl/intl.dart';
 
 Color getAnnouncementStatusColor(String status, ColorScheme colorScheme) {
   switch (status) {
@@ -26,326 +25,9 @@ Color getAnnouncementStatusColor(String status, ColorScheme colorScheme) {
   }
 }
 
-class AnnouncementsPage extends StatelessWidget {
-  final VoidCallback? onBack;
-  const AnnouncementsPage({super.key, this.onBack});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    return Scaffold(
-      body: BlocBuilder<AnnouncementCubit, AnnouncementState>(
-        builder: (context, state) {
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildHeader(context, colorScheme, theme),
-              ..._buildBodyBasedOnState(state, theme),
-            ],
-          );
-        },
-      ),
-      floatingActionButton: _buildFAB(context, colorScheme),
-    );
-  }
-
-  List<Widget> _buildBodyBasedOnState(
-    AnnouncementState state,
-    ThemeData theme,
-  ) {
-    if (state is AnnouncementLoading)
-      return [
-        const SliverFillRemaining(
-          child: Center(child: CircularProgressIndicator()),
-        ),
-      ];
-    if (state is AnnouncementLoaded) {
-      if (state.announcements.isEmpty)
-        return [_buildEmptyState("announce.no_data".tr())];
-      return [_buildAnnouncementsList(state.announcements)];
-    }
-    if (state is AnnouncementError) return [_buildErrorState(state.message)];
-    return [
-      SliverFillRemaining(
-        child: Center(child: Text("announce.preparing".tr())),
-      ),
-    ];
-  }
-
-  Widget _buildHeader(
-    BuildContext context,
-    ColorScheme colorScheme,
-    ThemeData theme,
-  ) {
-    return SliverAppBar(
-      expandedHeight: 130.0,
-      pinned: true,
-      automaticallyImplyLeading: false,
-      backgroundColor: colorScheme.primary,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(35)),
-      ),
-      flexibleSpace: FlexibleSpaceBar(
-        background: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [colorScheme.primary, colorScheme.primaryContainer],
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                  onPressed: () => onBack != null ? onBack!() : context.pop(),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "announce.title".tr(),
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                        ),
-                      ),
-                      Text(
-                        "announce.subtitle".tr(),
-                        style: TextStyle(
-                          color: colorScheme.secondary.withOpacity(0.9),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnnouncementsList(List<AnnouncementModel> announcements) {
-    return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),
-      sliver: SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) =>
-              _buildAnnouncementCard(context, announcements[index]),
-          childCount: announcements.length,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAnnouncementCard(
-    BuildContext context,
-    AnnouncementModel announcement,
-  ) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-    final statusColor = getAnnouncementStatusColor(
-      announcement.status,
-      colorScheme,
-    );
-    return Container(
-      margin: const EdgeInsets.only(bottom: 18),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(22),
-          onTap: () =>
-              context.push('/admin/announcement-details', extra: announcement),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              announcement.title,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: theme.colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            context.locale.languageCode == 'ar'
-                                ? Icons.arrow_back_ios
-                                : Icons.arrow_forward_ios,
-                            size: 12,
-                            color: Colors.grey,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Text(
-                        announcement.description,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Divider(thickness: 0.6),
-                      ),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.group_outlined,
-                            size: 18,
-                            color: statusColor,
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            "${announcement.applicants} ${'announce.details.person_unit'.tr()}",
-                            style: theme.textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: statusColor.withOpacity(0.12),
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              "announce.${announcement.status.toLowerCase()}"
-                                  .tr(),
-                              style: TextStyle(
-                                color: statusColor,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                if (announcement.imageUrl != null &&
-                    announcement.imageUrl!.isNotEmpty) ...[
-                  const SizedBox(width: 15),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: CachedNetworkImage(
-                      imageUrl: announcement.imageUrl!,
-                      width: 70,
-                      height: 70,
-                      fit: BoxFit.cover,
-                      placeholder: (_, _) => Container(
-                        color: Colors.grey[200],
-                        width: 70,
-                        height: 70,
-                      ),
-                      errorWidget: (_, _, _) =>
-                          const Icon(Icons.broken_image, size: 40),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState(String msg) => SliverFillRemaining(
-    child: Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inbox_rounded, size: 60, color: Colors.grey[300]),
-          const SizedBox(height: 10),
-          Text(msg, style: const TextStyle(color: Colors.grey)),
-        ],
-      ),
-    ),
-  );
-
-  Widget _buildErrorState(String errorCode) => SliverFillRemaining(
-    child: Padding(
-      padding: const EdgeInsets.all(20),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.wifi_off_rounded,
-              size: 60,
-              color: Colors.redAccent,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              errorCode.tr(),
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.redAccent),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
-
-  Widget _buildFAB(BuildContext context, ColorScheme colorScheme) {
-    return FloatingActionButton.extended(
-      onPressed: () => context.push('/admin/edit-announcement'),
-      backgroundColor: colorScheme.primary,
-      icon: Icon(Icons.add_rounded, color: colorScheme.secondary),
-      label: Text(
-        "announce.add_button".tr(),
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-    );
-  }
-}
-
-// ============================================================
-// ✅ شاشة التفاصيل (النسخة الجديدة مع زر إعلان النتائج)
-// ============================================================
 class AnnouncementDetailsPage extends StatelessWidget {
   final AnnouncementModel announcement;
+
   const AnnouncementDetailsPage({super.key, required this.announcement});
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -370,6 +52,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
         ],
       ),
     );
+
     if (confirm == true && context.mounted) {
       context.read<AnnouncementCubit>().deleteAnnouncement(
         announcement.id!,
@@ -379,6 +62,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
     }
   }
 
+  // ✅ دالة فتح شيت النتائج
   void _showResultsSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -400,15 +84,18 @@ class AnnouncementDetailsPage extends StatelessWidget {
     );
   }
 
+  // ✅ ويدجت زر إعلان النتائج
   Widget _buildAnnounceResultButton(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(
+          colors: [Colors.amber.shade700, Colors.amber.shade500],
+        ),
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 15,
+            color: Colors.amber.withOpacity(0.3),
+            blurRadius: 12,
             offset: const Offset(0, 5),
           ),
         ],
@@ -418,15 +105,9 @@ class AnnouncementDetailsPage extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(22),
           onTap: () => _showResultsSheet(context),
-          child: Container(
-            padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Colors.amber.shade700, Colors.amber.shade500],
-              ),
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: const Row(
+          child: const Padding(
+            padding: EdgeInsets.symmetric(vertical: 18, horizontal: 20),
+            child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(Icons.emoji_events, color: Colors.white, size: 26),
@@ -451,10 +132,17 @@ class AnnouncementDetailsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
     final statusColor = getAnnouncementStatusColor(
       announcement.status,
       colorScheme,
     );
+
+    // ✅ شرط ذكي: إظهار زر الإعلان فقط إذا كان الإعلان مقفول ولم يتم الإعلان عنه مسبقاً
+    final bool canAnnounceResults =
+        announcement.status == 'Closed' &&
+        (announcement.isResultAnnounced == null ||
+            announcement.isResultAnnounced == false);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -474,6 +162,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
         ),
       ),
       body: BlocListener<NominationRequestCubit, NominationRequestState>(
+        // ✅ مستمع لنجاح الإعلان
         listener: (context, state) {
           if (state is NominationRequestActionSuccess) {
             ScaffoldMessenger.of(context).showSnackBar(
@@ -595,7 +284,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
                               children: [
                                 Text(
                                   "announce.details.badge_title".tr(),
-                                  style: theme.textTheme.titleMedium?.copyWith(
+                                  style: textTheme.titleMedium?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: 1.5,
@@ -603,7 +292,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
                                 ),
                                 Text(
                                   "common.app_name".tr(),
-                                  style: theme.textTheme.bodySmall?.copyWith(
+                                  style: textTheme.bodySmall?.copyWith(
                                     color: colorScheme.secondary.withOpacity(
                                       0.9,
                                     ),
@@ -629,7 +318,10 @@ class AnnouncementDetailsPage extends StatelessWidget {
                     statusColor: statusColor,
                   ),
                   const SizedBox(height: 20),
-                  _buildAnnounceResultButton(context),
+
+                  // ✅ عرض الزر فقط إذا تحقق الشرط
+                  if (canAnnounceResults) _buildAnnounceResultButton(context),
+
                   const SizedBox(height: 100),
                 ]),
               ),
@@ -647,6 +339,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+
     final formattedDeadline = DateFormat(
       'EEEE, d MMMM yyyy',
       context.locale.languageCode,
@@ -655,6 +348,13 @@ class AnnouncementDetailsPage extends StatelessWidget {
       'd MMM yyyy',
       context.locale.languageCode,
     ).format(announcement.createdAt);
+
+    // =============================================
+    // 🧠 تحديد ما يُعرض بناءً على نوع الإعلان (متوافق مع المحركين)
+    // =============================================
+    final bool showSector =
+        announcement.targetRole == 'vice_president' ||
+        announcement.targetRole == 'vice_dean';
     final bool showCollege = MansouraUniversitiesData.targetRoleRequiresFaculty(
       announcement.targetRole,
     );
@@ -693,6 +393,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ====== حالة الإعلان ======
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -714,6 +415,8 @@ class AnnouncementDetailsPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 25),
+
+                // ====== العنوان ======
                 Text(
                   announcement.title,
                   style: theme.textTheme.headlineSmall?.copyWith(
@@ -723,6 +426,8 @@ class AnnouncementDetailsPage extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 18),
+
+                // ====== الوصف ======
                 Text(
                   announcement.description,
                   style: theme.textTheme.bodyLarge?.copyWith(
@@ -735,6 +440,8 @@ class AnnouncementDetailsPage extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 30),
                   child: Divider(thickness: 0.8),
                 ),
+
+                // ====== نوع الوظيفة المستهدفة ======
                 _buildInfoRow(
                   context,
                   Icons.military_tech,
@@ -743,6 +450,20 @@ class AnnouncementDetailsPage extends StatelessWidget {
                   colorScheme.secondary,
                 ),
                 const SizedBox(height: 20),
+
+                // ✅ ====== القطاع (لنائب الرئيس ووكيل الكلية) ======
+                if (showSector && announcement.targetSector != null) ...[
+                  _buildInfoRow(
+                    context,
+                    Icons.account_tree_outlined,
+                    "edit_announcement.field_sector".tr(),
+                    "sectors.${announcement.targetSector}".tr(),
+                    Colors.deepOrange,
+                  ),
+                  const SizedBox(height: 20),
+                ],
+
+                // ====== عدد المتقدمين ======
                 _buildInfoRow(
                   context,
                   Icons.groups_rounded,
@@ -751,6 +472,8 @@ class AnnouncementDetailsPage extends StatelessWidget {
                   statusColor,
                 ),
                 const SizedBox(height: 20),
+
+                // ====== الموعد النهائي ======
                 _buildInfoRow(
                   context,
                   Icons.timer_outlined,
@@ -759,6 +482,8 @@ class AnnouncementDetailsPage extends StatelessWidget {
                   colorScheme.primary,
                 ),
                 const SizedBox(height: 20),
+
+                // ====== تاريخ النشر ======
                 _buildInfoRow(
                   context,
                   Icons.calendar_today_rounded,
@@ -766,6 +491,10 @@ class AnnouncementDetailsPage extends StatelessWidget {
                   postedDate,
                   Colors.blueGrey,
                 ),
+
+                // =============================================
+                // 🏛️ الكلية (لـ dean, vice_dean, head_department, quality_manager)
+                // =============================================
                 if (showCollege && announcement.collegeName != null) ...[
                   const SizedBox(height: 20),
                   _buildInfoRow(
@@ -776,6 +505,10 @@ class AnnouncementDetailsPage extends StatelessWidget {
                     Colors.deepPurple,
                   ),
                 ],
+
+                // =============================================
+                // 🏢 القسم الأكاديمي (لـ head_department فقط)
+                // =============================================
                 if (showDepartment && announcement.departmentName != null) ...[
                   const SizedBox(height: 20),
                   _buildInfoRow(
@@ -786,6 +519,10 @@ class AnnouncementDetailsPage extends StatelessWidget {
                     Colors.teal,
                   ),
                 ],
+
+                // =============================================
+                // 📋 القطاع / الإدارة العامة (لـ admin_manager فقط)
+                // =============================================
                 if (showAdminDept && announcement.adminSectorName != null) ...[
                   const SizedBox(height: 20),
                   _buildInfoRow(
@@ -796,6 +533,10 @@ class AnnouncementDetailsPage extends StatelessWidget {
                     Colors.indigo,
                   ),
                 ],
+
+                // =============================================
+                // 📁 الإدارة الفرعية (لـ admin_manager فقط)
+                // =============================================
                 if (showAdminDept && announcement.adminSubDeptName != null) ...[
                   const SizedBox(height: 20),
                   _buildInfoRow(

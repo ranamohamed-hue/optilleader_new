@@ -61,7 +61,6 @@ class AddDoctorPage extends StatefulWidget {
 class _AddDoctorPageState extends State<AddDoctorPage> {
   final _formKey = GlobalKey<FormState>();
 
-  // ✅ حفظ البيانات الأصلية عند التعديل
   DoctorProfileModel? _existingDoctor;
 
   final _nameAr = TextEditingController();
@@ -90,7 +89,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
 
   DateTime? birthDate;
   DateTime? professorRankDate;
-  // ✅ تاريخ التعيين الجديد
   DateTime? hiringDate;
 
   bool _hasBeenDean = false;
@@ -98,7 +96,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   bool hasCriminalRecord = false;
   bool holdsPartyPosition = false;
 
-  // ✅ اللجان الداخلية
   final List<String> _internalCommittees = [];
   final _committeeNameController = TextEditingController();
 
@@ -119,6 +116,13 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   bool isOnVacation = false;
   bool hasPermanentPosition = true;
   bool disciplinaryClearance = true;
+
+  // ✅ حقول القانون الجديد
+  bool isOnSecondment = false;
+  bool isOnUnpaidLeave = false;
+  DateTime? activeDutySinceDate;
+  bool hasSupremeCouncilTraining = false;
+  bool hasFLDCTraining = false;
 
   bool _isReadOnly = true;
   String _currentImageUrl = '';
@@ -216,7 +220,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     _phone.dispose();
     _addressAr.dispose();
     _addressEn.dispose();
-    _committeeNameController.dispose(); // ✅
+    _committeeNameController.dispose();
     super.dispose();
   }
 
@@ -285,19 +289,25 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
       }
       academicControllersList.clear();
       _digitalArchive.clear();
-      _internalCommittees.clear(); // ✅
+      _internalCommittees.clear();
       birthDate = null;
       professorRankDate = null;
-      hiringDate = null; // ✅
+      hiringDate = null;
       selectedStatusAr = null;
       selectedStatusEn = null;
       _pickedImageFile = null;
       _currentImageUrl = '';
       _existingDoctor = null;
+
+      // ✅ مسح حقول القانون الجديد
+      isOnSecondment = false;
+      isOnUnpaidLeave = false;
+      activeDutySinceDate = null;
+      hasSupremeCouncilTraining = false;
+      hasFLDCTraining = false;
     });
   }
 
-  // ✅ دالة إضافة لجنة داخلية
   void _addCommittee() {
     final name = _committeeNameController.text.trim();
     if (name.isEmpty) return;
@@ -307,7 +317,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     });
   }
 
-  // ✅ دالة حذف لجنة
   void _removeCommittee(int index) {
     setState(() {
       _internalCommittees.removeAt(index);
@@ -344,7 +353,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         collageAr: _collageAr.text.trim(),
         collageEn: _collageEn.text.trim(),
         professorRankDate: professorRankDate,
-        hiringDate: hiringDate, // ✅ جديد
+        hiringDate: hiringDate,
         previousLeadershipRoles: previousRoles,
         hasCriminalRecord: hasCriminalRecord,
         holdsPartyPosition: holdsPartyPosition,
@@ -365,7 +374,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         isActive: true,
         digitalArchive: _digitalArchive,
 
-        // ✅ الحقول المحفوظة من الموديل القديم
         cvUrl: _existingDoctor?.cvUrl,
         alternativeEmail: _existingDoctor?.alternativeEmail,
         researchPapers: _existingDoctor?.researchPapers ?? const [],
@@ -374,10 +382,8 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         courses: _existingDoctor?.courses ?? const [],
         academicActivities: _existingDoctor?.academicActivities,
 
-        // ✅ اللجان الداخلية الجديدة
         internalCommittees: _internalCommittees,
 
-        // ✅ تم إزالة hasICDL تماماً (بيتحسب من الدورات تلقائياً)
         hasHealthCertificate: _existingDoctor?.hasHealthCertificate,
         hasCommitteeMembership: _existingDoctor?.hasCommitteeMembership,
         hasSelfEvaluationReport: _existingDoctor?.hasSelfEvaluationReport,
@@ -386,6 +392,15 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         hasExcellentPerformanceReports:
             _existingDoctor?.hasExcellentPerformanceReports,
         isTop3Senior: _existingDoctor?.isTop3Senior,
+
+        // ✅ حفظ حقول القانون الجديد
+        isOnSecondment: isOnSecondment,
+        isOnUnpaidLeave: isOnUnpaidLeave,
+        activeDutySinceDate: activeDutySinceDate,
+        hasSupremeCouncilTraining: hasSupremeCouncilTraining,
+        hasFLDCTraining: hasFLDCTraining,
+        workPlanFileUrl: _existingDoctor?.workPlanFileUrl,
+        workPlanStatus: _existingDoctor?.workPlanStatus,
       );
 
       if (isEditing) {
@@ -408,7 +423,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         if (state is DoctorLoaded) {
           final doc = state.doctor!;
 
-          // ✅ حفظ البيانات الأصلية
           _existingDoctor = doc;
 
           _nameAr.text = doc.nameAr;
@@ -440,7 +454,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           _currentImageUrl = doc.profileImage;
 
           professorRankDate = doc.professorRankDate;
-          hiringDate = doc.hiringDate; // ✅ قراءة تاريخ التعيين
+          hiringDate = doc.hiringDate;
 
           _hasBeenDean = doc.previousLeadershipRoles.contains('dean');
           _hasBeenHead = doc.previousLeadershipRoles.contains(
@@ -449,9 +463,15 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           hasCriminalRecord = doc.hasCriminalRecord;
           holdsPartyPosition = doc.holdsPartyPosition;
 
-          // ✅ قراءة اللجان الداخلية
           _internalCommittees.clear();
           _internalCommittees.addAll(doc.internalCommittees);
+
+          // ✅ قراءة حقول القانون الجديد
+          isOnSecondment = doc.isOnSecondment ?? false;
+          isOnUnpaidLeave = doc.isOnUnpaidLeave ?? false;
+          activeDutySinceDate = doc.activeDutySinceDate;
+          hasSupremeCouncilTraining = doc.hasSupremeCouncilTraining ?? false;
+          hasFLDCTraining = doc.hasFLDCTraining ?? false;
 
           academicControllersList.clear();
           for (var item in doc.academicHistory) {
@@ -537,7 +557,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                     _buildProfileImage(),
                     SizedBox(height: 20.h),
 
-                    // ===== قسم البيانات الشخصية والوظيفية =====
                     _buildSectionCard(
                       "add_doctor.identity_job".tr(),
                       Icons.person_pin_rounded,
@@ -630,12 +649,10 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                       ],
                     ),
 
-                    // ===== قسم القيادات الأكاديمية =====
                     _buildSectionCard(
                       "add_doctor.leadership_section".tr(),
                       Icons.military_tech,
                       [
-                        // ✅ تاريخ التعيين الجديد
                         _buildDatePicker(
                           "add_doctor.hiring_date".tr(),
                           hiringDate,
@@ -671,10 +688,8 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                       ],
                     ),
 
-                    // ===== ✅ قسم اللجان الداخلية الجديد =====
                     _buildInternalCommitteesSection(),
 
-                    // ===== قسم بيانات التواصل =====
                     _buildSectionCard(
                       "add_doctor.contact_info".tr(),
                       Icons.contact_phone,
@@ -702,7 +717,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                       ],
                     ),
 
-                    // ===== قسم السجل الأكاديمي =====
                     _buildSectionCard(
                       "add_doctor.academic_history".tr(),
                       Icons.school,
@@ -753,6 +767,35 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                           "add_doctor.on_vacation".tr(),
                           isOnVacation,
                           (v) => setState(() => isOnVacation = v),
+                        ),
+
+                        // ✅ إضافات القانون الجديد مع الترجمة
+                        _buildSwitch(
+                          "add_doctor.secondment".tr(),
+                          isOnSecondment,
+                          (v) => setState(() => isOnSecondment = v),
+                        ),
+                        _buildSwitch(
+                          "add_doctor.unpaid_leave".tr(),
+                          isOnUnpaidLeave,
+                          (v) => setState(() => isOnUnpaidLeave = v),
+                        ),
+                        SizedBox(height: 15.h),
+                        _buildDatePicker(
+                          "add_doctor.active_duty_date".tr(),
+                          activeDutySinceDate,
+                          (date) => setState(() => activeDutySinceDate = date),
+                        ),
+                        SizedBox(height: 15.h),
+                        _buildSwitch(
+                          "add_doctor.supreme_council_training".tr(),
+                          hasSupremeCouncilTraining,
+                          (v) => setState(() => hasSupremeCouncilTraining = v),
+                        ),
+                        _buildSwitch(
+                          "add_doctor.fldc_training".tr(),
+                          hasFLDCTraining,
+                          (v) => setState(() => hasFLDCTraining = v),
                         ),
                       ],
                     ),
@@ -805,7 +848,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 
   // ============================================================
-  // ✅ ويدجت قسم اللجان الداخلية الجديدة
+  // ويدجت قسم اللجان الداخلية
   // ============================================================
   Widget _buildInternalCommitteesSection() {
     return _buildSectionCard(
@@ -1364,6 +1407,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 }
 
+// ============================================================
+// كلاس الـ Dialog الخاص بالأرشيف
+// ============================================================
 class _ArchiveFileDialog extends StatefulWidget {
   final File file;
   final String uid;
@@ -1444,7 +1490,7 @@ class _ArchiveFileDialogState extends State<_ArchiveFileDialog> {
                     Navigator.pop(context);
                   }
                 },
-          child: Text('common.upload'.tr()),
+          child: Text('common.save'.tr()),
         ),
       ],
     );

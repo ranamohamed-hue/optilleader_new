@@ -230,7 +230,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 13. قطاع الشؤون الطبية
+    // 13. قطاع الشؤون الطبية والصحية
     // ============================================================
     AdminDepartmentData(
       id: 'medical_sector',
@@ -255,7 +255,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 14. قطاع الإسكان والطالبات
+    // 14. قطاع الإسكان والمباني
     // ============================================================
     AdminDepartmentData(
       id: 'housing_sector',
@@ -287,7 +287,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 16. قطاع شؤون أعضاء هيئة التدريس
+    // 16. قطاع شؤون أعضاء هيئة التدريس ومعاونيهم
     // ============================================================
     AdminDepartmentData(
       id: 'faculty_staff_sector',
@@ -297,15 +297,15 @@ class AdministrativeRolesData {
         AdminSubDepartmentData(id: 'staff_general', nameAr: 'الإدارة العامة لشؤون أعضاء هيئة التدريس', nameEn: 'General Faculty Staff Department'),
         AdminSubDepartmentData(id: 'staff_appointments', nameAr: 'إدارة تعيينات هيئة التدريس', nameEn: 'Faculty Staff Appointments'),
         AdminSubDepartmentData(id: 'staff_promotions', nameAr: 'إدارة الترقيات العلمية', nameEn: 'Scientific Promotions Department'),
-        AdminSubDepartmentData(id: 'staff_delegations', nameAr: 'إادة الإعارات والإيفادات العلمية', nameEn: 'Scientific Delegations Department'),
+        AdminSubDepartmentData(id: 'staff_delegations', nameAr: 'إدارة الإعارات والإيفادات العلمية', nameEn: 'Scientific Delegations Department'), // ✅ تم تصحيح الخطأ الإملائي
         AdminSubDepartmentData(id: 'staff_evaluations', nameAr: 'إدارة تقييم أداء هيئة التدريس', nameEn: 'Faculty Staff Evaluation Department'),
-        AdminSubDepartmentData(id: 'staff_disputes', nameAr: 'إادة المنازعات والتظلمات', nameEn: 'Disputes & Grievances Department'),
+        AdminSubDepartmentData(id: 'staff_disputes', nameAr: 'إدارة المنازعات والتظلمات', nameEn: 'Disputes & Grievances Department'), // ✅ تم تصحيح الخطأ الإملائي
         AdminSubDepartmentData(id: 'staff_assistants', nameAr: 'إدارة شؤون المعيدين والمباحثين', nameEn: 'Teaching Assistants Affairs'),
       ],
     ),
 
     // ============================================================
-    // 17. قطاع الطباعة والنشر
+    // 17. قطاع الطباعة والنشر الجامعي
     // ============================================================
     AdminDepartmentData(
       id: 'printing_sector',
@@ -328,7 +328,7 @@ class AdministrativeRolesData {
       nameEn: 'Special Centers & Units Sector',
       subDepartments: [
         AdminSubDepartmentData(id: 'genetic_eng_center', nameAr: 'مركز الهندسة الوراثية والتقنية الحيوية', nameEn: 'Genetic Engineering & Biotechnology Center'),
-        AdminSubDepartmentData(id: 'laser_center', nameAr: 'مركز الليزر وال تطبيقاته', nameEn: 'Laser & Applications Center'),
+        AdminSubDepartmentData(id: 'laser_center', nameAr: 'مركز الليزر وتطبيقاته', nameEn: 'Laser & Applications Center'), // ✅ تم تصحيح الخطأ الإملائي
         AdminSubDepartmentData(id: 'env_studies_center', nameAr: 'مركز الدراسات البيئية', nameEn: 'Environmental Studies Center'),
         AdminSubDepartmentData(id: 'gis_center', nameAr: 'مركز نظم المعلومات الجغرافية', nameEn: 'GIS Center'),
         AdminSubDepartmentData(id: 'language_center', nameAr: 'مركز تعليم اللغات', nameEn: 'Language Center'),
@@ -341,7 +341,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 19. قطاع التعليم المفتوح والتعليم عن بعد
+    // 19. قطاع التعليم المفتوح
     // ============================================================
     AdminDepartmentData(
       id: 'open_education_sector',
@@ -357,7 +357,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 20. قطاع رعاية ذوي الاحتياجات الخاصة
+    // 20. قطاع رعاية ذوي الإعاقة والاحتياجات الخاصة
     // ============================================================
     AdminDepartmentData(
       id: 'special_needs_sector',
@@ -372,7 +372,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 21. قطاع الشؤون الدولية والبعثات
+    // 21. قطاع الشؤون الدولية والتعاون العلمي
     // ============================================================
     AdminDepartmentData(
       id: 'international_sector',
@@ -389,7 +389,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 22. قطاع الموارد البشرية والتدريب
+    // 22. قطاع بناء القدرات والتدريب
     // ============================================================
     AdminDepartmentData(
       id: 'capacity_building_sector',
@@ -405,7 +405,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 23. قطاع الشؤون المالية والمحاسبة
+    // 23. قطاع الحسابات والمراجعة الداخلية
     // ============================================================
     AdminDepartmentData(
       id: 'accounting_sector',
@@ -436,7 +436,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 25. قطاع مراقبة الأداء المؤسسي
+    // 25. قطاع مراقبة الأداء المؤسسي والمتابعة
     // ============================================================
     AdminDepartmentData(
       id: 'performance_monitoring_sector',
@@ -451,7 +451,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 26. أمانة سر المجالس الجامعية
+    // 26. أمانة سر المجالس واللجان الجامعية
     // ============================================================
     AdminDepartmentData(
       id: 'councils_secretariat',
@@ -468,7 +468,7 @@ class AdministrativeRolesData {
     ),
 
     // ============================================================
-    // 27. قطاع شؤون ذوي الوفيات والمعاشات
+    // 27. قطاع الرعاية الاجتماعية
     // ============================================================
     AdminDepartmentData(
       id: 'welfare_sector',
@@ -487,7 +487,6 @@ class AdministrativeRolesData {
   // 🔧 دوال مساعدة
   // ============================================================
 
-  /// ✅ جلب إدارة بالـ id
   static AdminDepartmentData? getDepartmentById(String id) {
     try {
       return departments.firstWhere((d) => d.id == id);
@@ -496,20 +495,17 @@ class AdministrativeRolesData {
     }
   }
 
-  /// ✅ جلب اسم الإدارة بالـ id مع دعم اللغة
   static String getDepartmentNameById(String id, {bool isArabic = true}) {
     final dept = getDepartmentById(id);
     if (dept == null) return '';
     return isArabic ? dept.nameAr : dept.nameEn;
   }
 
-  /// ✅ جلب الإدارات الفرعية لإدارة معينة
   static List<AdminSubDepartmentData> getSubDepartmentsByDepartmentId(String departmentId) {
     final dept = getDepartmentById(departmentId);
     return dept?.subDepartments ?? [];
   }
 
-  /// ✅ جلب إدارة فرعية بالـ id
   static AdminSubDepartmentData? getSubDepartmentById({
     required String departmentId,
     required String subDepartmentId,
@@ -522,7 +518,6 @@ class AdministrativeRolesData {
     }
   }
 
-  /// ✅ جلب اسم الإدارة الفرعية بالـ id مع دعم اللغة
   static String getSubDepartmentNameById({
     required String departmentId,
     required String subDepartmentId,
@@ -536,7 +531,6 @@ class AdministrativeRolesData {
     return isArabic ? sub.nameAr : sub.nameEn;
   }
 
-  /// ✅ جلب جميع الإدارات الفرعية مسطحة (للفلاتر والبحث)
   static List<AdminSubDepartmentData> getAllSubDepartments() {
     final List<AdminSubDepartmentData> all = [];
     for (var dept in departments) {
@@ -545,7 +539,6 @@ class AdministrativeRolesData {
     return all;
   }
 
-  /// ✅ جلب جميع الإدارات الفرعية مع اسم القطاع الأب
   static List<Map<String, String>> getAllSubDepartmentsWithParent({bool isArabic = true}) {
     final List<Map<String, String>> result = [];
     for (var dept in departments) {
@@ -562,7 +555,6 @@ class AdministrativeRolesData {
     return result;
   }
 
-  /// ✅ البحث في الإدارات الرئيسية
   static List<AdminDepartmentData> searchDepartments(String query, {bool isArabic = true}) {
     final lowerQuery = query.toLowerCase();
     return departments.where((d) {
@@ -572,7 +564,6 @@ class AdministrativeRolesData {
     }).toList();
   }
 
-  /// ✅ البحث في الإدارات الفرعية في قطاع معين
   static List<AdminSubDepartmentData> searchSubDepartments({
     required String departmentId,
     required String query,
@@ -587,7 +578,6 @@ class AdministrativeRolesData {
     }).toList();
   }
 
-  /// ✅ البحث الشامل في كل الإدارات الفرعية
   static List<Map<String, String>> globalSearchSubDepartments(String query, {bool isArabic = true}) {
     final all = getAllSubDepartmentsWithParent(isArabic: isArabic);
     final lowerQuery = query.toLowerCase();
@@ -602,7 +592,6 @@ class AdministrativeRolesData {
 // 📦 موديلات البيانات
 // ============================================================
 
-/// ✅ موديل الإدارة الرئيسية (القطاع)
 class AdminDepartmentData {
   final String id;
   final String nameAr;
@@ -617,7 +606,6 @@ class AdminDepartmentData {
   });
 }
 
-/// ✅ موديل الإدارة الفرعية
 class AdminSubDepartmentData {
   final String id;
   final String nameAr;

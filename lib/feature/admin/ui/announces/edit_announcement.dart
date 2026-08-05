@@ -32,6 +32,9 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   XFile? _pickedImage;
   final ImagePicker _picker = ImagePicker();
 
+  // 🎯 القطاع الجديد (لنائب الرئيس ووكيل الكلية)
+  String? _selectedTargetSector;
+
   // 🏛️ بيانات الكلية والقسم
   String? _selectedCollegeId;
   String? _selectedCollegeName;
@@ -47,12 +50,19 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   @override
   void initState() {
     super.initState();
-    _titleController = TextEditingController(text: widget.announcement?.title ?? '');
-    _bodyController = TextEditingController(text: widget.announcement?.description ?? '');
+    _titleController = TextEditingController(
+      text: widget.announcement?.title ?? '',
+    );
+    _bodyController = TextEditingController(
+      text: widget.announcement?.description ?? '',
+    );
     _selectedDeadline = widget.announcement?.deadline ?? DateTime.now();
     _selectedStatus = widget.announcement?.status ?? 'Active';
     _selectedTargetRole = widget.announcement?.targetRole ?? 'general';
     _dateController = TextEditingController();
+
+    // 🎯 استرجاع القطاع
+    _selectedTargetSector = widget.announcement?.targetSector;
 
     // 🏛️ استرجاع بيانات الكلية والقسم
     _selectedCollegeId = widget.announcement?.collegeId;
@@ -71,7 +81,9 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_dateController.text.isEmpty) {
-      _dateController.text = DateFormat.yMd(context.locale.languageCode).format(_selectedDeadline);
+      _dateController.text = DateFormat.yMd(
+        context.locale.languageCode,
+      ).format(_selectedDeadline);
     }
   }
 
@@ -84,7 +96,10 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   }
 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery, requestFullMetadata: false);
+    final XFile? pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      requestFullMetadata: false,
+    );
     if (pickedFile != null) setState(() => _pickedImage = pickedFile);
   }
 
@@ -93,9 +108,17 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // 🧠 التحكم الذكي في إظهار الحقول
-    final bool showCollege = MansouraUniversitiesData.targetRoleRequiresFaculty(_selectedTargetRole);
-    final bool showDepartment = MansouraUniversitiesData.targetRoleRequiresDepartment(_selectedTargetRole);
+    // 🧠 التحكم الذكي في إظهار الحقول (متطابق مع المحركين)
+    final bool showSector =
+        _selectedTargetRole == 'vice_president' ||
+        _selectedTargetRole == 'vice_dean';
+    final bool showCollege = MansouraUniversitiesData.targetRoleRequiresFaculty(
+      _selectedTargetRole,
+    );
+    final bool showDepartment =
+        MansouraUniversitiesData.targetRoleRequiresDepartment(
+          _selectedTargetRole,
+        );
     final bool showAdminDept = _selectedTargetRole == 'admin_manager';
 
     return Scaffold(
@@ -108,7 +131,11 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
             backgroundColor: colorScheme.primary,
             centerTitle: true,
             leading: IconButton(
-              icon: Icon(Icons.arrow_back_ios_new, color: colorScheme.onPrimary, size: 20),
+              icon: Icon(
+                Icons.arrow_back_ios_new,
+                color: colorScheme.onPrimary,
+                size: 20,
+              ),
               onPressed: () => context.pop(),
             ),
             shape: const RoundedRectangleBorder(
@@ -118,7 +145,11 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
               centerTitle: true,
               title: Text(
                 "edit_announcement.title".tr(),
-                style: TextStyle(color: colorScheme.secondary, fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(
+                  color: colorScheme.secondary,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
               ),
             ),
           ),
@@ -131,31 +162,68 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                   color: colorScheme.surface,
                   borderRadius: BorderRadius.circular(25),
                   boxShadow: [
-                    BoxShadow(color: colorScheme.primary.withOpacity(0.06), blurRadius: 20, offset: const Offset(0, 10)),
+                    BoxShadow(
+                      color: colorScheme.primary.withOpacity(0.06),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
                   ],
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildFieldLabel("edit_announcement.field_title".tr(), Icons.title_rounded, colorScheme),
-                    _buildCustomTextField(_titleController, colorScheme, hint: "edit_announcement.hint_title".tr()),
+                    _buildFieldLabel(
+                      "edit_announcement.field_title".tr(),
+                      Icons.title_rounded,
+                      colorScheme,
+                    ),
+                    _buildCustomTextField(
+                      _titleController,
+                      colorScheme,
+                      hint: "edit_announcement.hint_title".tr(),
+                    ),
                     const SizedBox(height: 25),
 
-                    _buildFieldLabel("edit_announcement.field_target_role".tr(), Icons.military_tech, colorScheme),
+                    _buildFieldLabel(
+                      "edit_announcement.field_target_role".tr(),
+                      Icons.military_tech,
+                      colorScheme,
+                    ),
                     _buildTargetRoleDropdown(colorScheme),
                     const SizedBox(height: 25),
+
+                    // =============================================
+                    // 🎯 قطاع نائب الرئيس / وكيل الكلية
+                    // =============================================
+                    if (showSector) ...[
+                      _buildFieldLabel(
+                        "edit_announcement.field_sector".tr(),
+                        Icons.account_tree_outlined,
+                        colorScheme,
+                      ),
+                      _buildSectorDropdown(colorScheme),
+                      const SizedBox(height: 25),
+                    ],
 
                     // =============================================
                     // 🏛️ كلية وأقسام الأكاديميين
                     // =============================================
                     if (showCollege) ...[
-                      _buildFieldLabel("edit_announcement.field_college".tr(), Icons.domain, colorScheme),
+                      _buildFieldLabel(
+                        "edit_announcement.field_college".tr(),
+                        Icons.domain,
+                        colorScheme,
+                      ),
                       _buildCollegeDropdown(colorScheme),
                       const SizedBox(height: 25),
                     ],
 
                     if (showDepartment) ...[
-                      _buildFieldLabel("edit_announcement.field_department".tr(), Icons.meeting_room, colorScheme),
+                      _buildFieldLabel(
+                        "edit_announcement.field_department".tr(),
+                        Icons.meeting_room,
+                        colorScheme,
+                      ),
                       _buildDepartmentDropdown(colorScheme),
                       const SizedBox(height: 25),
                     ],
@@ -164,50 +232,102 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                     // 📋 قطاعات وإدارات الوظائف الإدارية
                     // =============================================
                     if (showAdminDept) ...[
-                      _buildFieldLabel("edit_announcement.field_admin_sector".tr(), Icons.account_balance, colorScheme),
+                      _buildFieldLabel(
+                        "edit_announcement.field_admin_sector".tr(),
+                        Icons.account_balance,
+                        colorScheme,
+                      ),
                       _buildAdminSectorDropdown(colorScheme),
                       const SizedBox(height: 25),
 
-                      _buildFieldLabel("edit_announcement.field_admin_sub_dept".tr(), Icons.corporate_fare, colorScheme),
+                      _buildFieldLabel(
+                        "edit_announcement.field_admin_sub_dept".tr(),
+                        Icons.corporate_fare,
+                        colorScheme,
+                      ),
                       _buildAdminSubDeptDropdown(colorScheme),
                       const SizedBox(height: 25),
                     ],
 
-                    _buildFieldLabel("edit_announcement.field_desc".tr(), Icons.subject_rounded, colorScheme),
-                    _buildCustomTextField(_bodyController, colorScheme, hint: "edit_announcement.hint_desc".tr(), maxLines: 4),
+                    _buildFieldLabel(
+                      "edit_announcement.field_desc".tr(),
+                      Icons.subject_rounded,
+                      colorScheme,
+                    ),
+                    _buildCustomTextField(
+                      _bodyController,
+                      colorScheme,
+                      hint: "edit_announcement.hint_desc".tr(),
+                      maxLines: 4,
+                    ),
                     const SizedBox(height: 25),
 
-                    _buildFieldLabel("edit_announcement.field_image".tr(), Icons.image_outlined, colorScheme),
+                    _buildFieldLabel(
+                      "edit_announcement.field_image".tr(),
+                      Icons.image_outlined,
+                      colorScheme,
+                    ),
                     GestureDetector(
                       onTap: _pickImage,
                       child: Container(
                         height: 160,
                         width: double.infinity,
                         decoration: BoxDecoration(
-                          color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                          color: colorScheme.surfaceContainerHighest
+                              .withOpacity(0.3),
                           borderRadius: BorderRadius.circular(15),
-                          border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+                          border: Border.all(
+                            color: colorScheme.outline.withOpacity(0.2),
+                          ),
                         ),
                         child: _pickedImage != null
-                            ? ClipRRect(borderRadius: BorderRadius.circular(15), child: Image.file(File(_pickedImage!.path), fit: BoxFit.cover))
-                            : (widget.announcement?.imageUrl != null && widget.announcement!.imageUrl!.isNotEmpty)
-                                ? ClipRRect(
-                                    borderRadius: BorderRadius.circular(15),
-                                    child: CachedNetworkImage(
-                                      imageUrl: widget.announcement!.imageUrl!,
-                                      fit: BoxFit.cover,
-                                      placeholder: (_, _) => Center(child: CircularProgressIndicator(color: colorScheme.secondary)),
-                                      errorWidget: (_, _, _) => Icon(Icons.broken_image, color: colorScheme.error, size: 40),
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: Image.file(
+                                  File(_pickedImage!.path),
+                                  fit: BoxFit.cover,
+                                ),
+                              )
+                            : (widget.announcement?.imageUrl != null &&
+                                  widget.announcement!.imageUrl!.isNotEmpty)
+                            ? ClipRRect(
+                                borderRadius: BorderRadius.circular(15),
+                                child: CachedNetworkImage(
+                                  imageUrl: widget.announcement!.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, _) => Center(
+                                    child: CircularProgressIndicator(
+                                      color: colorScheme.secondary,
                                     ),
-                                  )
-                                : Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(Icons.add_photo_alternate_outlined, size: 45, color: colorScheme.secondary.withOpacity(0.7)),
-                                      const SizedBox(height: 8),
-                                      Text("edit_announcement.hint_image".tr(), style: TextStyle(color: colorScheme.onSurface.withOpacity(0.5))),
-                                    ],
                                   ),
+                                  errorWidget: (_, _, _) => Icon(
+                                    Icons.broken_image,
+                                    color: colorScheme.error,
+                                    size: 40,
+                                  ),
+                                ),
+                              )
+                            : Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.add_photo_alternate_outlined,
+                                    size: 45,
+                                    color: colorScheme.secondary.withOpacity(
+                                      0.7,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "edit_announcement.hint_image".tr(),
+                                    style: TextStyle(
+                                      color: colorScheme.onSurface.withOpacity(
+                                        0.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
                     const SizedBox(height: 25),
@@ -218,7 +338,11 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildFieldLabel("edit_announcement.field_date".tr(), Icons.calendar_month_rounded, colorScheme),
+                              _buildFieldLabel(
+                                "edit_announcement.field_date".tr(),
+                                Icons.calendar_month_rounded,
+                                colorScheme,
+                              ),
                               _buildDateField(colorScheme),
                             ],
                           ),
@@ -228,7 +352,11 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildFieldLabel("edit_announcement.field_status".tr(), Icons.info_outline_rounded, colorScheme),
+                              _buildFieldLabel(
+                                "edit_announcement.field_status".tr(),
+                                Icons.info_outline_rounded,
+                                colorScheme,
+                              ),
                               _buildStatusDropdown(colorScheme),
                             ],
                           ),
@@ -242,7 +370,12 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                         Expanded(
                           child: TextButton(
                             onPressed: () => context.pop(),
-                            child: Text("common.cancel".tr(), style: TextStyle(color: colorScheme.onSurface.withOpacity(0.5))),
+                            child: Text(
+                              "common.cancel".tr(),
+                              style: TextStyle(
+                                color: colorScheme.onSurface.withOpacity(0.5),
+                              ),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -253,9 +386,16 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                             style: ElevatedButton.styleFrom(
                               backgroundColor: colorScheme.primary,
                               foregroundColor: colorScheme.secondary,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(15),
+                              ),
                             ),
-                            child: Text("edit_announcement.save_button".tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+                            child: Text(
+                              "edit_announcement.save_button".tr(),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ),
                         ),
                       ],
@@ -271,7 +411,44 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   }
 
   // ============================================================
-  // 🏛️ دروب داون الكلية (من الكلاس الجديد)
+  // 🎯 دروب داون القطاع (التعليم - العليا - المجتمع)
+  // ============================================================
+  Widget _buildSectorDropdown(ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: colorScheme.outline.withOpacity(0.2)),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: _selectedTargetSector,
+          isExpanded: true,
+          hint: Text("edit_announcement.hint_sector".tr()),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: colorScheme.secondary,
+          ),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+          onChanged: (val) => setState(() => _selectedTargetSector = val),
+          items: AnnouncementModel.sectorList
+              .map(
+                (s) =>
+                    DropdownMenuItem(value: s, child: Text("sectors.$s".tr())),
+              )
+              .toList(),
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  // 🏛️ دروب داون الكلية
   // ============================================================
   Widget _buildCollegeDropdown(ColorScheme colorScheme) {
     final isArabic = context.locale.languageCode == 'ar';
@@ -289,33 +466,47 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
           value: _selectedCollegeId,
           isExpanded: true,
           hint: Text("edit_announcement.hint_college".tr()),
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.secondary),
-          style: TextStyle(color: colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: colorScheme.secondary,
+          ),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
           onChanged: (val) {
             final college = MansouraUniversitiesData.getFacultyById(val!);
             setState(() {
               _selectedCollegeId = val;
-              _selectedCollegeName = isArabic ? college!.nameAr : college!.nameEn;
-              // مسح القسم لما يغير الكلية
+              _selectedCollegeName = isArabic
+                  ? college!.nameAr
+                  : college!.nameEn;
               _selectedDepartmentId = null;
               _selectedDepartmentName = null;
             });
           },
-          items: colleges.map((c) => DropdownMenuItem(
-            value: c.id,
-            child: Text(isArabic ? c.nameAr : c.nameEn),
-          )).toList(),
+          items: colleges
+              .map(
+                (c) => DropdownMenuItem(
+                  value: c.id,
+                  child: Text(isArabic ? c.nameAr : c.nameEn),
+                ),
+              )
+              .toList(),
         ),
       ),
     );
   }
 
   // ============================================================
-  // 🏢 دروب داون القسم (ديناميكي حسب الكلية)
+  // 🏢 دروب داون القسم
   // ============================================================
   Widget _buildDepartmentDropdown(ColorScheme colorScheme) {
     final isArabic = context.locale.languageCode == 'ar';
-    final departments = MansouraUniversitiesData.getDepartmentsByFacultyId(_selectedCollegeId ?? '');
+    final departments = MansouraUniversitiesData.getDepartmentsByFacultyId(
+      _selectedCollegeId ?? '',
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -326,11 +517,20 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: departments.any((d) => d.id == _selectedDepartmentId) ? _selectedDepartmentId : null,
+          value: departments.any((d) => d.id == _selectedDepartmentId)
+              ? _selectedDepartmentId
+              : null,
           isExpanded: true,
           hint: Text("edit_announcement.hint_department".tr()),
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.secondary),
-          style: TextStyle(color: colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: colorScheme.secondary,
+          ),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
           onChanged: (val) {
             final dept = departments.firstWhere((d) => d.id == val);
             setState(() {
@@ -338,10 +538,14 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
               _selectedDepartmentName = isArabic ? dept.nameAr : dept.nameEn;
             });
           },
-          items: departments.map((d) => DropdownMenuItem(
-            value: d.id,
-            child: Text(isArabic ? d.nameAr : d.nameEn),
-          )).toList(),
+          items: departments
+              .map(
+                (d) => DropdownMenuItem(
+                  value: d.id,
+                  child: Text(isArabic ? d.nameAr : d.nameEn),
+                ),
+              )
+              .toList(),
         ),
       ),
     );
@@ -366,33 +570,47 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
           value: _selectedAdminSectorId,
           isExpanded: true,
           hint: Text("edit_announcement.hint_admin_sector".tr()),
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.secondary),
-          style: TextStyle(color: colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: colorScheme.secondary,
+          ),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
           onChanged: (val) {
             final sector = AdministrativeRolesData.getDepartmentById(val!);
             setState(() {
               _selectedAdminSectorId = val;
-              _selectedAdminSectorName = isArabic ? sector!.nameAr : sector!.nameEn;
-              // مسح الإدارة الفرعية لما يغير القطاع
+              _selectedAdminSectorName = isArabic
+                  ? sector!.nameAr
+                  : sector!.nameEn;
               _selectedAdminSubDeptId = null;
               _selectedAdminSubDeptName = null;
             });
           },
-          items: sectors.map((s) => DropdownMenuItem(
-            value: s.id,
-            child: Text(isArabic ? s.nameAr : s.nameEn),
-          )).toList(),
+          items: sectors
+              .map(
+                (s) => DropdownMenuItem(
+                  value: s.id,
+                  child: Text(isArabic ? s.nameAr : s.nameEn),
+                ),
+              )
+              .toList(),
         ),
       ),
     );
   }
 
   // ============================================================
-  // 📁 دروب داون الإدارة الفرعية (ديناميكي حسب القطاع)
+  // 📁 دروب داون الإدارة الفرعية
   // ============================================================
   Widget _buildAdminSubDeptDropdown(ColorScheme colorScheme) {
     final isArabic = context.locale.languageCode == 'ar';
-    final subDepts = AdministrativeRolesData.getSubDepartmentsByDepartmentId(_selectedAdminSectorId ?? '');
+    final subDepts = AdministrativeRolesData.getSubDepartmentsByDepartmentId(
+      _selectedAdminSectorId ?? '',
+    );
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -403,22 +621,37 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
-          value: subDepts.any((s) => s.id == _selectedAdminSubDeptId) ? _selectedAdminSubDeptId : null,
+          value: subDepts.any((s) => s.id == _selectedAdminSubDeptId)
+              ? _selectedAdminSubDeptId
+              : null,
           isExpanded: true,
           hint: Text("edit_announcement.hint_admin_sub_dept".tr()),
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.secondary),
-          style: TextStyle(color: colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: colorScheme.secondary,
+          ),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
           onChanged: (val) {
             final subDept = subDepts.firstWhere((s) => s.id == val);
             setState(() {
               _selectedAdminSubDeptId = val;
-              _selectedAdminSubDeptName = isArabic ? subDept.nameAr : subDept.nameEn;
+              _selectedAdminSubDeptName = isArabic
+                  ? subDept.nameAr
+                  : subDept.nameEn;
             });
           },
-          items: subDepts.map((s) => DropdownMenuItem(
-            value: s.id,
-            child: Text(isArabic ? s.nameAr : s.nameEn),
-          )).toList(),
+          items: subDepts
+              .map(
+                (s) => DropdownMenuItem(
+                  value: s.id,
+                  child: Text(isArabic ? s.nameAr : s.nameEn),
+                ),
+              )
+              .toList(),
         ),
       ),
     );
@@ -439,12 +672,20 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         child: DropdownButton<String>(
           value: _selectedTargetRole,
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.secondary),
-          style: TextStyle(color: colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: colorScheme.secondary,
+          ),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
           onChanged: (val) {
             setState(() {
               _selectedTargetRole = val!;
               // ✅ مسح كل الحقول الاختيارية لما يغير النوع
+              _selectedTargetSector = null; // مسح القطاع
               _selectedCollegeId = null;
               _selectedCollegeName = null;
               _selectedDepartmentId = null;
@@ -455,7 +696,9 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
               _selectedAdminSubDeptName = null;
             });
           },
-          items: AnnouncementModel.targetRoleList.map((v) => DropdownMenuItem(value: v, child: Text(v.tr()))).toList(),
+          items: AnnouncementModel.targetRoleList
+              .map((v) => DropdownMenuItem(value: v, child: Text(v.tr())))
+              .toList(),
         ),
       ),
     );
@@ -464,20 +707,36 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   // ============================================================
   // 🧩 عناصر الـ UI المساعدة
   // ============================================================
-  Widget _buildFieldLabel(String label, IconData icon, ColorScheme colorScheme) {
+  Widget _buildFieldLabel(
+    String label,
+    IconData icon,
+    ColorScheme colorScheme,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10, left: 4, right: 4),
       child: Row(
         children: [
           Icon(icon, size: 18, color: colorScheme.secondary),
           const SizedBox(width: 8),
-          Text(label, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: colorScheme.primary)),
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: colorScheme.primary,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCustomTextField(TextEditingController controller, ColorScheme colorScheme, {int maxLines = 1, required String hint}) {
+  Widget _buildCustomTextField(
+    TextEditingController controller,
+    ColorScheme colorScheme, {
+    int maxLines = 1,
+    required String hint,
+  }) {
     return TextField(
       controller: controller,
       maxLines: maxLines,
@@ -486,8 +745,14 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         hintText: hint,
         filled: true,
         fillColor: colorScheme.surfaceContainerHighest.withOpacity(0.3),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.2))),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(15), borderSide: BorderSide(color: colorScheme.secondary, width: 1.5)),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: colorScheme.outline.withOpacity(0.2)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(15),
+          borderSide: BorderSide(color: colorScheme.secondary, width: 1.5),
+        ),
       ),
     );
   }
@@ -504,7 +769,9 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         if (pickedDate != null) {
           setState(() {
             _selectedDeadline = pickedDate;
-            _dateController.text = DateFormat.yMd(context.locale.languageCode).format(pickedDate);
+            _dateController.text = DateFormat.yMd(
+              context.locale.languageCode,
+            ).format(pickedDate);
           });
         }
       },
@@ -518,8 +785,15 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(_dateController.text, style: TextStyle(fontSize: 13, color: colorScheme.onSurface)),
-            Icon(Icons.calendar_today_rounded, size: 16, color: colorScheme.secondary),
+            Text(
+              _dateController.text,
+              style: TextStyle(fontSize: 13, color: colorScheme.onSurface),
+            ),
+            Icon(
+              Icons.calendar_today_rounded,
+              size: 16,
+              color: colorScheme.secondary,
+            ),
           ],
         ),
       ),
@@ -538,10 +812,22 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         child: DropdownButton<String>(
           value: _selectedStatus,
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: colorScheme.secondary),
-          style: TextStyle(color: colorScheme.onSurface, fontSize: 13, fontWeight: FontWeight.w600),
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: colorScheme.secondary,
+          ),
+          style: TextStyle(
+            color: colorScheme.onSurface,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
           onChanged: (val) => setState(() => _selectedStatus = val!),
-          items: AnnouncementModel.statusList.map((v) => DropdownMenuItem(value: v, child: Text("announce.$v".tr()))).toList(),
+          items: AnnouncementModel.statusList
+              .map(
+                (v) =>
+                    DropdownMenuItem(value: v, child: Text("announce.$v".tr())),
+              )
+              .toList(),
         ),
       ),
     );
@@ -551,28 +837,60 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   // 💾 حفظ/تحديث البيانات
   // ============================================================
   void _handleUpdate(BuildContext context) async {
-    if (_titleController.text.trim().isEmpty || _bodyController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("edit_announcement.error_title_desc_required".tr())));
+    if (_titleController.text.trim().isEmpty ||
+        _bodyController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("edit_announcement.error_title_desc_required".tr()),
+        ),
+      );
       return;
     }
 
-    // ✅ تحقق ذكي حسب نوع المسابقة
-    final showCollege = MansouraUniversitiesData.targetRoleRequiresFaculty(_selectedTargetRole);
-    final showDepartment = MansouraUniversitiesData.targetRoleRequiresDepartment(_selectedTargetRole);
+    // ✅ تحقق ذكي حسب نوع المسابقة (متطابق مع المحرك)
+    final showSector =
+        _selectedTargetRole == 'vice_president' ||
+        _selectedTargetRole == 'vice_dean';
+    final showCollege = MansouraUniversitiesData.targetRoleRequiresFaculty(
+      _selectedTargetRole,
+    );
+    final showDepartment =
+        MansouraUniversitiesData.targetRoleRequiresDepartment(
+          _selectedTargetRole,
+        );
     final showAdminDept = _selectedTargetRole == 'admin_manager';
+
+    if (showSector && _selectedTargetSector == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("edit_announcement.error_sector_required".tr())),
+      );
+      return;
+    }
 
     if (showAdminDept) {
       if (_selectedAdminSectorId == null || _selectedAdminSubDeptId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("edit_announcement.error_sector_subdept_required".tr())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "edit_announcement.error_sector_subdept_required".tr(),
+            ),
+          ),
+        );
         return;
       }
     } else if (showCollege || showDepartment) {
       if (showCollege && _selectedCollegeId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("edit_announcement.error_college_required".tr())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("edit_announcement.error_college_required".tr()),
+          ),
+        );
         return;
       }
       if (showDepartment && _selectedDepartmentId == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("edit_announcement.error_dept_required".tr())));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("edit_announcement.error_dept_required".tr())),
+        );
         return;
       }
     }
@@ -584,6 +902,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         status: _selectedStatus,
         deadline: _selectedDeadline,
         targetRole: _selectedTargetRole,
+        targetSector: _selectedTargetSector, // ✅ حفظ القطاع
         collegeId: _selectedCollegeId,
         collegeName: _selectedCollegeName,
         departmentId: _selectedDepartmentId,
@@ -593,7 +912,10 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         adminSubDeptId: _selectedAdminSubDeptId,
         adminSubDeptName: _selectedAdminSubDeptName,
       );
-      await context.read<AnnouncementCubit>().updateAnnouncement(updatedModel, imagePath: _pickedImage?.path);
+      await context.read<AnnouncementCubit>().updateAnnouncement(
+        updatedModel,
+        imagePath: _pickedImage?.path,
+      );
     } else {
       final newAnnouncement = AnnouncementModel(
         title: _titleController.text,
@@ -601,6 +923,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         status: _selectedStatus,
         deadline: _selectedDeadline,
         targetRole: _selectedTargetRole,
+        targetSector: _selectedTargetSector, // ✅ حفظ القطاع
         createdAt: DateTime.now(),
         collegeId: _selectedCollegeId,
         collegeName: _selectedCollegeName,
@@ -611,13 +934,19 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         adminSubDeptId: _selectedAdminSubDeptId,
         adminSubDeptName: _selectedAdminSubDeptName,
       );
-      await context.read<AnnouncementCubit>().addAnnouncement(newAnnouncement, imagePath: _pickedImage?.path);
+      await context.read<AnnouncementCubit>().addAnnouncement(
+        newAnnouncement,
+        imagePath: _pickedImage?.path,
+      );
     }
 
     if (context.mounted) {
       context.pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("edit_announcement.success_msg".tr()), backgroundColor: Theme.of(context).colorScheme.primary),
+        SnackBar(
+          content: Text("edit_announcement.success_msg".tr()),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+        ),
       );
     }
   }

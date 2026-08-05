@@ -53,6 +53,8 @@
     "field_title": "العنوان",
     "hint_title": "أدخل عنوان الإعلان",
     "field_target_role": "نوع المسابقة / الوظيفة",
+    "field_sector": "القطاع المستهدف",
+    "hint_sector": "اختر القطاع",
     "field_college": "الكلية",
     "hint_college": "اختر الكلية",
     "field_department": "القسم",
@@ -70,10 +72,27 @@
     "save_button": "حفظ التعديلات",
     "success_msg": "تم تحديث الإعلان بنجاح",
     "error_title_desc_required": "العنوان والوصف مطلوبان!",
+    "error_sector_required": "يجب اختيار القطاع المستهدف",
     "error_college_dept_required": "يجب اختيار الكلية والقسم لهذا النوع من الإعلانات",
     "error_sector_subdept_required": "الرجاء اختيار القطاع والإدارة الفرعية",
     "error_college_required": "الرجاء اختيار الكلية",
     "error_dept_required": "الرجاء اختيار القسم"
+  },
+  "sectors": {
+    "postgraduate": "قطاع الدراسات العليا والبحوث",
+    "education": "قطاع شؤون التعليم والطلاب",
+    "environment": "قطاع خدمة المجتمع وتنمية البيئة"
+  },
+  "results_sheet": {
+    "title": "نتائج التقييم",
+    "no_evaluated": "لا يوجد طلبات مُقيّمة لهذه المسابقة بعد",
+    "fetch_error": "حدث خطأ أثناء جلب النتائج",
+    "participants_info": "إجمالي المشاركين: {} | سيتم إعلان أول 3 كفائزين",
+    "confirm_button": "تأكيد الإعلان وإرسال الإشعارات",
+    "achievements": "الإنجازات",
+    "interview": "المقابلة",
+    "winner": "فائز",
+    "error_occurred": "حدث خطأ"
   },
   "admin_details": {
     "paper_title": "تفاصيل البحث العلمي",
@@ -169,6 +188,8 @@
   "head_department": "رئيس القسم",
   "quality_manager": "مدير الجودة",
   "admin_manager": "مدير إداري",
+  "university_president": "رئيس الجامعة",
+  "vice_president": "نائب رئيس الجامعة",
   "error": "خطأ",
   "generic_error": "حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى",
   "invalid_announcement_role": "المسمى الوظيفي لهذا الإعلان غير محدد"

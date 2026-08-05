@@ -22,7 +22,7 @@ class LeadershipCubit extends Cubit<LeadershipState> {
     if (doctorState is DoctorLoaded) {
       final DoctorProfileModel doctor = doctorState.doctor!;
 
-      // ✅ استدعاء محرك الحساب اللي قمنا بتعديله
+      // استدعاء محرك الحساب
       final scores = LeadershipScoringEngine.calculateTotalScore(doctor);
       double totalCoursePoints = scores['coursePoints'] ?? 0.0;
 
@@ -52,7 +52,10 @@ class LeadershipCubit extends Cubit<LeadershipState> {
   }
 
   /// 3. فحص الشروط الإلزامية فقط (من غير ما نحسب الدرجات)
-  Future<void> checkMandatoryCriteria({required String targetRole}) async {
+  Future<void> checkMandatoryCriteria({
+    required String targetRole,
+    String? sector, // ✅ تم إضافة القطاع
+  }) async {
     emit(LeadershipLoading());
     final doctorState = doctorDataCubit.state;
 
@@ -67,10 +70,11 @@ class LeadershipCubit extends Cubit<LeadershipState> {
         } catch (_) {}
       }
 
-      // نستدعي محرك الشروط ونمررله الدكاترة
+      // ✅ تمرير الـ sector للـ Engine
       final criteria = LeadershipCriteriaEngine.checkMandatoryCriteria(
         doctor: doctor,
         targetRole: targetRole,
+        sector: sector, // ✅ التعديل هنا
         departmentDoctors: departmentDoctors,
       );
 
@@ -81,7 +85,10 @@ class LeadershipCubit extends Cubit<LeadershipState> {
   }
 
   /// 4. الدالة الشاملة: تجلب الدرجات + الشروط مع بعض لصفحة التقديم النهائية
-  Future<void> loadNominationData({required String targetRole}) async {
+  Future<void> loadNominationData({
+    required String targetRole,
+    String? sector, // ✅ تم إضافة القطاع
+  }) async {
     emit(LeadershipLoading());
     final doctorState = doctorDataCubit.state;
 
@@ -100,9 +107,11 @@ class LeadershipCubit extends Cubit<LeadershipState> {
       final scores = LeadershipScoringEngine.calculateTotalScore(doctor);
 
       // 2. استدعاء محرك فحص الشروط
+      // ✅ تمرير الـ sector للـ Engine
       final criteria = LeadershipCriteriaEngine.checkMandatoryCriteria(
         doctor: doctor,
         targetRole: targetRole,
+        sector: sector, // ✅ التعديل هنا
         departmentDoctors: departmentDoctors,
       );
 

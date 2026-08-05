@@ -53,6 +53,8 @@
     "field_title": "Title",
     "hint_title": "Enter announcement title",
     "field_target_role": "Contest / Job Type",
+    "field_sector": "Target Sector",
+    "hint_sector": "Select Sector",
     "field_college": "College",
     "hint_college": "Select College",
     "field_department": "Department",
@@ -70,10 +72,27 @@
     "save_button": "Save Changes",
     "success_msg": "Announcement updated successfully",
     "error_title_desc_required": "Title and description are required!",
+    "error_sector_required": "You must select the target sector",
     "error_college_dept_required": "College and Department must be selected for this type of announcement",
     "error_sector_subdept_required": "Please select the Sector and Sub-Administration",
     "error_college_required": "Please select the College",
     "error_dept_required": "Please select the Department"
+  },
+  "sectors": {
+    "postgraduate": "Postgraduate Studies & Research Sector",
+    "education": "Education & Student Affairs Sector",
+    "environment": "Community Service & Environmental Development Sector"
+  },
+  "results_sheet": {
+    "title": "Evaluation Results",
+    "no_evaluated": "There are no evaluated requests for this competition yet",
+    "fetch_error": "An error occurred while fetching results",
+    "participants_info": "Total participants: {} | Top 3 will be announced as winners",
+    "confirm_button": "Confirm Announcement & Send Notifications",
+    "achievements": "Achievements",
+    "interview": "Interview",
+    "winner": "Winner",
+    "error_occurred": "An error occurred"
   },
   "admin_details": {
     "paper_title": "Research Paper Details",
@@ -169,6 +188,8 @@
   "head_department": "Head of Department",
   "quality_manager": "Quality Manager",
   "admin_manager": "Admin Manager",
+  "university_president": "University President",
+  "vice_president": "Vice President",
   "error": "Error",
   "generic_error": "An unexpected error occurred, please try again.",
   "invalid_announcement_role": "The target role for this announcement is not specified."
