@@ -38,11 +38,11 @@ class EmployeeCoursesPage extends StatelessWidget {
                 backgroundColor: Colors.green,
               ),
             );
-            Navigator.pop(context); // قفل الـ Bottom Sheet
-          } else if (state is EmployeeCoursesError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.error.tr()),
+            Navigator.pop(context); 
+        } else if (state is EmployeeCoursesError) {
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(state.error.tr()), 
                 backgroundColor: Colors.red,
               ),
             );

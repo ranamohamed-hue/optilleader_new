@@ -1,302 +1,566 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:easy_localization/easy_localization.dart';
-import 'package:go_router/go_router.dart';
-import 'package:optialeader/core/routing/routes.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:optialeader/feature/doctor/data/model/conferance_model.dart';
+import 'package:optialeader/feature/doctor/data/model/courses_model.dart';
+import 'package:optialeader/feature/doctor/data/model/exhibition_venue_model.dart';
+import 'package:optialeader/feature/doctor/data/model/research_paper_model.dart';
+import 'package:optialeader/feature/doctor/data/model/academic_activity_model.dart';
+import 'package:optialeader/feature/doctor/data/model/verefication_status.dart';
 
-class EmployeeReviewScreen extends StatelessWidget {
-  const EmployeeReviewScreen({super.key});
+class DoctorProfileModel {
+  final String? uid;
+  final String role;
+  final bool isFirstLogin;
 
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
+  // بيانات الهوية
+  final String nameAr;
+  final String nameEn;
+  final String nationalityAr;
+  final String nationalityEn;
+  final String currentJobAr;
+  final String currentJobEn;
+  final String socialStatusAr;
+  final String socialStatusEn;
+  final String nationalId;
+  final String employeeId;
+  final DateTime? birthDate;
+  final String profileImage;
 
-    return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        title: Text(
-          'review.app_bar_title'.tr(), // تم الربط
-          style: TextStyle(fontSize: 16.sp),
-        ),
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20.sp),
-          onPressed: () {
-            if (context.canPop()) {
-              context.pop();
-            } else {
-              context.go(Routes.admin);
-            }
-          },
-        ),
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(2.h),
-          child: Container(color: colorScheme.secondary, height: 2.h),
-        ),
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            SizedBox(height: 15.h),
+  final String collageAr;
+  final String collageEn;
 
-            // 1. كارت بيانات الموظف الأساسية
-            _buildEmployeeInfoCard(context),
+  // البيانات الأكاديمية والوظيفية
+  final String universityAr;
+  final String universityEn;
+  final String facultyAr;
+  final String facultyEn;
+  final String departmentAr;
+  final String departmentEn;
 
-            // 2. الموقف الوظيفي والترقيات
-            _buildSection(
-              context,
-              title: 'review.sections.promotions'.tr(), // تم الربط
-              isActive: true,
-              child: _buildPromotionsTable(context),
-            ),
+  // ✅ تاريخ التعيين (لحساب الأقدمية وأقدم 3 بالقسم)
+  final DateTime? hiringDate;
 
-            // 3. العبء التدريسي والمقررات
-            _buildSection(
-              context,
-              title: 'review.sections.teaching_load'.tr(), // تم الربط
-              isActive: true,
-              child: _buildTeachingLoadTable(context),
-              footerText: 'review.footers.load_reviewed'.tr(), // تم الربط
-            ),
+  // ✅ تاريخ التواجد الفعلي المستمر (مطلوب لرئيس الجامعة - سنتين)
+  final DateTime? activeDutySinceDate;
 
-            // 4. المرفقات الإدارية
-            _buildSection(
-              context,
-              title: 'review.sections.attachments'.tr(), // تم الربط
-              isActive: false,
-              child: _buildAttachmentsList(context),
-              footerText: 'review.footers.docs_reviewed'.tr(), // تم الربط
-            ),
+  // القيادات الأكاديمية
+  final DateTime? professorRankDate;
+  final List<String> previousLeadershipRoles;
+  final bool hasCriminalRecord;
+  final bool holdsPartyPosition;
 
-            // 5. اختيار المحكم المختص
-            _buildJudgeSelection(context),
+  // بيانات التواصل
+  final String email;
+  final String phone;
+  final String addressAr;
+  final String addressEn;
+  final String? alternativeEmail;
 
-            // 6. زر الاعتماد النهائي
-            _buildSubmitButton(context),
+  // البيانات الأكاديمية (تاريخ الشهادات)
+  final List<Map<String, dynamic>> academicHistory;
 
-            SizedBox(height: 40.h),
-          ],
-        ),
-      ),
+  // البيانات الجديدة: ملفات الأرشيف
+  final List<Map<String, dynamic>> digitalArchive;
+
+  // البيانات الأهلية والإدارية
+  final bool disciplinaryClearance;
+  final bool hasPermanentPosition;
+  final bool isOnVacation;
+  
+  // ✅ حقول الإعارة والإجازات الجديدة (مطلوبة للقانون الجديد)
+  final bool? isOnSecondment;
+  final bool? isOnUnpaidLeave;
+
+  final bool isActive;
+
+  // الأبحاث والأنشطة
+  final String? cvUrl;
+  final List<ResearchPaperModel> researchPapers;
+
+  // ✅ الأنشطة الجديدة
+  final List<ConferenceModel> conferences;
+  final List<ArtExhibitionModel> exhibitions;
+  final List<CourseModel> courses;
+  final AcademicActivityModel? academicActivities;
+
+  // ✅ اللجان الداخلية بالجامعة (بأسماء اللجان)
+  final List<String> internalCommittees;
+
+  // ✅ حقول الشروط (بيرفعها الأدمن)
+  final bool? hasHealthCertificate;
+  final bool? hasCommitteeMembership;
+  final bool? hasSelfEvaluationReport;
+  final bool? hasArbitrationPlan;
+  final bool? hasAdminExperience;
+  final bool? hasExcellentPerformanceReports;
+  
+  // ✅ isTop3Senior بيحسب من hiringDate مش يدوي
+  final bool? isTop3Senior;
+
+  // ✅ حقول التدريب المعتمدة الجديدة (للقانون الجديد)
+  final bool? hasSupremeCouncilTraining; 
+  final bool? hasFLDCTraining; 
+
+  // ✅ حقول خطة العمل (لرئيس الجامعة ونوابه والوكلاء)
+  final String? workPlanFileUrl;
+  final VerificationStatus? workPlanStatus;
+
+  DoctorProfileModel({
+    this.uid,
+    this.role = 'doctor',
+    this.isFirstLogin = true,
+    required this.nameAr,
+    required this.nameEn,
+    required this.nationalityAr,
+    required this.nationalityEn,
+    required this.currentJobAr,
+    required this.currentJobEn,
+    required this.socialStatusAr,
+    required this.socialStatusEn,
+    required this.nationalId,
+    required this.employeeId,
+    this.birthDate,
+    required this.profileImage,
+    this.universityAr = '',
+    this.universityEn = '',
+    this.facultyAr = '',
+    this.facultyEn = '',
+    this.departmentAr = '',
+    this.departmentEn = '',
+    this.collageAr = '',
+    this.collageEn = '',
+    this.hiringDate,
+    this.activeDutySinceDate,
+    this.professorRankDate,
+    this.previousLeadershipRoles = const [],
+    this.hasCriminalRecord = false,
+    this.holdsPartyPosition = false,
+    required this.email,
+    required this.phone,
+    required this.addressAr,
+    required this.addressEn,
+    this.alternativeEmail,
+    required this.academicHistory,
+    required this.digitalArchive,
+    required this.disciplinaryClearance,
+    required this.hasPermanentPosition,
+    required this.isOnVacation,
+    this.isOnSecondment,
+    this.isOnUnpaidLeave,
+    this.isActive = true,
+    this.cvUrl = "",
+    this.researchPapers = const [],
+    this.conferences = const [],
+    this.exhibitions = const [],
+    this.courses = const [],
+    this.academicActivities,
+    this.internalCommittees = const [], 
+    this.hasHealthCertificate,
+    this.hasCommitteeMembership,
+    this.hasSelfEvaluationReport,
+    this.hasArbitrationPlan,
+    this.hasAdminExperience,
+    this.hasExcellentPerformanceReports,
+    this.isTop3Senior,
+    this.hasSupremeCouncilTraining,
+    this.hasFLDCTraining,
+    this.workPlanFileUrl,
+    this.workPlanStatus,
+  });
+
+  factory DoctorProfileModel.fromJson(Map<String, dynamic> json, String id) {
+    DateTime? parseDate(dynamic dateField) {
+      if (dateField == null) return null;
+      if (dateField is Timestamp) return dateField.toDate();
+      return DateTime.tryParse(dateField.toString());
+    }
+
+    VerificationStatus? parseStatus(String? statusString) {
+      if (statusString == null) return null;
+      return VerificationStatus.values.firstWhere(
+        (e) => e.name == statusString,
+        orElse: () => VerificationStatus.pending,
+      );
+    }
+
+    List<ResearchPaperModel> parseResearchPapers(List<dynamic>? list) {
+      if (list == null) return [];
+      return list.map((item) => ResearchPaperModel.fromJson(Map<String, dynamic>.from(item))).toList();
+    }
+
+    List<ConferenceModel> parseConferences(List<dynamic>? list) {
+      if (list == null) return [];
+      return list.map((item) => ConferenceModel.fromJson(Map<String, dynamic>.from(item))).toList();
+    }
+
+    List<ArtExhibitionModel> parseExhibitions(List<dynamic>? list) {
+      if (list == null) return [];
+      return list.map((item) => ArtExhibitionModel.fromJson(Map<String, dynamic>.from(item))).toList();
+    }
+
+    List<CourseModel> parseCourses(List<dynamic>? list) {
+      if (list == null) return [];
+      return list.map((item) => CourseModel.fromJson(Map<String, dynamic>.from(item))).toList();
+    }
+
+    final profile = json['profile'] as Map<String, dynamic>? ?? {};
+    final scientificWork = json['scientific_work'] as Map<String, dynamic>? ?? {};
+    final adminProofs = json['admin_proofs'] as Map<String, dynamic>? ?? {};
+    final leadershipData = json['leadership_data'] as Map<String, dynamic>? ?? {};
+
+    List<Map<String, dynamic>> historyList = [];
+    final historyData = json['academic_profile']?['history'];
+    if (historyData != null && historyData is List) {
+      for (var item in historyData) {
+        if (item is Map<String, dynamic>) {
+          historyList.add({
+            'degree': item['degree'] ?? '',
+            'major': item['major'] ?? '',
+            'date': parseDate(item['date']),
+            'place': item['place'] ?? '',
+            'type': item['type'] ?? 'degree',
+          });
+        }
+      }
+    }
+
+    List<Map<String, dynamic>> archiveList = [];
+    if (json['digital_archive'] != null && json['digital_archive'] is List) {
+      for (var item in json['digital_archive']) {
+        if (item is Map<String, dynamic>) {
+          archiveList.add({
+            'title': item['title'] ?? '',
+            'description': item['description'] ?? '',
+            'category': item['category'] ?? '',
+            'file_url': item['file_url'] ?? '',
+            'uploaded_at': item['uploaded_at'] ?? '',
+          });
+        }
+      }
+    }
+
+    return DoctorProfileModel(
+      uid: id,
+      role: json['role'] ?? 'doctor',
+      isFirstLogin: json['isFirstLogin'] ?? true,
+      nameAr: profile['display_name']?['ar'] ?? '',
+      nameEn: profile['display_name']?['en'] ?? '',
+      nationalityAr: profile['nationality_ar'] ?? '',
+      nationalityEn: profile['nationality_en'] ?? '',
+      currentJobAr: profile['current_job_ar'] ?? json['jop']?['title']?['ar'] ?? '',
+      currentJobEn: profile['current_job_en'] ?? json['jop']?['title']?['en'] ?? '',
+      socialStatusAr: profile['social_status_ar'] ?? '',
+      socialStatusEn: profile['social_status_en'] ?? '',
+      nationalId: json['national_id'] ?? '',
+      employeeId: json['employee_id'] ?? '',
+      birthDate: parseDate(profile['birth_date']),
+      profileImage: profile['profile_image'] ?? '',
+      universityAr: profile['university_ar'] ?? json['academic_profile']?['university_ar'] ?? '',
+      universityEn: profile['university_en'] ?? json['academic_profile']?['university_en'] ?? '',
+      facultyAr: profile['faculty_ar'] ?? json['academic_profile']?['faculty_ar'] ?? '',
+      facultyEn: profile['faculty_en'] ?? json['academic_profile']?['faculty_en'] ?? '',
+      departmentAr: profile['department_ar'] ?? json['academic_profile']?['department_ar'] ?? '',
+      departmentEn: profile['department_en'] ?? json['academic_profile']?['department_en'] ?? '',
+      collageAr: profile['collage_ar'] ?? '',
+      collageEn: profile['collage_en'] ?? '',
+      hiringDate: parseDate(profile['hiring_date'] ?? json['academic_profile']?['hiring_date']),
+      activeDutySinceDate: parseDate(json['academic_profile']?['active_duty_since_date']),
+      professorRankDate: parseDate(json['academic_profile']?['professor_rank_date']),
+      previousLeadershipRoles: List<String>.from(leadershipData['previous_roles'] ?? []),
+      internalCommittees: List<String>.from(leadershipData['internal_committees'] ?? []),
+      hasCriminalRecord: json['security_data']?['has_criminal_record'] ?? false,
+      holdsPartyPosition: json['security_data']?['holds_party_position'] ?? false,
+      email: json['university_email'] ?? '',
+      phone: profile['phone']?['phone1'] ?? '',
+      addressAr: profile['address']?['ar'] ?? '',
+      addressEn: profile['address']?['en'] ?? '',
+      alternativeEmail: json['alternative_email'] ?? '',
+      academicHistory: historyList,
+      digitalArchive: archiveList,
+      disciplinaryClearance: json['eligibility_data']?['disciplinary_clearance'] ?? true,
+      hasPermanentPosition: json['eligibility_data']?['has_permanent_position'] ?? true,
+      isOnVacation: json['eligibility_data']?['is_on_vacation'] ?? false,
+      isOnSecondment: json['eligibility_data']?['is_on_secondment'] ?? false,
+      isOnUnpaidLeave: json['eligibility_data']?['is_on_unpaid_leave'] ?? false,
+      isActive: json['is_active'] ?? json['eligibility_data']?['is_active'] ?? true,
+      cvUrl: json['academic_profile']?['cv_url'],
+      researchPapers: parseResearchPapers(scientificWork['research_papers']),
+      conferences: parseConferences(scientificWork['conferences']),
+      exhibitions: parseExhibitions(scientificWork['exhibitions']),
+      courses: parseCourses(scientificWork['courses']),
+      academicActivities: scientificWork['academic_activities'] != null
+          ? AcademicActivityModel.fromJson(Map<String, dynamic>.from(scientificWork['academic_activities']))
+          : null,
+      hasHealthCertificate: adminProofs['has_health_certificate'],
+      hasCommitteeMembership: adminProofs['has_committee_membership'],
+      hasSelfEvaluationReport: adminProofs['has_self_evaluation_report'],
+      hasArbitrationPlan: adminProofs['has_arbitration_plan'],
+      hasAdminExperience: adminProofs['has_admin_experience'],
+      hasExcellentPerformanceReports: adminProofs['has_excellent_performance_reports'],
+      isTop3Senior: adminProofs['is_top3_senior'],
+      hasSupremeCouncilTraining: adminProofs['has_supreme_council_training'] ?? false,
+      hasFLDCTraining: adminProofs['has_fldc_training'] ?? false,
+      workPlanFileUrl: leadershipData['work_plan_file_url'],
+      workPlanStatus: parseStatus(leadershipData['work_plan_status']),
     );
   }
 
-  Widget _buildEmployeeInfoCard(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
-      child: Padding(
-        padding: EdgeInsets.all(20.w),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.end,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    'د. أحمد محمد علي', // هنا المفروض اسم الموظف ييجي من الـ Data
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      fontSize: 18.sp,
-                    ),
-                  ),
-                  SizedBox(height: 8.h),
-                  _infoRow('15/05/1975', 'review.birth_date'.tr()), // تم الربط
-                  _infoRow('10/10/2000', 'review.join_date'.tr()), // تم الربط
-                ],
-              ),
-            ),
-            SizedBox(width: 15.w),
-            // ... (باقي كود الـ Avatar زي ما هو)
-            CircleAvatar(
-              radius: 40.r,
-              child: Icon(Icons.person, size: 50.sp),
-            ),
-          ],
-        ),
-      ),
-    );
+  Map<String, dynamic> toMap() {
+    List<Map<String, dynamic>> historyMap = academicHistory.map((historyItem) {
+      return {
+        'degree': historyItem['degree'],
+        'major': historyItem['major'],
+        'date': historyItem['date'] != null ? Timestamp.fromDate(historyItem['date'] as DateTime) : null,
+        'place': historyItem['place'],
+        'type': historyItem['type'],
+      };
+    }).toList();
+
+    List<Map<String, dynamic>> archiveMap = digitalArchive.map((item) {
+      return {
+        'title': item['title'],
+        'description': item['description'],
+        'category': item['category'],
+        'file_url': item['file_url'],
+        'uploaded_at': item['uploaded_at'],
+      };
+    }).toList();
+
+    return {
+      'role': role,
+      'isFirstLogin': isFirstLogin,
+      'university_email': email,
+      'alternative_email': alternativeEmail ?? "",
+      'national_id': nationalId,
+      'employee_id': employeeId,
+      'is_active': isActive,
+      'profile': {
+        'display_name': {'ar': nameAr, 'en': nameEn},
+        'phone': {'phone1': phone},
+        'address': {'ar': addressAr, 'en': addressEn},
+        'profile_image': profileImage,
+        'nationality_ar': nationalityAr,
+        'nationality_en': nationalityEn,
+        'current_job_ar': currentJobAr,
+        'current_job_en': currentJobEn,
+        'social_status_ar': socialStatusAr,
+        'social_status_en': socialStatusEn,
+        'birth_date': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
+        'university_ar': universityAr,
+        'university_en': universityEn,
+        'faculty_ar': facultyAr,
+        'faculty_en': facultyEn,
+        'department_ar': departmentAr,
+        'department_en': departmentEn,
+        'collage_ar': collageAr,
+        'collage_en': collageEn,
+        'hiring_date': hiringDate != null ? Timestamp.fromDate(hiringDate!) : null,
+      },
+      'academic_profile': {
+        'history': historyMap,
+        'cv_url': cvUrl,
+        'professor_rank_date': professorRankDate != null ? Timestamp.fromDate(professorRankDate!) : null,
+        'active_duty_since_date': activeDutySinceDate != null ? Timestamp.fromDate(activeDutySinceDate!) : null,
+      },
+      'eligibility_data': {
+        'is_on_vacation': isOnVacation,
+        'has_permanent_position': hasPermanentPosition,
+        'disciplinary_clearance': disciplinaryClearance,
+        'is_active': isActive,
+        'is_on_secondment': isOnSecondment ?? false,
+        'is_on_unpaid_leave': isOnUnpaidLeave ?? false,
+      },
+      'leadership_data': {
+        'previous_roles': previousLeadershipRoles,
+        'internal_committees': internalCommittees,
+        'work_plan_file_url': workPlanFileUrl,
+        'work_plan_status': workPlanStatus?.name,
+      },
+      'security_data': {
+        'has_criminal_record': hasCriminalRecord,
+        'holds_party_position': holdsPartyPosition,
+      },
+      'digital_archive': archiveMap,
+      'scientific_work': {
+        'research_papers': researchPapers.map((x) => x.toMap()).toList(),
+        'conferences': conferences.map((x) => x.toMap()).toList(),
+        'exhibitions': exhibitions.map((x) => x.toMap()).toList(),
+        'courses': courses.map((x) => x.toMap()).toList(),
+        'academic_activities': academicActivities?.toJson(),
+      },
+      'admin_proofs': {
+        'has_health_certificate': hasHealthCertificate,
+        'has_committee_membership': hasCommitteeMembership,
+        'has_self_evaluation_report': hasSelfEvaluationReport,
+        'has_arbitration_plan': hasArbitrationPlan,
+        'has_admin_experience': hasAdminExperience,
+        'has_excellent_performance_reports': hasExcellentPerformanceReports,
+        'is_top3_senior': isTop3Senior,
+        'has_supreme_council_training': hasSupremeCouncilTraining ?? false,
+        'has_fldc_training': hasFLDCTraining ?? false,
+      },
+    };
   }
 
-  Widget _infoRow(String value, String label) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        Text(
-          value,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
-        ),
-        SizedBox(width: 8.w),
-        Text(
-          label,
-          style: TextStyle(color: Colors.grey, fontSize: 12.sp),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSection(
-    BuildContext context, {
-    required String title,
-    required bool isActive,
-    required Widget child,
-    String? footerText,
+  DoctorProfileModel copyWith({
+    String? uid, String? role, bool? isFirstLogin, String? nameAr, String? nameEn,
+    String? nationalityAr, String? nationalityEn, String? currentJobAr, String? currentJobEn,
+    String? socialStatusAr, String? socialStatusEn, String? nationalId, String? employeeId,
+    DateTime? birthDate, String? profileImage, String? universityAr, String? universityEn,
+    String? facultyAr, String? facultyEn, String? departmentAr, String? departmentEn,
+    DateTime? hiringDate, DateTime? activeDutySinceDate, DateTime? professorRankDate,
+    List<String>? previousLeadershipRoles, List<String>? internalCommittees,
+    bool? hasCriminalRecord, bool? holdsPartyPosition, String? email, String? phone,
+    String? addressAr, String? addressEn, String? alternativeEmail,
+    List<Map<String, dynamic>>? academicHistory, bool? disciplinaryClearance,
+    bool? hasPermanentPosition, bool? isOnVacation, bool? isOnSecondment,
+    bool? isOnUnpaidLeave, bool? isActive, String? cvUrl,
+    List<ResearchPaperModel>? researchPapers, List<ConferenceModel>? conferences,
+    List<ArtExhibitionModel>? exhibitions, List<CourseModel>? courses,
+    AcademicActivityModel? academicActivities, List<Map<String, dynamic>>? digitalArchive,
+    bool? hasHealthCertificate, bool? hasCommitteeMembership, bool? hasSelfEvaluationReport,
+    bool? hasArbitrationPlan, bool? hasAdminExperience, bool? hasExcellentPerformanceReports,
+    bool? isTop3Senior, bool? hasSupremeCouncilTraining, bool? hasFLDCTraining,
+    String? workPlanFileUrl, VerificationStatus? workPlanStatus,
+    String? collageAr, String? collageEn,
   }) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.symmetric(horizontal: 15.w, vertical: 10.h),
-      clipBehavior: Clip.antiAlias,
-      child: Column(
-        children: [
-          ListTile(
-            trailing: Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 13.sp,
-                color: theme.colorScheme.primary,
-              ),
-            ),
-            leading: Switch(
-              value: isActive,
-              onChanged: (v) {},
-              activeThumbColor: Colors.green,
-            ),
-          ),
-          child,
-          if (footerText != null)
-            Container(
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(vertical: 10.h),
-              color: Colors.green.shade700,
-              child: Text(
-                footerText,
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white, fontSize: 11.sp),
-              ),
-            ),
-        ],
-      ),
+    return DoctorProfileModel(
+      uid: uid ?? this.uid, role: role ?? this.role,
+      isFirstLogin: isFirstLogin ?? this.isFirstLogin,
+      nameAr: nameAr ?? this.nameAr, nameEn: nameEn ?? this.nameEn,
+      nationalityAr: nationalityAr ?? this.nationalityAr, nationalityEn: nationalityEn ?? this.nationalityEn,
+      currentJobAr: currentJobAr ?? this.currentJobAr, currentJobEn: currentJobEn ?? this.currentJobEn,
+      socialStatusAr: socialStatusAr ?? this.socialStatusAr, socialStatusEn: socialStatusEn ?? this.socialStatusEn,
+      nationalId: nationalId ?? this.nationalId, employeeId: employeeId ?? this.employeeId,
+      birthDate: birthDate ?? this.birthDate, profileImage: profileImage ?? this.profileImage,
+      universityAr: universityAr ?? this.universityAr, universityEn: universityEn ?? this.universityEn,
+      facultyAr: facultyAr ?? this.facultyAr, facultyEn: facultyEn ?? this.facultyEn,
+      departmentAr: departmentAr ?? this.departmentAr, departmentEn: departmentEn ?? this.departmentEn,
+      collageAr: collageAr ?? this.collageAr, collageEn: collageEn ?? this.collageEn,
+      hiringDate: hiringDate ?? this.hiringDate,
+      activeDutySinceDate: activeDutySinceDate ?? this.activeDutySinceDate,
+      professorRankDate: professorRankDate ?? this.professorRankDate,
+      previousLeadershipRoles: previousLeadershipRoles ?? this.previousLeadershipRoles,
+      internalCommittees: internalCommittees ?? this.internalCommittees,
+      hasCriminalRecord: hasCriminalRecord ?? this.hasCriminalRecord,
+      holdsPartyPosition: holdsPartyPosition ?? this.holdsPartyPosition,
+      email: email ?? this.email, phone: phone ?? this.phone,
+      addressAr: addressAr ?? this.addressAr, addressEn: addressEn ?? this.addressEn,
+      alternativeEmail: alternativeEmail ?? this.alternativeEmail,
+      academicHistory: academicHistory ?? this.academicHistory,
+      digitalArchive: digitalArchive ?? this.digitalArchive,
+      disciplinaryClearance: disciplinaryClearance ?? this.disciplinaryClearance,
+      hasPermanentPosition: hasPermanentPosition ?? this.hasPermanentPosition,
+      isOnVacation: isOnVacation ?? this.isOnVacation,
+      isOnSecondment: isOnSecondment ?? this.isOnSecondment,
+      isOnUnpaidLeave: isOnUnpaidLeave ?? this.isOnUnpaidLeave,
+      isActive: isActive ?? this.isActive, cvUrl: cvUrl ?? this.cvUrl,
+      researchPapers: researchPapers ?? this.researchPapers,
+      conferences: conferences ?? this.conferences,
+      exhibitions: exhibitions ?? this.exhibitions,
+      courses: courses ?? this.courses,
+      academicActivities: academicActivities ?? this.academicActivities,
+      hasHealthCertificate: hasHealthCertificate ?? this.hasHealthCertificate,
+      hasCommitteeMembership: hasCommitteeMembership ?? this.hasCommitteeMembership,
+      hasSelfEvaluationReport: hasSelfEvaluationReport ?? this.hasSelfEvaluationReport,
+      hasArbitrationPlan: hasArbitrationPlan ?? this.hasArbitrationPlan,
+      hasAdminExperience: hasAdminExperience ?? this.hasAdminExperience,
+      hasExcellentPerformanceReports: hasExcellentPerformanceReports ?? this.hasExcellentPerformanceReports,
+      isTop3Senior: isTop3Senior ?? this.isTop3Senior,
+      hasSupremeCouncilTraining: hasSupremeCouncilTraining ?? this.hasSupremeCouncilTraining,
+      hasFLDCTraining: hasFLDCTraining ?? this.hasFLDCTraining,
+      workPlanFileUrl: workPlanFileUrl ?? this.workPlanFileUrl,
+      workPlanStatus: workPlanStatus ?? this.workPlanStatus,
     );
   }
 
-  Widget _buildPromotionsTable(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(8.w),
-      child: Table(
-        border: TableBorder.all(color: Colors.grey.shade300),
-        children: [
-          TableRow(
-            decoration: BoxDecoration(color: Colors.grey.shade100),
-            children: [
-              _TableCell('review.tables.new_title'.tr(), isHeader: true),
-              _TableCell('review.tables.old_title'.tr(), isHeader: true),
-              _TableCell('review.tables.date'.tr(), isHeader: true),
-            ],
-          ),
-          const TableRow(
-            children: [
-              _TableCell('أستاذ مشارك'),
-              _TableCell('أستاذ مساعد'),
-              _TableCell('2020'),
-            ],
-          ),
-        ],
-      ),
-    );
+  // ==========================================================
+  // ✅ Getters الجديدة: ICDL من الدورات + الأقدمية
+  // ==========================================================
+  bool get hasICDL {
+    return courses.any((course) {
+      if (course.status != VerificationStatus.approved) return false;
+      final title = _normalizeArabic(course.title.toLowerCase());
+      return title.contains('icdl') ||
+          title.contains('الشهادة الدولية لقيادة الحاسب') ||
+          title.contains('شهادة icdl') ||
+          title.contains('international computer driving license');
+    });
   }
 
-  Widget _buildTeachingLoadTable(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(10.w),
-      child: Table(
-        border: TableBorder.all(color: Colors.grey.shade300),
-        children: [
-          TableRow(
-            decoration: BoxDecoration(color: Colors.grey.shade100),
-            children: [
-              _TableCell('review.tables.hours_count'.tr(), isHeader: true),
-              _TableCell('review.tables.course_name'.tr(), isHeader: true),
-            ],
-          ),
-          const TableRow(
-            children: [_TableCell('4'), _TableCell('خوارزميات (CS301)')],
-          ),
-        ],
-      ),
-    );
+  int get yearsSinceHiring {
+    if (hiringDate == null) return 0;
+    final now = DateTime.now();
+    int years = now.year - hiringDate!.year;
+    if (now.month < hiringDate!.month ||
+        (now.month == hiringDate!.month && now.day < hiringDate!.day)) {
+      years--;
+    }
+    return years;
   }
 
-  Widget _buildAttachmentsList(BuildContext context) {
-    return Column(
-      children: [
-        _attachmentItem('شهادة التخرج الموثقة (PhD).pdf'),
-        _attachmentItem('إثبات الدرجة الوظيفية الحالية.pdf'),
-      ],
-    );
+  // ==========================================================
+  // Getters الإحصائيات
+  // ==========================================================
+  int get totalAchievements => researchPapers.length + conferences.length + exhibitions.length + courses.length;
+
+  int get totalApprovedAchievements {
+    return researchPapers.where((p) => p.status == VerificationStatus.approved).length +
+        conferences.where((c) => c.status == VerificationStatus.approved).length +
+        exhibitions.where((e) => e.status == VerificationStatus.approved).length +
+        courses.where((c) => c.status == VerificationStatus.approved).length;
   }
 
-  Widget _attachmentItem(String name) {
-    return ListTile(
-      trailing: Icon(Icons.picture_as_pdf, color: Colors.red),
-      title: Text(
-        name,
-        textAlign: TextAlign.right,
-        style: TextStyle(fontSize: 12.sp),
-      ),
-    );
+  int get totalPendingAchievements {
+    return researchPapers.where((p) => p.status == VerificationStatus.pending).length +
+        conferences.where((c) => c.status == VerificationStatus.pending).length +
+        exhibitions.where((e) => e.status == VerificationStatus.pending).length +
+        courses.where((c) => c.status == VerificationStatus.pending).length;
   }
 
-  Widget _buildJudgeSelection(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(15.w),
-      child: DropdownButtonFormField<String>(
-        decoration: InputDecoration(
-          labelText: 'review.fields.select_judge'.tr(), // تم الربط
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
-        ),
-        items: const [
-          DropdownMenuItem(value: '1', child: Text('د. سارة محمود')),
-        ],
-        onChanged: (v) {},
-      ),
-    );
+  int get totalConferences => conferences.length;
+  int get totalExhibitions => exhibitions.length;
+  int get totalCourses => courses.where((c) => !c.isMandatory).length;
+  int get totalMandatoryCourses => courses.where((c) => c.isMandatory).length;
+  int get totalApprovedResearch => researchPapers.where((p) => p.status == VerificationStatus.approved).length;
+
+  int get yearsAsProfessor {
+    if (professorRankDate == null) return 0;
+    final now = DateTime.now();
+    int years = now.year - professorRankDate!.year;
+    if (now.month < professorRankDate!.month ||
+        (now.month == professorRankDate!.month && now.day < professorRankDate!.day)) {
+      years--;
+    }
+    return years;
   }
 
-  Widget _buildSubmitButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(15.w),
-      child: SizedBox(
-        width: double.infinity,
-        height: 50.h,
-        child: ElevatedButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.verified_user),
-          label: Text('review.fields.submit_btn'.tr()), // تم الربط
-        ),
-      ),
-    );
+  static String _normalizeArabic(String text) {
+    return text.replaceAll('أ', 'ا').replaceAll('إ', 'ا').replaceAll('آ', 'ا').replaceAll('ة', 'ه').replaceAll('ى', 'ي');
   }
-}
 
-class _TableCell extends StatelessWidget {
-  final String text;
-  final bool isHeader;
-  const _TableCell(this.text, {this.isHeader = false});
+  // ==========================================================
+  // ✅ حساب أقدم 3 دكاترة بالقسم (ستاتيك - محتاجة لست الدكاترة)
+  // ==========================================================
+  static List<String> getTop3SeniorInDepartment({
+    required List<DoctorProfileModel> doctors,
+    required String departmentAr,
+  }) {
+    final filtered = doctors.where((d) => d.departmentAr == departmentAr && d.hiringDate != null).toList();
+    filtered.sort((a, b) => a.hiringDate!.compareTo(b.hiringDate!));
+    return filtered.take(3).map((d) => d.uid!).toList();
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.all(10.w),
-      child: Text(
-        text,
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 11.sp,
-          fontWeight: isHeader ? FontWeight.bold : FontWeight.normal,
-        ),
-      ),
-    );
+  static Map<String, bool> calculateTop3SeniorMap({
+    required List<DoctorProfileModel> doctors,
+    required String departmentAr,
+  }) {
+    final top3Uids = getTop3SeniorInDepartment(doctors: doctors, departmentAr: departmentAr);
+    final Map<String, bool> result = {};
+    for (var doctor in doctors) {
+      if (doctor.departmentAr == departmentAr) {
+        result[doctor.uid!] = top3Uids.contains(doctor.uid);
+      }
+    }
+    return result;
   }
 }

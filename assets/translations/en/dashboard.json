@@ -23,8 +23,8 @@
       "under_review": "Requests Under Review"
     },
     "tooltips": {
-      "profile": "Home",
-      "logout": "Settings"
+      "home": "Home",
+      "settings": "Settings"
     },
     "recent_requests_title": "Recent Requests",
     "view_all": "View All",

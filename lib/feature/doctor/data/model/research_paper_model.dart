@@ -7,12 +7,12 @@ enum JournalLevel { international, local }
 
 enum IndexingDatabase { scopus, webOfScience, local, other }
 
-T enumFromString<T>(Iterable<T> values, String? value) {
+/*T enumFromString<T>(Iterable<T> values, String? value) {
   return values.firstWhere(
     (type) => type.toString().split('.').last == value,
     orElse: () => values.first,
   );
-}
+}*/
 // =========================
 
 class ResearchPaperModel {

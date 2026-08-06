@@ -3,30 +3,27 @@
     "title": "Interview Evaluation",
     "total": "Total Score",
     "doctor_info": {
-      "job": "Role",
-      "auto_score": "System Auto-Score"
+      "job": "Role"
     },
     "schedule": {
       "title": "Schedule Interview",
       "pick_date": "Select Interview Date",
       "time": "Interview Time",
       "location": "Interview Location",
-      "submit_btn": "Save and Notify Doctor"
+      "submit_btn": "Save and Notify Doctor",
+      "date_required": "Please select the interview date first",
+      "location_required": "Please set the interview location",
+      "time_required": "Please set the interview time"
     },
-    "scores": {
-      "scientific": "Scientific Section",
-      "leadership": "Leadership & Development",
-      "studentActivities": "Student Activities",
-      "communityActivities": "Community Activities",
-      "humanRelations": "Human Relations",
-      "score_label": "Score"
+    "interview_date": {
+      "required": "Please select the interview date first"
     },
-    "criteria": {
-      "scientific": "CV, published research, scientific production",
-      "leadership": "Faculty interaction, crisis resolution, tech skills, self-funding, regulations knowledge, teamwork, participatory decisions, accepting criticism",
-      "studentActivities": "Participation in activities (scouts, trips), future vision for development",
-      "communityActivities": "Contribution to community service and awareness, community participation policies",
-      "humanRelations": "Supporting positive relationships, privacy respect, reputation, and scientific standing"
+    "axes": {
+      "axis1_title": "Axis 1: Emotional Balance & Personality Traits",
+      "axis2_title": "Axis 2: Strategic Thinking & Future Vision",
+      "axis3_title": "Axis 3: Participatory Leadership & HR Management",
+      "axis4_title": "Axis 4: Legal, Regulatory & Institutional Awareness",
+      "axis5_title": "Axis 5: Community Interaction & Resource Development"
     },
     "notes": {
       "label": "Judge Notes",
@@ -37,9 +34,6 @@
       "approve": "Approve Evaluation"
     },
     "errors": {
-      "date_required": "Please select the interview date first",
-      "location_required": "Please set the interview location",
-      "time_required": "Please set the interview time",
       "invalid_scores": "Please check the entered scores"
     }
   },

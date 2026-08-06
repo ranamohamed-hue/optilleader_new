@@ -89,7 +89,8 @@
     "mandatory_course_4": "دورة إدارة الأزمات",
     "mandatory_course_5": "دورة القيادة الاستراتيجية",
     "error_mandatory_without_graded": "لا يمكنك حفظ الدورات التأهيلية وحدها. يرجى إضافة نشاط عادي (مؤتمر أو دورة) أيضاً.",
-    "normal_activity_section": "نشاط عادي (مؤتمر / دورة تقييمية)"
+    "normal_activity_section": "نشاط عادي (مؤتمر / دورة تقييمية)",
+    "exhibitionWorksHint": "في حالة المحافل الدولية يجب ألا تقل عن 5 أعمال"
   },
 
   "addResearch": {
@@ -132,7 +133,8 @@
     "onePoint": "(1 نقطة)",
     "halfPoint": "(0.5 نقطة)",
     "certifiedReportTitle": "التقرير المعتمد (اختياري)",
-    "reportNumber": "رقم التقرير المعتمد"
+    "reportNumber": "رقم التقرير المعتمد",
+    "validation_authors_count": "لا يمكن أن يكون أكبر من إجمالي الباحثين"
   },
   "localJournalCriteria": {
     "criteria1": "المجلة محكمة (Peer-Reviewed)",
@@ -144,7 +146,14 @@
     "criteria7": "المجلة غير مملوكة لأفراد",
     "criteria8": "المجلة معتمدة من جهة أكاديمية"
   },
-  "filePicker": {
-    "selectReport": "اختر التقرير المعتمد"
+    "file_picker": {
+    "select_file": "اضغط لاختيار ملف",
+    "image_or_pdf": "صور (JPG, PNG) أو ملفات (PDF)",
+    "image_only": "صور فقط (JPG, PNG)",
+    "pdf_only": "ملفات PDF فقط",
+    "choose_upload_method": "اختر طريقة الرفع",
+    "take_photo": "التقاط صورة بالكاميرا",
+    "choose_from_gallery": "اختيار من المعرض",
+    "choose_pdf": "اختيار ملف PDF"
   }
 }

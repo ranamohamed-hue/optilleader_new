@@ -8,7 +8,7 @@ import 'package:optialeader/feature/database_admin/data/repo/judge_repository/ju
 
 class JudgeRepoImpl extends JudgeRepo {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final SupabaseClient _supabase = Supabase.instance.client; // ✅ إضافة Supabase
+  final SupabaseClient _supabase = Supabase.instance.client;
 
   CollectionReference get _usersCollection => _firestore.collection('users');
 
@@ -20,7 +20,7 @@ class JudgeRepoImpl extends JudgeRepo {
           .set(judge.toMap(), SetOptions(merge: true));
       return right(unit);
     } catch (e) {
-      return left("ERROR_JUDGE_SAVE"); // ✅ توحيد الأخطاء
+      return left("ERROR_JUDGE_SAVE");
     }
   }
 
@@ -30,7 +30,10 @@ class JudgeRepoImpl extends JudgeRepo {
       final doc = await _usersCollection.doc(uid).get();
       if (doc.exists && doc.data() != null) {
         return right(
-          JudgeProfileModel.fromJson(doc.data() as Map<String, dynamic>, doc.id),
+          JudgeProfileModel.fromJson(
+            doc.data() as Map<String, dynamic>,
+            doc.id,
+          ),
         );
       }
       return right(null);
@@ -45,13 +48,19 @@ class JudgeRepoImpl extends JudgeRepo {
       snapshot,
     ) {
       return snapshot.docs.map((doc) {
-        return JudgeProfileModel.fromJson(doc.data() as Map<String, dynamic>, doc.id);
+        return JudgeProfileModel.fromJson(
+          doc.data() as Map<String, dynamic>,
+          doc.id,
+        );
       }).toList();
     });
   }
 
   @override
-  Future<Either<String, Unit>> updateJudgeStatus(String uid, bool isActive) async {
+  Future<Either<String, Unit>> updateJudgeStatus(
+    String uid,
+    bool isActive,
+  ) async {
     try {
       await _usersCollection.doc(uid).update({'is_active': isActive});
       return right(unit);
@@ -61,7 +70,10 @@ class JudgeRepoImpl extends JudgeRepo {
   }
 
   @override
-  Future<Either<String, Unit>> updateJudgeImage(String uid, String imageUrl) async {
+  Future<Either<String, Unit>> updateJudgeImage(
+    String uid,
+    String imageUrl,
+  ) async {
     try {
       await _usersCollection.doc(uid).update({
         'profile.profile_image': imageUrl,
@@ -72,26 +84,31 @@ class JudgeRepoImpl extends JudgeRepo {
     }
   }
 
-  // ✅ [إضافة] دالة رفع الصورة مع الضغط
   @override
-  Future<Either<String, String>> uploadImageToSupabase(String uid, String filePath) async {
+  Future<Either<String, String>> uploadImageToSupabase(
+    String uid,
+    String filePath,
+  ) async {
     try {
       final fileExtension = filePath.split('.').last.toLowerCase();
 
-      final Uint8List? compressedBytes = await FlutterImageCompress.compressWithFile(
-        filePath,
-        minHeight: 600,
-        minWidth: 600,
-        quality: 85,
-      );
+      final Uint8List? compressedBytes =
+          await FlutterImageCompress.compressWithFile(
+            filePath,
+            minHeight: 600,
+            minWidth: 600,
+            quality: 85,
+          );
 
       if (compressedBytes == null) {
         return left("ERROR_IMAGE_COMPRESS_FAILED");
       }
 
-      final storagePath = 'judge_profiles/$uid/profile.$fileExtension'; // ✅ مسار خاص بالمحكمين
-      
-      await _supabase.storage.from('images').uploadBinary(
+      final storagePath = 'judge_profiles/$uid/profile.$fileExtension';
+
+      await _supabase.storage
+          .from('images')
+          .uploadBinary(
             storagePath,
             compressedBytes,
             fileOptions: FileOptions(
@@ -100,33 +117,34 @@ class JudgeRepoImpl extends JudgeRepo {
             ),
           );
 
-      final imageUrl = _supabase.storage.from('images').getPublicUrl(storagePath);
+      final imageUrl = _supabase.storage
+          .from('images')
+          .getPublicUrl(storagePath);
       return right(imageUrl);
     } catch (e) {
       return left("ERROR_IMAGE_UPLOAD_SUPABASE");
     }
   }
 
-  // ✅ [تعديل] حذف المحكم من Supabase Storage و Firestore
   @override
   Future<Either<String, Unit>> deleteJudgeAccount(String uid) async {
     try {
-      // 1. جلب بيانات المحكم لمعرفة رابط صورته
       final doc = await _usersCollection.doc(uid).get();
-      
+
       if (doc.exists && doc.data() != null) {
         final data = doc.data() as Map<String, dynamic>;
         final String? imageUrl = data['profile']?['profile_image'];
 
-        // 2. حذف الصورة من Supabase إذا وجدت
         if (imageUrl != null && imageUrl.contains('supabase.co')) {
           try {
             final uri = Uri.parse(imageUrl);
             final pathSegments = uri.pathSegments;
             final bucketIndex = pathSegments.indexOf('images');
-            
+
             if (bucketIndex != -1 && bucketIndex + 1 < pathSegments.length) {
-              final storagePath = pathSegments.sublist(bucketIndex + 1).join('/');
+              final storagePath = pathSegments
+                  .sublist(bucketIndex + 1)
+                  .join('/');
               await _supabase.storage.from('images').remove([storagePath]);
             }
           } catch (storageError) {
@@ -135,9 +153,7 @@ class JudgeRepoImpl extends JudgeRepo {
         }
       }
 
-      // 3. حذف المستند من Firebase Firestore
       await _usersCollection.doc(uid).delete();
-
       return right(unit);
     } catch (e) {
       return left("ERROR_JUDGE_DELETE");

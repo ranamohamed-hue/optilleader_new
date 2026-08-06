@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -14,15 +13,34 @@ import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data
 import 'package:optialeader/feature/database_admin/logic/judge_data/judge_data_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/judge_data/judge_data_state.dart';
 
-class UsersListPage extends StatelessWidget {
+// ✅ تحويل لـ StatefulWidget
+class UsersListPage extends StatefulWidget {
   final String role; // 'doctor', 'judge', 'admin'
 
   const UsersListPage({super.key, required this.role});
 
   @override
+  State<UsersListPage> createState() => _UsersListPageState();
+}
+
+class _UsersListPageState extends State<UsersListPage> {
+  @override
+  void initState() {
+    super.initState();
+    // ✅ استدعاء البيانات مرة واحدة فقط هنا بدل الـ build
+    if (widget.role == 'doctor') {
+      context.read<DoctorDataCubit>().watchAllDoctors();
+    } else if (widget.role == 'judge') {
+      context.read<JudgeDataCubit>().watchAllJudges();
+    } else if (widget.role == 'admin') {
+      context.read<AdminDataCubit>().watchAllAdmins();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     String title = '';
-    switch (role) {
+    switch (widget.role) {
       case 'doctor':
         title = 'users_list_doctors'.tr();
         break;
@@ -34,14 +52,6 @@ class UsersListPage extends StatelessWidget {
         break;
     }
 
-    if (role == 'doctor') {
-      context.read<DoctorDataCubit>().watchAllDoctors();
-    } else if (role == 'judge') {
-      context.read<JudgeDataCubit>().watchAllJudges();
-    } else if (role == 'admin') {
-      context.read<AdminDataCubit>().watchAllAdmins();
-    }
-
     return Scaffold(
       appBar: AppBar(title: Text(title)),
       body: _buildBody(context),
@@ -49,10 +59,12 @@ class UsersListPage extends StatelessWidget {
   }
 
   Widget _buildBody(BuildContext context) {
-    if (role == 'doctor') {
+    if (widget.role == 'doctor') {
       return BlocBuilder<DoctorDataCubit, DoctorDataState>(
         builder: (context, state) {
-          if (state is DoctorLoading) return const Center(child: CircularProgressIndicator());
+          if (state is DoctorLoading) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
+          }
           if (state is AllDoctorLoaded) {
             return _buildUsersList(
               context,
@@ -69,16 +81,20 @@ class UsersListPage extends StatelessWidget {
                   .toList(),
             );
           }
-          if (state is DoctorError) return Center(child: Text(state.error ?? 'unknown_error'.tr()));
+          if (state is DoctorError) {
+            return Center(child: Text(state.error ?? 'unknown_error'.tr()));
+          }
           return const SizedBox();
         },
       );
     }
 
-    if (role == 'judge') {
+    if (widget.role == 'judge') {
       return BlocBuilder<JudgeDataCubit, JudgeDataState>(
         builder: (context, state) {
-          if (state is JudgeLoading) return const Center(child: CircularProgressIndicator());
+          if (state is JudgeLoading) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
+          }
           if (state is AllJudgesLoaded) {
             return _buildUsersList(
               context,
@@ -95,16 +111,20 @@ class UsersListPage extends StatelessWidget {
                   .toList(),
             );
           }
-          if (state is JudgeError) return Center(child: Text(state.error ?? 'unknown_error'.tr()));
+          if (state is JudgeError) {
+            return Center(child: Text(state.error ?? 'unknown_error'.tr()));
+          }
           return const SizedBox();
         },
       );
     }
 
-    if (role == 'admin') {
+    if (widget.role == 'admin') {
       return BlocBuilder<AdminDataCubit, AdminDataState>(
         builder: (context, state) {
-          if (state is AdminLoading) return const Center(child: CircularProgressIndicator());
+          if (state is AdminLoading) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
+          }
           if (state is AllAdminsLoaded) {
             return _buildUsersList(
               context,
@@ -121,7 +141,9 @@ class UsersListPage extends StatelessWidget {
                   .toList(),
             );
           }
-          if (state is AdminError) return Center(child: Text(state.error ?? 'unknown_error'.tr()));
+          if (state is AdminError) {
+            return Center(child: Text(state.error ?? 'unknown_error'.tr()));
+          }
           return const SizedBox();
         },
       );
@@ -130,7 +152,6 @@ class UsersListPage extends StatelessWidget {
     return Center(child: Text('invalid_role'.tr()));
   }
 
-  // ✅ تم تغيير الدالة من Grid إلى List عريضة
   Widget _buildUsersList(BuildContext context, List<_UserInfo> users) {
     if (users.isEmpty) {
       return Center(child: Text('no_users_found'.tr()));
@@ -169,7 +190,6 @@ class UsersListPage extends StatelessWidget {
               padding: EdgeInsets.all(16.w),
               child: Row(
                 children: [
-                  // الصورة الشخصية
                   CircleAvatar(
                     radius: 30.r,
                     backgroundColor: Theme.of(context).colorScheme.primaryContainer,
@@ -188,7 +208,6 @@ class UsersListPage extends StatelessWidget {
                   ),
                   SizedBox(width: 15.w),
                   
-                  // الاسم والوظيفة
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,7 +231,6 @@ class UsersListPage extends StatelessWidget {
                     ),
                   ),
                   
-                  // أيقونة السهم للإشارة للضغط
                   Icon(Icons.arrow_forward, color: Theme.of(context).colorScheme.secondary, size: 24.sp),
                 ],
               ),

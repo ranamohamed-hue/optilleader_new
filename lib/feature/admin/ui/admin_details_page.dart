@@ -38,26 +38,27 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
   bool _navigatedToPaper = false;
 
   @override
+    @override
   void initState() {
     super.initState();
-    // ✅ لو النوع "بحث علمي" ننقل للأدمن لصفحة إدخال الدرجة
     if (widget.type == 'paper') {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!_navigatedToPaper && mounted) {
           _navigatedToPaper = true;
           context.push(
-            Routes.pendingPaperDetails, // ✅ تم تصحيح الاسم
+            Routes.pendingPaperDetails,
             extra: {
               'item': widget.item,
               'doctorUid': widget.doctorUid,
               'type': widget.type,
             },
-          );
+          ).then((_) {
+            if (mounted) context.pop();
+          });
         }
       });
     }
   }
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -523,26 +524,26 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
     }
   }
 
-  String _getVenueAr(ExhibitionVenue venue) {
+   String _getVenueAr(ExhibitionVenue venue) {
     switch (venue) {
       case ExhibitionVenue.internationalAbroad:
         return 'admin_details.venue_intl_abroad'.tr();
       case ExhibitionVenue.internationalEgypt:
         return 'admin_details.venue_intl_egypt'.tr();
       case ExhibitionVenue.artFaculties:
-        return 'قاعات الكليات الفنية';
+        return 'admin_details.venue_art_faculties'.tr();
       case ExhibitionVenue.fineArtsSector:
-        return 'قطاع الفنون التشكيلية';
+        return 'admin_details.venue_fine_arts_sector'.tr();
       case ExhibitionVenue.foreignCulturalCenters:
-        return 'المراكز الثقافية الأجنبية';
+        return 'admin_details.venue_foreign_centers'.tr();
       case ExhibitionVenue.artSyndicates:
-        return 'النقابات الفنية';
+        return 'admin_details.venue_art_syndicates'.tr();
       case ExhibitionVenue.culturePalaces:
-        return 'هيئة قصور الثقافة';
+        return 'admin_details.venue_culture_palaces'.tr();
       case ExhibitionVenue.ateliersCairoAlex:
-        return 'أتيليه القاهرة والإسكندرية';
+        return 'admin_details.venue_ateliers'.tr();
       case ExhibitionVenue.privateGalleries:
-        return 'المعرض الخاص';
+        return 'admin_details.venue_private_galleries'.tr();
     }
   }
 

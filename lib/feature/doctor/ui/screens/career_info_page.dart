@@ -349,9 +349,9 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
           SizedBox(height: 10.h),
           if (doctor?.previousLeadershipRoles != null &&
               doctor!.previousLeadershipRoles.isNotEmpty)
-            ...doctor.previousLeadershipRoles
-                .map((role) => _buildHistoryItem(context, role, ''))
-                
+            ...doctor.previousLeadershipRoles.map(
+              (role) => _buildHistoryItem(context, role, ''),
+            )
           else
             _buildHistoryItem(context, 'career.no_previous_roles'.tr(), ''),
         ],
@@ -420,8 +420,9 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
             context,
             Icons.calendar_today_rounded,
             'career.labels.hire_date'.tr(),
-
-            '-',
+            doctor?.hiringDate != null
+                ? DateFormat('yyyy-MM-dd').format(doctor!.hiringDate!)
+                : '-',
           ),
         ],
       ),

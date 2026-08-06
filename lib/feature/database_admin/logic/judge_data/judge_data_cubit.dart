@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io'; // ✅ ضروري لاستخدام File
+import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -32,14 +32,15 @@ class JudgeDataCubit extends Cubit<JudgeDataState> {
     );
   }
 
-  /// 🟢 إنشاء محكم جديد (Auth + Firestore)
   Future<void> createNewJudge(JudgeProfileModel judge) async {
     emit(JudgeLoading());
     UserCredential? credential;
 
     try {
       FirebaseApp secondaryApp;
-      final isSecondaryAppInitialized = Firebase.apps.any((app) => app.name == 'SecondaryApp');
+      final isSecondaryAppInitialized = Firebase.apps.any(
+        (app) => app.name == 'SecondaryApp',
+      );
 
       if (isSecondaryAppInitialized) {
         secondaryApp = Firebase.app('SecondaryApp');
@@ -67,17 +68,21 @@ class JudgeDataCubit extends Cubit<JudgeDataState> {
 
       final result = await judgeRepo.saveJudgeData(updatedJudge);
       result.fold((error) async {
-        try { await firebaseUser.delete(); } catch (_) {}
+        try {
+          await firebaseUser.delete();
+        } catch (_) {}
         emit(JudgeError(error: error));
       }, (_) => emit(JudgeSuccess()));
-      
     } on FirebaseAuthException catch (e) {
       String errorCode = "ERROR_AUTH_UNKNOWN";
-      if (e.code == 'email-already-in-use') errorCode = "ERROR_EMAIL_ALREADY_IN_USE";
+      if (e.code == 'email-already-in-use')
+        errorCode = "ERROR_EMAIL_ALREADY_IN_USE";
       if (e.code == 'weak-password') errorCode = "ERROR_WEAK_PASSWORD";
       emit(JudgeError(error: errorCode));
     } catch (e) {
-      try { await credential?.user?.delete(); } catch (_) {}
+      try {
+        await credential?.user?.delete();
+      } catch (_) {}
       emit(JudgeError(error: e.toString()));
     } finally {
       try {
@@ -97,49 +102,35 @@ class JudgeDataCubit extends Cubit<JudgeDataState> {
     );
   }
 
-  // ✅ [تعديل] حذف المحكم مع محاولة حذف حساب الـ Auth
   Future<void> deleteJudge(String uid) async {
     emit(JudgeDeleting());
-    
-    // 1. حذف الصورة من Supabase والبروفايل من Firestore
+
     final result = await judgeRepo.deleteJudgeAccount(uid);
-    
-    await result.fold(
-      (error) async => emit(JudgeError(error: error)),
-      (_) async {
-        // 2. محاولة حذف حساب الـ Auth
-        // نفس ملاحظة الأدمن: لا يمكن حذف مستخدم آخر من الـ Client SDK العادي
-        // يفضل استخدام Cloud Functions، أو ترك حساب الـ Auth معلقاً (Orphan)
-        /*
-        try {
-          // استدعاء Cloud Function هنا إن وجدت
-        } catch (e) {
-          print("Failed to delete Auth user: $e");
-        }
-        */
-        emit(JudgeSuccess());
-      },
+
+    result.fold(
+      (error) => emit(JudgeError(error: error)),
+      (_) => emit(JudgeSuccess()),
     );
   }
 
-  // ✅ [إضافة] دالة تحديث صورة المحكم
   Future<void> updateJudgeProfileImage(String uid, File imageFile) async {
-    emit(JudgeLoading()); 
+    emit(JudgeLoading());
 
-    // 1. رفع الصورة إلى Supabase (نمرر المسار)
-    final uploadResult = await judgeRepo.uploadImageToSupabase(uid, imageFile.path);
+    final uploadResult = await judgeRepo.uploadImageToSupabase(
+      uid,
+      imageFile.path,
+    );
 
     uploadResult.fold(
       (uploadError) {
         emit(JudgeError(error: uploadError));
       },
       (imageUrl) async {
-        // 2. حفظ الرابط في Firebase Firestore
         final updateResult = await judgeRepo.updateJudgeImage(uid, imageUrl);
-         
+
         updateResult.fold(
           (updateError) => emit(JudgeError(error: updateError)),
-          (_) => emit(JudgeSuccess()), 
+          (_) => emit(JudgeSuccess()),
         );
       },
     );

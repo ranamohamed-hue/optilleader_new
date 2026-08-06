@@ -54,7 +54,7 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
     if (!_formKey.currentState!.validate()) return;
 
     final employee = EmployeeModel(
-      uid: '', // هيتم توليده في الكيوبيت
+      uid: '',
       nameAr: _nameArController.text.trim(),
       nameEn: _nameEnController.text.trim(),
       nationalityAr: _nationalityArController.text.trim(),
@@ -69,7 +69,7 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
       graduationYear: _gradYearController.text.trim(),
       yearsOfAdminExperience:
           int.tryParse(_experienceController.text.trim()) ?? 0,
-      profileImage: '', // هيتحدث بعد رفع الصورة
+      profileImage: '',
       hasCriminalRecord: _hasCriminalRecord,
       holdsPartyPosition: _holdsPartyPosition,
       disciplinaryClearance: _disciplinaryClearance,
@@ -77,7 +77,11 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
       createdAt: DateTime.now(),
     );
 
-    context.read<EmployeeDataCubit>().createNewEmployee(employee);
+    // ✅ تمرير الصورة هنا
+    context.read<EmployeeDataCubit>().createNewEmployee(
+      employee,
+      profileImageFile: _profileImage,
+    );
   }
 
   @override
@@ -102,8 +106,8 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
       listener: (context, state) {
         if (state is EmployeeSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('add_employee.success_message'),
+            SnackBar(
+              content: Text('add_employee.success_message'.tr()),
               backgroundColor: Colors.green,
             ),
           );
@@ -117,14 +121,14 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
       builder: (context, state) {
         bool isLoading = state is EmployeeLoading;
         return Scaffold(
-          appBar: AppBar(title: const Text('add_employee.title')),
+          // ✅ إضافة .tr()
+          appBar: AppBar(title: Text('add_employee.title'.tr())),
           body: SingleChildScrollView(
             padding: EdgeInsets.all(16.w),
             child: Form(
               key: _formKey,
               child: Column(
                 children: [
-                  // صورة البروفايل
                   GestureDetector(
                     onTap: _pickImage,
                     child: CircleAvatar(
@@ -238,7 +242,7 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                       child: isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
-                              'add_employee.save_data',
+                              'add_employee.save_data'.tr(), // ✅ إضافة .tr()
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16.sp,
@@ -272,8 +276,9 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
           border: const OutlineInputBorder(),
         ),
         validator: (value) {
+          // ✅ تعديل مسار الترجمة
           if (isRequired && (value == null || value.trim().isEmpty)) {
-            return'add_employee.validation.required'.tr();
+            return 'add_employee.fields.required'.tr();
           }
           return null;
         },

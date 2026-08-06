@@ -53,7 +53,7 @@ class _AddActivityPageState extends State<AddActivityPage> {
   ParticipationType _participationType = ParticipationType
       .paperPresentation; // نوع المشاركة: بحث كامل نقاطه أعلى من حضور فقط
 
-  // ==========================================
+  // ========================================== 
   // 3. متغيرات المعارض الفنية (المحرك الحسابي للمعارض)
   // ==========================================
   ExhibitionVenue _selectedVenue = ExhibitionVenue
@@ -491,7 +491,7 @@ class _AddActivityPageState extends State<AddActivityPage> {
           initialValue: _numberOfWorks.toString(),
           decoration: InputDecoration(
             labelText: 'addActivity.numberOfWorks'.tr(),
-            hintText: 'في حالة المحافل الدولية يجب ألا تقل عن 5 أعمال',
+hintText: 'addActivity.exhibitionWorksHint'.tr(),
             hintStyle: TextStyle(fontSize: 11.sp, color: Colors.orange),
           ),
           keyboardType: TextInputType.number,

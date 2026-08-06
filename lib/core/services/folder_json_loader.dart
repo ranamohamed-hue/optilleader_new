@@ -19,14 +19,13 @@ class FolderJsonLoader extends AssetLoader {
     'dashboard_user',
     'database_admin_dashboard',
     'digital_archieve',
-    'edit_announcement',
     'employee_review_screen',
     'evaluation',
     'order',
     'report',
     'search',
     'setting',
-    'upload_files',
+    'uploadfiles',
     'employee_search',
     'add_files',
     'announcement_details_doctor',
@@ -40,7 +39,10 @@ class FolderJsonLoader extends AssetLoader {
     'system_scores',
     'employee_courses',
     'nomination_details',
-    'pending_details'
+    'pending_details',
+    'evaluator_review', 
+    'employee_review_scren'
+
       ];
 
   @override

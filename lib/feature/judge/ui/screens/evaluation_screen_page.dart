@@ -24,57 +24,32 @@ class InterviewEvaluationScreen extends StatefulWidget {
 }
 
 class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
-  final TextEditingController _scientificController = TextEditingController();
-  final TextEditingController _leadershipController = TextEditingController();
-  final TextEditingController _studentActivitiesController =
-      TextEditingController();
-  final TextEditingController _communityActivitiesController =
-      TextEditingController();
-  final TextEditingController _humanRelationsController =
-      TextEditingController();
-
   final TextEditingController _notesController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
 
+  // ✅ متغير واحد فقط بدل الـ 5 controllers القديمة
+  late InterviewScoringModel _interviewModel;
+
   DateTime? _selectedInterviewDate;
   TimeOfDay? _selectedTime;
-
-  final Map<String, double> _maxScores = {
-    'scientific': 40,
-    'leadership': 25,
-    'studentActivities': 15,
-    'communityActivities': 10,
-    'humanRelations': 10,
-  };
 
   @override
   void initState() {
     super.initState();
+    // تهيئة الاستبيان الفاضي بالمحاور الجديدة
+    _interviewModel = InterviewScoringModel(
+      interviewDate: widget.request.interviewDate ?? DateTime.now(),
+    );
     _loadExistingEvaluation();
   }
 
   void _loadExistingEvaluation() {
     final evaluation = widget.request.interviewEvaluation;
-    if (evaluation != null) {
-      _scientificController.text = (evaluation['scientificScore'] ?? 0)
-          .toString();
-      _leadershipController.text = (evaluation['leadershipScore'] ?? 0)
-          .toString();
-      _studentActivitiesController.text =
-          (evaluation['studentActivitiesScore'] ?? 0).toString();
-      _communityActivitiesController.text =
-          (evaluation['communityActivitiesScore'] ?? 0).toString();
-      _humanRelationsController.text = (evaluation['humanRelationsScore'] ?? 0)
-          .toString();
-
-      _notesController.text = [
-        evaluation['scientificNotes'],
-        evaluation['leadershipNotes'],
-        evaluation['studentActivitiesNotes'],
-        evaluation['communityActivitiesNotes'],
-        evaluation['humanRelationsNotes'],
-      ].where((n) => n != null && n.toString().isNotEmpty).join(' | ');
+    if (evaluation != null && evaluation is Map<String, dynamic>) {
+      // لو فيه تقييم قديم محفوظ، نحمله مباشرة
+      _interviewModel = InterviewScoringModel.fromMap(evaluation);
+      _notesController.text = _interviewModel.combinedNotes;
     }
 
     if (widget.request.interviewDate != null) {
@@ -90,11 +65,6 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
 
   @override
   void dispose() {
-    _scientificController.dispose();
-    _leadershipController.dispose();
-    _studentActivitiesController.dispose();
-    _communityActivitiesController.dispose();
-    _humanRelationsController.dispose();
     _notesController.dispose();
     _locationController.dispose();
     _timeController.dispose();
@@ -127,21 +97,68 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     }
   }
 
-  double _parseDouble(String value) {
-    try {
-      return double.parse(value);
-    } catch (e) {
-      return 0.0;
+  // ✅ دالة تحديث درجة معينة من الـ Slider
+  void _updateCriterionScore(int axisIndex, int critIndex, double newScore) {
+    // لأن givenScore مش final في الموديل، نقدر نعدلها مباشرة بدل ما نعمل copyWith
+    switch (axisIndex) {
+      case 0:
+        _interviewModel.emotionalBalanceCriteria[critIndex].givenScore =
+            newScore;
+        break;
+      case 1:
+        _interviewModel.strategicThinkingCriteria[critIndex].givenScore =
+            newScore;
+        break;
+      case 2:
+        _interviewModel.participatoryLeadershipCriteria[critIndex].givenScore =
+            newScore;
+        break;
+      case 3:
+        _interviewModel.legalAwarenessCriteria[critIndex].givenScore = newScore;
+        break;
+      case 4:
+        _interviewModel.communityInteractionCriteria[critIndex].givenScore =
+            newScore;
+        break;
     }
+
+    // عمل rebuild للواجهة عشان الـ Slider والمجموع يتحدثوا
+    setState(() {});
   }
 
-  double get _currentTotal {
-    return _parseDouble(_scientificController.text) +
-        _parseDouble(_leadershipController.text) +
-        _parseDouble(_studentActivitiesController.text) +
-        _parseDouble(_communityActivitiesController.text) +
-        _parseDouble(_humanRelationsController.text);
-  }
+    //  بيانات المحاور الخمسة الجديدة للعرض (مترجمة)
+  List<Map<String, dynamic>> get _axesData => [
+    {
+      'title': 'evaluation.axes.axis1_title'.tr(),
+      'maxScore': 20.0,
+      'color': Colors.blue,
+      'criteria': _interviewModel.emotionalBalanceCriteria,
+    },
+    {
+      'title': 'evaluation.axes.axis2_title'.tr(),
+      'maxScore': 25.0,
+      'color': Colors.green,
+      'criteria': _interviewModel.strategicThinkingCriteria,
+    },
+    {
+      'title': 'evaluation.axes.axis3_title'.tr(),
+      'maxScore': 20.0,
+      'color': Colors.orange,
+      'criteria': _interviewModel.participatoryLeadershipCriteria,
+    },
+    {
+      'title': 'evaluation.axes.axis4_title'.tr(),
+      'maxScore': 20.0,
+      'color': Colors.purple,
+      'criteria': _interviewModel.legalAwarenessCriteria,
+    },
+    {
+      'title': 'evaluation.axes.axis5_title'.tr(),
+      'maxScore': 15.0,
+      'color': Colors.teal,
+      'criteria': _interviewModel.communityInteractionCriteria,
+    },
+  ];
 
   void _scheduleInterview() {
     if (_selectedInterviewDate == null) {
@@ -179,16 +196,11 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
       return;
     }
 
-    final model = InterviewScoringModel(
+    // تحضير الموديل النهائي
+    final model = _interviewModel.copyWith(
       interviewDate: _selectedInterviewDate!,
-      scientificScore: _parseDouble(_scientificController.text),
-      leadershipScore: _parseDouble(_leadershipController.text),
-      studentActivitiesScore: _parseDouble(_studentActivitiesController.text),
-      communityActivitiesScore: _parseDouble(
-        _communityActivitiesController.text,
-      ),
-      humanRelationsScore: _parseDouble(_humanRelationsController.text),
-      scientificNotes: _notesController.text,
+      emotionalBalanceNotes:
+          _notesController.text, // نحفظ الملاحظات في أول محور كمرجع عام
       isDraft: isDraft,
     );
 
@@ -230,7 +242,6 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             );
             Navigator.pop(context);
           }
-
           if (state is NominationRequestError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -250,45 +261,21 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
               _buildScheduleCard(colorScheme),
               SizedBox(height: 20.h),
 
-              _buildScoreCard(
-                title: 'evaluation.scores.scientific'.tr(),
-                criteria: 'evaluation.criteria.scientific'.tr(),
-                maxScore: _maxScores['scientific']!,
-                controller: _scientificController,
-                color: Colors.blue,
-              ),
-              SizedBox(height: 15.h),
-              _buildScoreCard(
-                title: 'evaluation.scores.leadership'.tr(),
-                criteria: 'evaluation.criteria.leadership'.tr(),
-                maxScore: _maxScores['leadership']!,
-                controller: _leadershipController,
-                color: Colors.green,
-              ),
-              SizedBox(height: 15.h),
-              _buildScoreCard(
-                title: 'evaluation.scores.studentActivities'.tr(),
-                criteria: 'evaluation.criteria.studentActivities'.tr(),
-                maxScore: _maxScores['studentActivities']!,
-                controller: _studentActivitiesController,
-                color: Colors.orange,
-              ),
-              SizedBox(height: 15.h),
-              _buildScoreCard(
-                title: 'evaluation.scores.communityActivities'.tr(),
-                criteria: 'evaluation.criteria.communityActivities'.tr(),
-                maxScore: _maxScores['communityActivities']!,
-                controller: _communityActivitiesController,
-                color: Colors.purple,
-              ),
-              SizedBox(height: 15.h),
-              _buildScoreCard(
-                title: 'evaluation.scores.humanRelations'.tr(),
-                criteria: 'evaluation.criteria.humanRelations'.tr(),
-                maxScore: _maxScores['humanRelations']!,
-                controller: _humanRelationsController,
-                color: Colors.teal,
-              ),
+              // ✅ بناء كروت المحاور ديناميكياً من الـ Data
+              ..._axesData.asMap().entries.map((entry) {
+                int axisIndex = entry.key;
+                var axis = entry.value;
+                return Padding(
+                  padding: EdgeInsets.only(bottom: 15.h),
+                  child: _buildAxisCard(
+                    axisIndex: axisIndex,
+                    title: axis['title'],
+                    maxScore: axis['maxScore'],
+                    color: axis['color'],
+                    criteria: axis['criteria'],
+                  ),
+                );
+              }).toList(),
 
               SizedBox(height: 20.h),
               _buildTotalCard(colorScheme),
@@ -338,7 +325,154 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ كارت بيانات الدكتور (تم إزالة الدرجة الآلية منه)
+  // ✅ كارت المحور الواحد (بيحتوي على المعايير الفرعية والـ Sliders)
+  Widget _buildAxisCard({
+    required int axisIndex,
+    required String title,
+    required double maxScore,
+    required Color color,
+    required List<RubricCriterion> criteria,
+  }) {
+    // حساب مجموع المحور
+    double axisTotal = criteria.fold(0.0, (sum, item) => sum + item.givenScore);
+
+    return Container(
+      padding: EdgeInsets.all(15.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12.r),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+        ],
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // هيدر المحور (الاسم + مجموعه)
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.all(6.w),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Icon(Icons.star, color: color, size: 18.sp),
+              ),
+              SizedBox(width: 10.w),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13.sp,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(6.r),
+                ),
+                child: Text(
+                  '$axisTotal / $maxScore',
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 15.h),
+
+          // بناء Sliders للمعايير الفرعية
+          ...criteria.asMap().entries.map((entry) {
+            int critIndex = entry.key;
+            var criterion = entry.value;
+            return _buildCriterionSlider(
+              axisIndex: axisIndex,
+              critIndex: critIndex,
+              title: criterion.titleAr,
+              maxScore: criterion.maxScore,
+              currentScore: criterion.givenScore,
+              color: color,
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  // ✅ ويدجت الـ Slider للمعيار الفرعي
+  Widget _buildCriterionSlider({
+    required int axisIndex,
+    required int critIndex,
+    required String title,
+    required double maxScore,
+    required double currentScore,
+    required Color color,
+  }) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 12.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 11.sp,
+                    color: Colors.grey[800],
+                    height: 1.3,
+                  ),
+                ),
+              ),
+              SizedBox(width: 8.w),
+              Text(
+                '${currentScore.toStringAsFixed(1)} / ${maxScore.toStringAsFixed(0)}',
+                style: TextStyle(
+                  fontSize: 11.sp,
+                  fontWeight: FontWeight.bold,
+                  color: color,
+                ),
+              ),
+            ],
+          ),
+          SliderTheme(
+            data: SliderTheme.of(context).copyWith(
+              activeTrackColor: color,
+              inactiveTrackColor: color.withOpacity(0.2),
+              thumbColor: color,
+              thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.r),
+              overlayColor: color.withOpacity(0.1),
+              trackHeight: 3.h,
+            ),
+            child: Slider(
+              value: currentScore,
+              min: 0,
+              max: maxScore,
+              divisions: maxScore.toInt() * 2, // للسماح بنصف درجات (0.5)
+              onChanged: (value) {
+                // تقريب لأقرب نصف درجة عشان ميبقىش رقم عشري طويل
+                double roundedValue = (value * 2).round() / 2;
+                _updateCriterionScore(axisIndex, critIndex, roundedValue);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ✅ كارت بيانات الدكتور
   Widget _buildDoctorInfoCard(ColorScheme colorScheme) {
     return Container(
       padding: EdgeInsets.all(15.w),
@@ -389,7 +523,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ كارت تحديد الموعد
+  // ✅ كارت تحديد الموعد (بدون تغيير)
   Widget _buildScheduleCard(ColorScheme colorScheme) {
     return Container(
       padding: EdgeInsets.all(15.w),
@@ -500,97 +634,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ كارت إدخال الدرجات
-  Widget _buildScoreCard({
-    required String title,
-    required String criteria,
-    required double maxScore,
-    required TextEditingController controller,
-    required Color color,
-  }) {
-    return Container(
-      padding: EdgeInsets.all(15.w),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12.r),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
-        ],
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: EdgeInsets.all(6.w),
-                decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
-                child: Icon(Icons.star, color: color, size: 18.sp),
-              ),
-              SizedBox(width: 10.w),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    fontWeight: FontWeight.bold,
-                    color: color,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          Padding(
-            padding: EdgeInsets.only(top: 8.h, right: 34.w),
-            child: Text(
-              criteria,
-              style: TextStyle(
-                fontSize: 11.sp,
-                color: Colors.grey[600],
-                height: 1.4,
-              ),
-            ),
-          ),
-          SizedBox(height: 15.h),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  keyboardType: TextInputType.numberWithOptions(decimal: true),
-                  decoration: InputDecoration(
-                    labelText: 'evaluation.scores.score_label'.tr(),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.r),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12.w,
-                      vertical: 8.h,
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(width: 15.w),
-              Text(
-                '/ $maxScore',
-                style: TextStyle(
-                  fontSize: 12.sp,
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ✅ كارت المجموع الكلي
+  // ✅ كارت المجموع الكلي (بيجمع المجموع من الموديل تلقائياً)
   Widget _buildTotalCard(ColorScheme colorScheme) {
     return Container(
       padding: EdgeInsets.all(20.w),
@@ -608,7 +652,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             ),
           ),
           Text(
-            '${_currentTotal.toStringAsFixed(1)} / 100',
+            '${_interviewModel.totalScore.toStringAsFixed(1)} / 100',
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20.sp,

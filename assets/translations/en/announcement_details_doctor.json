@@ -10,12 +10,12 @@
     "details": {
       "badge_title": "Official Announcement",
       "edit_button": "Edit Announcement",
-      "applicants_label": "Applicants",
+      "applicants_label": "Number of Applicants",
       "person_unit": "Person",
       "deadline_label": "Application Deadline",
-      "posted_label": "Posted On",
+      "posted_label": "Posted Date",
       "target_role": "Target Role",
-      "college": "College",
+      "college": "Faculty/College",
       "department": "Department",
       "apply_button": "Apply Now",
       "apply_success": "Your application has been submitted successfully!",
@@ -27,14 +27,14 @@
   },
   "announcement_details": {
     "title": "Announcement Details",
-    "not_found": "Announcement not found",
-    "no_title": "No title available",
-    "no_description": "No description available",
+    "not_found": "Announcement Not Found",
+    "no_title": "No Title",
+    "no_description": "No Description",
     "ineligible_title": "Sorry",
     "ineligible_body": "You cannot apply for this position because you do not meet the following criteria:"
   },
   "admin_details": {
-    "paper_title": "Research Paper Details",
+    "paper_title": "Scientific Paper Details",
     "conference_title": "Conference Details",
     "course_title": "Training Course Details",
     "exhibition_title": "Art Exhibition Details",
@@ -52,8 +52,8 @@
     "journal_type": "Journal Type",
     "local": "Local",
     "international": "International",
-    "quartile": "Quartile Ranking",
-    "top_tier": "Top Tier Journal",
+    "quartile": "Quartile",
+    "top_tier": "Top-Tier Journal",
     "researchers_data": "Researchers Data",
     "author_order": "Author Order",
     "total_authors": "Total Authors",
@@ -61,7 +61,7 @@
     "report_attachments": "Certified Report & Attachments",
     "report_number": "Report Number",
     "report_file": "Certified Report File",
-    "paper_file": "Research Paper File",
+    "paper_file": "Paper File",
     "indexing_proof": "Indexing Proof",
     "conference_data": "Conference Data",
     "scope": "Scope",
@@ -74,7 +74,7 @@
     "published_paper": "Published Paper File",
     "course_data": "Training Course Data",
     "course_name": "Course Name",
-    "organization": "Organizing Body",
+    "organization": "Organization",
     "date": "Date",
     "hours": "Hours",
     "course_type": "Course Type",
@@ -87,10 +87,10 @@
     "international_biennial": "International (Biennial/Triennial...)",
     "regular": "Regular",
     "venue": "Venue",
-    "venue_intl_abroad": "International Forums Abroad",
-    "venue_intl_egypt": "International Forums in Egypt",
+    "venue_intl_abroad": "International Venues Abroad",
+    "venue_intl_egypt": "International Venues in Egypt",
     "venue_accredited": "Accredited Halls",
-    "venue_public": "Cultural Palaces / Private Galleries",
+    "venue_public": "Culture Palaces / Private Galleries",
     "researcher_notes": "Researcher Notes",
     "proof_file": "Proof File",
     "not_specified": "Not Specified",
@@ -103,7 +103,7 @@
     "reject_reason_title": "Rejection Reason",
     "reject_reason_body": "Please write the reason for rejection to be sent to the user.",
     "reject_hint": "Write the reason here...",
-    "no_reason": "No reason provided",
+    "no_reason": "No reason written",
     "confirm_reject": "Confirm Rejection"
   },
   "common": {
@@ -118,5 +118,23 @@
   },
   "error": "Error",
   "generic_error": "An unexpected error occurred, please try again.",
-  "invalid_announcement_role": "The target role for this announcement is not specified."
+  "invalid_announcement_role": "The job title for this announcement is not specified.",
+  "roles": {
+    "university_president": "University President",
+    "vice_president": "Vice President",
+    "vice_dean": "Vice Dean",
+    "dean": "Dean",
+    "head_department": "Head of Department",
+    "quality_manager": "Quality Assurance Manager",
+    "admin_manager": "Administration Manager"
+  },
+  "sectors": {
+    "education": "Education and Student Affairs Sector",
+    "graduate_studies": "Graduate Studies and Research Sector",
+    "community_service": "Community Service and Environmental Development Sector",
+    "financial_admin": "Financial and Administrative Affairs Sector"
+  },
+  "edit_announcement": {
+    "field_sector": "Sector"
+  }
 }

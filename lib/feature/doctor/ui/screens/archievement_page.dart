@@ -205,7 +205,7 @@ class _AchievementsLogPageState extends State<AchievementsLogPage> {
         final conf = conferences[index];
         return _buildItemCard(
           title: conf.title,
-          // ✅ تم تصحيح المنطق ليتطابق مع الترجمة
+          // تم تصحيح المنطق ليتطابق مع الترجمة
           subtitle: conf.isInternational
               ? 'achievements_new.type_conference_international'.tr()
               : 'achievements_new.type_conference_local'.tr(),
@@ -239,7 +239,7 @@ class _AchievementsLogPageState extends State<AchievementsLogPage> {
   }
 
   Widget _buildCoursesList(BuildContext context, List<CourseModel> courses) {
-    // ✅ تم تصحيح مفتاح الترجمة ليعرض "لا توجد دورات"
+    //  تم تصحيح مفتاح الترجمة ليعرض "لا توجد دورات"
     if (courses.isEmpty)
       return _buildEmptyState('achievements_new.no_courses'.tr());
     return ListView.builder(
@@ -347,6 +347,11 @@ class _AchievementsLogPageState extends State<AchievementsLogPage> {
         color = Colors.orange;
         icon = Icons.hourglass_empty;
         text = 'status.under_review'.tr();
+        break;
+      case VerificationStatus.notSubmitted:
+        color = Colors.grey;
+        icon = Icons.remove_circle_outline;
+        text = 'common.other'.tr();
         break;
     }
 

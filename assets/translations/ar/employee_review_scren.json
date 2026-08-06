@@ -1,32 +1,28 @@
 {
-  "review": {
-    "app_bar_title": "مراجعة الموظف",
-    "employee_name": "اسم الموظف",
-    "birth_date": "تاريخ الميلاد",
-    "join_date": "تاريخ التعيين",
-
-    "sections": {
-      "promotions": "الترقيات",
-      "teaching_load": "العبء التدريسي",
-      "attachments": "المرفقات"
-    },
-
-    "footers": {
-      "load_reviewed": "تمت مراجعة العبء التدريسي",
-      "docs_reviewed": "تمت مراجعة المستندات"
-    },
-
-    "tables": {
-      "new_title": "الدرجة الجديدة",
-      "old_title": "الدرجة السابقة",
-      "date": "التاريخ",
-      "hours_count": "الساعات",
-      "course_name": "اسم المقرر"
-    },
-
-    "fields": {
-      "select_judge": "اختيار المحكم",
-      "submit_btn": "اعتماد المراجعة"
+    "employee_review_scren":{
+        "app_bar_title":"مراجعة الموظف",
+        "employee_name":"اسم الموظف",
+        "birth_date":"تاريخ الميلاد",
+        "join_date":"تاريخ التعيين",
+        "sections":{
+            "promotions":"الترقيات",
+            "teaching_load":"العبء التدريسي",
+            "attachments":"المرفقات"
+        },
+        "footers":{
+            "load_reviewed":"تمت مراجعة العبء التدريسي",
+            "docs_reviewed":"تمت مراجعة المستندات"
+        },
+        "tables":{
+            "new_title":"الدرجة الجديدة",
+            "old_title":"الدرجة السابقة",
+            "date":"التاريخ",
+            "hours_count":"الساعات",
+            "course_name":"اسم المقرر"
+        },
+        "fields":{
+            "select_judge":"اختيار المحكم",
+            "submit_btn":"اعتماد المراجعة "
+        }
     }
-  }
 }

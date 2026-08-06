@@ -51,10 +51,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
     }
   }
 
-  // ✅ [إضافة] نافذة تأكيد الحذف
   void _showDeleteConfirmationDialog() {
-    final isArabic = context.locale.languageCode == 'ar';
-
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -69,20 +66,18 @@ class _AddJudgePageState extends State<AddJudgePage> {
               size: 28.sp,
             ),
             SizedBox(width: 10.w),
-            Text(isArabic ? 'تأكيد الحذف' : 'Confirm Deletion'),
+            Text("add_judge.confirm_delete_title".tr()),
           ],
         ),
         content: Text(
-          isArabic
-              ? 'هل أنت متأكد من حذف هذا المستخدم نهائياً؟ سيتم حذف جميع بياناته وملفاته ولا يمكن التراجع عن هذا الإجراء.'
-              : 'Are you sure you want to delete this user permanently? All data and files will be deleted and this action cannot be undone.',
+          "add_judge.confirm_delete_msg".tr(),
           style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
-              isArabic ? 'إلغاء' : 'Cancel',
+              "add_judge.cancel".tr(),
               style: TextStyle(color: AppColors.navyLight),
             ),
           ),
@@ -94,13 +89,11 @@ class _AddJudgePageState extends State<AddJudgePage> {
               ),
             ),
             onPressed: () {
-              Navigator.pop(dialogContext); // إغلاق الديالوج
-              context.read<JudgeDataCubit>().deleteJudge(
-                widget.existingUid!,
-              ); // تنفيذ الحذف
+              Navigator.pop(dialogContext);
+              context.read<JudgeDataCubit>().deleteJudge(widget.existingUid!);
             },
             child: Text(
-              isArabic ? 'حذف نهائي' : 'Delete',
+              "add_judge.confirm".tr(),
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -236,11 +229,10 @@ class _AddJudgePageState extends State<AddJudgePage> {
           centerTitle: true,
           elevation: 0,
           actions: [
-            // ✅ [إضافة] زر حذف المستخدم
             if (isEditing)
               IconButton(
                 icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
-                tooltip: isArabic ? 'حذف المستخدم' : 'Delete User',
+                tooltip: "add_judge.delete_user".tr(), // ✅ تعديل
                 onPressed: _showDeleteConfirmationDialog,
               ),
             if (widget.existingUid != null)
@@ -255,7 +247,6 @@ class _AddJudgePageState extends State<AddJudgePage> {
         ),
         body: Stack(
           children: [
-            // محتوى الفورم الأساسي
             BlocBuilder<JudgeDataCubit, JudgeDataState>(
               builder: (context, state) {
                 if (isEditing &&
@@ -380,7 +371,6 @@ class _AddJudgePageState extends State<AddJudgePage> {
               },
             ),
 
-            // ✅ [إضافة] طبقة التحميل أثناء الحذف
             BlocBuilder<JudgeDataCubit, JudgeDataState>(
               builder: (context, state) {
                 if (state is JudgeDeleting) {
@@ -401,9 +391,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
                               ),
                               SizedBox(height: 15.h),
                               Text(
-                                isArabic
-                                    ? 'جاري حذف المستخدم...'
-                                    : 'Deleting user...',
+                                "add_judge.deleting".tr(), // ✅ تعديل
                                 style: AppTextStyles.bodyMedium.copyWith(
                                   color: AppColors.navyDark,
                                 ),

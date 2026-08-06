@@ -10,7 +10,7 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:optialeader/feature/database_admin/data/models/employee_model.dart';
 import 'package:optialeader/feature/database_admin/data/repo/employee_repository/employee_repo.dart';
 import 'package:optialeader/firebase_options.dart';
-import 'package:optialeader/feature/database_admin/logic/leadership_scoring_engine/leadership_criteria_engine.dart'; // ✅ أضف هذا الاستيراد
+import 'package:optialeader/feature/database_admin/logic/leadership_scoring_engine/leadership_criteria_engine.dart';
 
 class EmployeeDataCubit extends Cubit<EmployeeDataState> {
   final EmployeeRepo employeeRepo;
@@ -30,7 +30,6 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
     });
   }
 
-  // ✅ استبدل الدالة القديمة بهذه الدالة المتطابقة مع محرك الشروط
   Future<(bool isEligible, List<CriterionStatus> unmetCriteria)>
   checkEmployeeEligibility({required String targetRole, String? uid}) async {
     final currentUid = uid ?? FirebaseAuth.instance.currentUser?.uid;
@@ -45,7 +44,6 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
         return (false, <CriterionStatus>[]);
       }
 
-      // بناء قائمة الشروط بنفس فورمات الدكاترة (عربي/انجليزي)
       final criteria = <CriterionStatus>[
         CriterionStatus(
           titleAr: "خبرة موثقة في مجال العمل الإداري بالجامعات",
@@ -63,7 +61,7 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
         CriterionStatus(
           titleAr: "الحصول على مؤهل جامعي عالٍ مناسب",
           titleEn: "Appropriate higher university degree",
-          isMet: true, // طالما هو موظف جامعي فهذا شرط مستوفي
+          isMet: true,
           isAutoChecked: true,
           details: "مستوفي",
         ),
@@ -102,7 +100,6 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
       ];
 
       final unmetCriteria = criteria.where((c) => !c.isMet).toList();
-
       return (unmetCriteria.isEmpty, unmetCriteria);
     });
   }
@@ -193,7 +190,11 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
     );
   }
 
-  Future<void> createNewEmployee(EmployeeModel employee) async {
+  // ✅ تم تعديل الدالة عشان تقبل الصورة
+  Future<void> createNewEmployee(
+    EmployeeModel employee, {
+    File? profileImageFile,
+  }) async {
     emit(EmployeeLoading());
     UserCredential? credential;
 
@@ -228,12 +229,22 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
       final updatedEmployee = employee.copyWith(uid: newUid);
       final result = await employeeRepo.saveEmployeeData(updatedEmployee);
 
-      result.fold((error) async {
-        try {
-          await firebaseUser.delete();
-        } catch (_) {}
-        emit(EmployeeError(error: error));
-      }, (_) => emit(EmployeeSuccess()));
+      result.fold(
+        (error) async {
+          try {
+            await firebaseUser.delete();
+          } catch (_) {}
+          emit(EmployeeError(error: error));
+        },
+        (_) async {
+          // ✅ لو في صورة، ارفعها، وبعدين اطلع نجاح
+          if (profileImageFile != null) {
+            await uploadAndSetProfileImage(newUid, profileImageFile);
+          } else {
+            emit(EmployeeSuccess());
+          }
+        },
+      );
     } on FirebaseAuthException catch (e) {
       String errorCode = "ERROR_AUTH_UNKNOWN";
       if (e.code == 'email-already-in-use') {

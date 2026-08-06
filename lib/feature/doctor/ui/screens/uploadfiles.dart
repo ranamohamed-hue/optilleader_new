@@ -51,8 +51,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
         if (state is DoctorLoaded) {
           ScaffoldMessenger.of(context).showSnackBar(
            SnackBar(
-      content: Text("file_upload_success".tr()), // ✅ مربوط
-      backgroundColor: Colors.green,
+      content: Text("upload.file_upload_success".tr()),      backgroundColor: Colors.green,
     ),
           );
           if (context.canPop()) {
@@ -66,8 +65,7 @@ class _UploadFilePageState extends State<UploadFilePage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
 
-content: Text(state.error ?? "unexpected_error".tr()),      
-        backgroundColor: Colors.red,
+content: Text(state.error ?? "upload.unexpected_error".tr()),        backgroundColor: Colors.red,
             ),
           );
         }

@@ -165,7 +165,14 @@
     "reject_reason_body": "من فضلك اكتب سبب الرفض ليصل للمستخدم.",
     "reject_hint": "اكتب السبب هنا...",
     "no_reason": "لم يتم كتابة سبب",
-    "confirm_reject": "تأكيد الرفض"
+    "confirm_reject": "تأكيد الرفض",
+       "venue_art_faculties": "قاعات الكليات الفنية",
+      "venue_fine_arts_sector": "قاعات قطاع الفنون التشكيلية",
+      "venue_foreign_centers": "قاعات المراكز الثقافية الأجنبية",
+      "venue_art_syndicates": "قاعات النقابات الفنية",
+      "venue_culture_palaces": "قاعات هيئة قصور الثقافة",
+      "venue_ateliers": "قاعات أتيليه القاهرة والإسكندرية",
+      "venue_private_galleries": "قاعات المعرض الخاص"
   },
   "common": {
     "cancel": "إلغاء",

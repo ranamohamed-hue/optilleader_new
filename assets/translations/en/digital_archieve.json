@@ -16,7 +16,8 @@
       "decisions": "Admin Decisions",
       "decisions_sub": "Appointments, Promotions",
       "misc": "Miscellaneous",
-      "misc_sub": "Appreciation, Other files"
+      "misc_sub": "Appreciation, Other files",
+      "unknown_file": "Unknown File"
     }
   }
 }

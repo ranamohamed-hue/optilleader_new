@@ -51,7 +51,6 @@ class AcademicControllers {
 class AddDoctorPage extends StatefulWidget {
   final String? existingUid;
   final bool isViewMode;
-
   const AddDoctorPage({super.key, this.existingUid, this.isViewMode = false});
 
   @override
@@ -60,7 +59,6 @@ class AddDoctorPage extends StatefulWidget {
 
 class _AddDoctorPageState extends State<AddDoctorPage> {
   final _formKey = GlobalKey<FormState>();
-
   DoctorProfileModel? _existingDoctor;
 
   final _nameAr = TextEditingController();
@@ -69,17 +67,14 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   final _nationalityEn = TextEditingController();
   final _currentJobAr = TextEditingController();
   final _currentJobEn = TextEditingController();
-
   final _universityAr = TextEditingController();
   final _universityEn = TextEditingController();
   final _facultyAr = TextEditingController();
   final _facultyEn = TextEditingController();
   final _departmentAr = TextEditingController();
   final _departmentEn = TextEditingController();
-
   final _collageAr = TextEditingController();
   final _collageEn = TextEditingController();
-
   final _nationalId = TextEditingController();
   final _employeeId = TextEditingController();
   final _email = TextEditingController();
@@ -90,7 +85,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   DateTime? birthDate;
   DateTime? professorRankDate;
   DateTime? hiringDate;
-
   bool _hasBeenDean = false;
   bool _hasBeenHead = false;
   bool hasCriminalRecord = false;
@@ -107,17 +101,13 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   };
   String? selectedStatusAr;
   String? selectedStatusEn;
-
   final List<String> academicTypes = ['degree', 'promotion', 'certificate'];
-
   List<AcademicControllers> academicControllersList = [];
   List<Map<String, dynamic>> _digitalArchive = [];
 
   bool isOnVacation = false;
   bool hasPermanentPosition = true;
   bool disciplinaryClearance = true;
-
-  // ✅ حقول القانون الجديد
   bool isOnSecondment = false;
   bool isOnUnpaidLeave = false;
   DateTime? activeDutySinceDate;
@@ -126,7 +116,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
 
   bool _isReadOnly = true;
   String _currentImageUrl = '';
-
   XFile? _pickedImageFile;
 
   bool get isArabic => context.locale.languageCode == 'ar';
@@ -298,8 +287,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
       _pickedImageFile = null;
       _currentImageUrl = '';
       _existingDoctor = null;
-
-      // ✅ مسح حقول القانون الجديد
       isOnSecondment = false;
       isOnUnpaidLeave = false;
       activeDutySinceDate = null;
@@ -331,7 +318,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         );
         return;
       }
-
       final previousRoles = <String>[];
       if (_hasBeenDean) previousRoles.add('dean');
       if (_hasBeenHead) previousRoles.add('head_department');
@@ -373,7 +359,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         isOnVacation: isOnVacation,
         isActive: true,
         digitalArchive: _digitalArchive,
-
         cvUrl: _existingDoctor?.cvUrl,
         alternativeEmail: _existingDoctor?.alternativeEmail,
         researchPapers: _existingDoctor?.researchPapers ?? const [],
@@ -381,9 +366,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         exhibitions: _existingDoctor?.exhibitions ?? const [],
         courses: _existingDoctor?.courses ?? const [],
         academicActivities: _existingDoctor?.academicActivities,
-
         internalCommittees: _internalCommittees,
-
         hasHealthCertificate: _existingDoctor?.hasHealthCertificate,
         hasCommitteeMembership: _existingDoctor?.hasCommitteeMembership,
         hasSelfEvaluationReport: _existingDoctor?.hasSelfEvaluationReport,
@@ -392,8 +375,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         hasExcellentPerformanceReports:
             _existingDoctor?.hasExcellentPerformanceReports,
         isTop3Senior: _existingDoctor?.isTop3Senior,
-
-        // ✅ حفظ حقول القانون الجديد
         isOnSecondment: isOnSecondment,
         isOnUnpaidLeave: isOnUnpaidLeave,
         activeDutySinceDate: activeDutySinceDate,
@@ -407,7 +388,14 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         final updatedDoctor = doctorModel.copyWith(uid: widget.existingUid!);
         context.read<DoctorDataCubit>().saveDoctorData(updatedDoctor);
       } else {
-        context.read<DoctorDataCubit>().createNewDoctor(doctorModel);
+        // ✅✅✅ التعديل الأول: إرسال الصورة للكوبت ✅✅✅
+        final File? imageFile = _pickedImageFile != null
+            ? File(_pickedImageFile!.path)
+            : null;
+        context.read<DoctorDataCubit>().createNewDoctor(
+          doctorModel,
+          profileImageFile: imageFile,
+        );
       }
     }
   }
@@ -415,16 +403,13 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
     return BlocListener<DoctorDataCubit, DoctorDataState>(
       listenWhen: (prev, curr) =>
           curr is DoctorSuccess || curr is DoctorError || curr is DoctorLoaded,
       listener: (context, state) {
         if (state is DoctorLoaded) {
           final doc = state.doctor!;
-
           _existingDoctor = doc;
-
           _nameAr.text = doc.nameAr;
           _nameEn.text = doc.nameEn;
           _nationalityAr.text = doc.nationalityAr;
@@ -452,27 +437,21 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           hasPermanentPosition = doc.hasPermanentPosition;
           isOnVacation = doc.isOnVacation;
           _currentImageUrl = doc.profileImage;
-
           professorRankDate = doc.professorRankDate;
           hiringDate = doc.hiringDate;
-
           _hasBeenDean = doc.previousLeadershipRoles.contains('dean');
           _hasBeenHead = doc.previousLeadershipRoles.contains(
             'head_department',
           );
           hasCriminalRecord = doc.hasCriminalRecord;
           holdsPartyPosition = doc.holdsPartyPosition;
-
           _internalCommittees.clear();
           _internalCommittees.addAll(doc.internalCommittees);
-
-          // ✅ قراءة حقول القانون الجديد
           isOnSecondment = doc.isOnSecondment ?? false;
           isOnUnpaidLeave = doc.isOnUnpaidLeave ?? false;
           activeDutySinceDate = doc.activeDutySinceDate;
           hasSupremeCouncilTraining = doc.hasSupremeCouncilTraining ?? false;
           hasFLDCTraining = doc.hasFLDCTraining ?? false;
-
           academicControllersList.clear();
           for (var item in doc.academicHistory) {
             final ctrl = AcademicControllers();
@@ -485,7 +464,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             ctrl.type = item['type'] ?? 'degree';
             academicControllersList.add(ctrl);
           }
-
           _digitalArchive = List.from(doc.digitalArchive);
           setState(() {});
         } else if (state is DoctorSuccess) {
@@ -504,11 +482,12 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           String errorMessage = state.error ?? "error".tr();
           if (state.error == "ERROR_EMAIL_ALREADY_IN_USE") {
             errorMessage = "add_doctor.email_in_use".tr();
-          } else if (state.error == "ERROR_WEAK_PASSWORD")
+          } else if (state.error == "ERROR_WEAK_PASSWORD") {
             errorMessage = "add_doctor.weak_password".tr();
-          else if (state.error == "ERROR_USER_CREATION_FAILED" ||
-              state.error == "ERROR_AUTH_UNKNOWN")
+          } else if (state.error == "ERROR_USER_CREATION_FAILED" ||
+              state.error == "ERROR_AUTH_UNKNOWN") {
             errorMessage = "add_doctor.auth_error".tr();
+          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -556,7 +535,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                   children: [
                     _buildProfileImage(),
                     SizedBox(height: 20.h),
-
                     _buildSectionCard(
                       "add_doctor.identity_job".tr(),
                       Icons.person_pin_rounded,
@@ -648,7 +626,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                         ),
                       ],
                     ),
-
                     _buildSectionCard(
                       "add_doctor.leadership_section".tr(),
                       Icons.military_tech,
@@ -687,9 +664,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                         ),
                       ],
                     ),
-
                     _buildInternalCommitteesSection(),
-
                     _buildSectionCard(
                       "add_doctor.contact_info".tr(),
                       Icons.contact_phone,
@@ -716,7 +691,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                         ),
                       ],
                     ),
-
                     _buildSectionCard(
                       "add_doctor.academic_history".tr(),
                       Icons.school,
@@ -745,10 +719,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                           ),
                       ],
                     ),
-
                     if (isEditing) _buildDigitalArchiveSection(),
-
-                    // ===== قسم الأهلية =====
                     _buildSectionCard(
                       "add_doctor.eligibility".tr(),
                       Icons.verified_user,
@@ -768,8 +739,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                           isOnVacation,
                           (v) => setState(() => isOnVacation = v),
                         ),
-
-                        // ✅ إضافات القانون الجديد مع الترجمة
                         _buildSwitch(
                           "add_doctor.secondment".tr(),
                           isOnSecondment,
@@ -847,9 +816,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     );
   }
 
-  // ============================================================
-  // ويدجت قسم اللجان الداخلية
-  // ============================================================
   Widget _buildInternalCommitteesSection() {
     return _buildSectionCard(
       "add_doctor.internal_committees".tr(),
@@ -1024,7 +990,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           if (!_isReadOnly)
             Positioned(
               bottom: 0,
-              right: 0,
+              right: 0, // ✅✅✅ التعديل التاني: تغيير right لـ end ✅✅✅
               child: CircleAvatar(
                 radius: 18.r,
                 backgroundColor: AppColors.darkGold,
@@ -1254,15 +1220,17 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                 color: AppColors.navyDark,
               ),
               style: AppTextStyles.bodySmall,
-              items: academicTypes.map((String type) {
-                return DropdownMenuItem<String>(
-                  value: type,
-                  child: Text(
-                    _getAcademicTypeName(type),
-                    style: AppTextStyles.bodySmall,
-                  ),
-                );
-              }).toList(),
+              items: academicTypes
+                  .map(
+                    (String type) => DropdownMenuItem(
+                      value: type,
+                      child: Text(
+                        _getAcademicTypeName(type),
+                        style: AppTextStyles.bodySmall,
+                      ),
+                    ),
+                  )
+                  .toList(),
               onChanged: _isReadOnly
                   ? null
                   : (String? newValue) {
@@ -1407,9 +1375,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 }
 
-// ============================================================
-// كلاس الـ Dialog الخاص بالأرشيف
-// ============================================================
+// ✅✅✅ التعديل التالت: الكلاس المكتمل بدل المقروص ✅✅✅
 class _ArchiveFileDialog extends StatefulWidget {
   final File file;
   final String uid;
@@ -1426,8 +1392,41 @@ class _ArchiveFileDialogState extends State<_ArchiveFileDialog> {
   bool _isUploading = false;
 
   @override
+  void dispose() {
+    _titleController.dispose();
+    _descController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _uploadFile() async {
+    if (_titleController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "${"add_doctor.file_title".tr()} ${"add_doctor.required".tr()}",
+          ),
+        ),
+      );
+      return;
+    }
+    setState(() => _isUploading = true);
+    await context.read<DoctorDataCubit>().uploadArchiveFile(
+      uid: widget.uid,
+      file: widget.file,
+      title: _titleController.text.trim(),
+      description: _descController.text.trim(),
+      category: _category,
+    );
+    if (mounted) {
+      setState(() => _isUploading = false);
+      Navigator.pop(context);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return AlertDialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
       title: Text('add_doctor.archive_details'.tr()),
       content: SizedBox(
         width: double.maxFinite,
@@ -1437,60 +1436,63 @@ class _ArchiveFileDialogState extends State<_ArchiveFileDialog> {
             TextFormField(
               controller: _titleController,
               decoration: InputDecoration(
-                labelText: 'add_doctor.file_title'.tr(),
+                labelText: "add_doctor.file_title".tr(),
+                prefixIcon: const Icon(Icons.title),
               ),
             ),
+            SizedBox(height: 15.h),
             TextFormField(
               controller: _descController,
+              maxLines: 2,
               decoration: InputDecoration(
-                labelText: 'add_doctor.file_desc'.tr(),
+                labelText: "add_doctor.file_desc".tr(),
+                prefixIcon: const Icon(Icons.description),
               ),
             ),
+            SizedBox(height: 15.h),
             DropdownButtonFormField<String>(
               value: _category,
               decoration: InputDecoration(
-                labelText: 'add_doctor.file_category'.tr(),
+                labelText: "add_doctor.file_category".tr(),
+                prefixIcon: const Icon(Icons.category),
               ),
-              items: ['general', 'research', 'admin', 'other']
-                  .map(
-                    (c) => DropdownMenuItem(
-                      value: c,
-                      child: Text(c.toUpperCase()),
-                    ),
-                  )
-                  .toList(),
-              onChanged: (v) => setState(() => _category = v!),
+              items: const [
+                DropdownMenuItem(
+                  value: 'general',
+                  child: Text('عام / General'),
+                ),
+                DropdownMenuItem(
+                  value: 'administrative',
+                  child: Text('إداري / Administrative'),
+                ),
+                DropdownMenuItem(
+                  value: 'academic',
+                  child: Text('أكاديمي / Academic'),
+                ),
+              ],
+              onChanged: (val) => setState(() => _category = val ?? 'general'),
             ),
-            if (_isUploading)
-              const Padding(
-                padding: EdgeInsets.all(8.0),
-                child: CircularProgressIndicator(),
-              ),
           ],
         ),
       ),
       actions: [
         TextButton(
           onPressed: _isUploading ? null : () => Navigator.pop(context),
-          child: Text('common.cancel'.tr()),
+          child: Text("common.cancel".tr()),
         ),
         ElevatedButton(
-          onPressed: _isUploading
-              ? null
-              : () {
-                  if (_titleController.text.isNotEmpty) {
-                    setState(() => _isUploading = true);
-                    context.read<DoctorDataCubit>().uploadArchiveFile(
-                      uid: widget.uid,
-                      file: widget.file,
-                      title: _titleController.text,
-                      description: _descController.text,
-                      category: _category,
-                    );
-                    Navigator.pop(context);
-                  }
-                },
-          child: Text('common.save'.tr()),
+          style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyDark),
+          onPressed: _isUploading ? null : _uploadFile,
+          child: _isUploading
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2,
+                  ),
+                )
+              : Text("add_doctor.upload_file".tr()),
         ),
       ],
     );

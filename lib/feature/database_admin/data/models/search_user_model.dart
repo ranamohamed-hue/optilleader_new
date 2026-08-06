@@ -19,38 +19,34 @@ class SearchUserModel {
     required this.email,
   });
 
-  // ✅ دالة ذكية تقرأ البيانات من الفايرستور مهما كان شكل الـ Document (أدمن، دكتور، قاضي)
   factory SearchUserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
     final String role = data['role'] ?? 'user';
     
+    // ✅ قيم افتراضية
     String nameAr = '';
     String nameEn = '';
     String profileImage = '';
-    String employeeId = '';
+    String employeeId = data['employee_id'] ?? '';
     String email = data['university_email'] ?? '';
 
-    // بنقرأ البيانات حسب الـ Role عشان الفايرستور شكله مختلف لكل نوع
+    // ✅ التعديل: جميع الأدوار بتقرأ من نفس المسار الصحيح
     switch (role) {
       case 'doctor':
-        nameAr = data['identity']?['name_ar'] ?? '';
-        nameEn = data['identity']?['name_en'] ?? '';
-        profileImage = data['identity']?['profile_image_url'] ?? '';
-        employeeId = data['identity']?['employee_id'] ?? '';
-        email = data['contact']?['university_email'] ?? email;
+        nameAr = data['profile']?['display_name']?['ar'] ?? '';
+        nameEn = data['profile']?['display_name']?['en'] ?? '';
+        profileImage = data['profile']?['profile_image'] ?? '';
         break;
       case 'admin':
       case 'judge':
         nameAr = data['profile']?['display_name']?['ar'] ?? '';
         nameEn = data['profile']?['display_name']?['en'] ?? '';
         profileImage = data['profile']?['profile_image'] ?? '';
-        employeeId = data['employee_id'] ?? '';
         break;
       case 'database_admin':
-        nameAr = data['display_name']?['ar'] ?? '';
-        nameEn = data['display_name']?['en'] ?? '';
+        nameAr = data['profile']?['display_name']?['ar'] ?? data['display_name']?['ar'] ?? '';
+        nameEn = data['profile']?['display_name']?['en'] ?? data['display_name']?['en'] ?? '';
         profileImage = data['profile']?['profile_image'] ?? '';
-        employeeId = data['employee_id'] ?? '';
         break;
     }
 

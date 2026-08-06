@@ -1,8 +1,4 @@
-enum VerificationStatus {
-  pending,   // قيد المراجعة
-  approved,  // معتمد
-  rejected,  // مرفوض
-}
+enum VerificationStatus { pending, approved, rejected, notSubmitted }
 
 // دالة مساعدة لتحويل النص من الفايرستور إلى Enum
 T enumFromString<T>(Iterable<T> values, String? value) {

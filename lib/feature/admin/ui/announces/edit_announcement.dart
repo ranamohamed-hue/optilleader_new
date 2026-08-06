@@ -32,16 +32,11 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   XFile? _pickedImage;
   final ImagePicker _picker = ImagePicker();
 
-  // 🎯 القطاع الجديد (لنائب الرئيس ووكيل الكلية)
   String? _selectedTargetSector;
-
-  // 🏛️ بيانات الكلية والقسم
   String? _selectedCollegeId;
   String? _selectedCollegeName;
   String? _selectedDepartmentId;
   String? _selectedDepartmentName;
-
-  // 📋 بيانات الإدارات (للـ admin_manager)
   String? _selectedAdminSectorId;
   String? _selectedAdminSectorName;
   String? _selectedAdminSubDeptId;
@@ -61,16 +56,11 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
     _selectedTargetRole = widget.announcement?.targetRole ?? 'general';
     _dateController = TextEditingController();
 
-    // 🎯 استرجاع القطاع
     _selectedTargetSector = widget.announcement?.targetSector;
-
-    // 🏛️ استرجاع بيانات الكلية والقسم
     _selectedCollegeId = widget.announcement?.collegeId;
     _selectedCollegeName = widget.announcement?.collegeName;
     _selectedDepartmentId = widget.announcement?.departmentId;
     _selectedDepartmentName = widget.announcement?.departmentName;
-
-    // 📋 استرجاع بيانات الإدارات
     _selectedAdminSectorId = widget.announcement?.adminSectorId;
     _selectedAdminSectorName = widget.announcement?.adminSectorName;
     _selectedAdminSubDeptId = widget.announcement?.adminSubDeptId;
@@ -108,7 +98,6 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // 🧠 التحكم الذكي في إظهار الحقول (متطابق مع المحركين)
     final bool showSector =
         _selectedTargetRole == 'vice_president' ||
         _selectedTargetRole == 'vice_dean';
@@ -144,7 +133,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
             flexibleSpace: FlexibleSpaceBar(
               centerTitle: true,
               title: Text(
-                "edit_announcement.title".tr(),
+                "announce.title".tr(), // ✅ تم التصحيح
                 style: TextStyle(
                   color: colorScheme.secondary,
                   fontWeight: FontWeight.bold,
@@ -176,44 +165,38 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                       "edit_announcement.field_title".tr(),
                       Icons.title_rounded,
                       colorScheme,
-                    ),
+                    ), // ✅
                     _buildCustomTextField(
                       _titleController,
                       colorScheme,
                       hint: "edit_announcement.hint_title".tr(),
-                    ),
+                    ), // ✅
                     const SizedBox(height: 25),
 
                     _buildFieldLabel(
                       "edit_announcement.field_target_role".tr(),
                       Icons.military_tech,
                       colorScheme,
-                    ),
+                    ), // ✅
                     _buildTargetRoleDropdown(colorScheme),
                     const SizedBox(height: 25),
 
-                    // =============================================
-                    // 🎯 قطاع نائب الرئيس / وكيل الكلية
-                    // =============================================
                     if (showSector) ...[
                       _buildFieldLabel(
                         "edit_announcement.field_sector".tr(),
                         Icons.account_tree_outlined,
                         colorScheme,
-                      ),
+                      ), // ✅
                       _buildSectorDropdown(colorScheme),
                       const SizedBox(height: 25),
                     ],
 
-                    // =============================================
-                    // 🏛️ كلية وأقسام الأكاديميين
-                    // =============================================
                     if (showCollege) ...[
                       _buildFieldLabel(
                         "edit_announcement.field_college".tr(),
                         Icons.domain,
                         colorScheme,
-                      ),
+                      ), // ✅
                       _buildCollegeDropdown(colorScheme),
                       const SizedBox(height: 25),
                     ],
@@ -223,28 +206,24 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                         "edit_announcement.field_department".tr(),
                         Icons.meeting_room,
                         colorScheme,
-                      ),
+                      ), // ✅
                       _buildDepartmentDropdown(colorScheme),
                       const SizedBox(height: 25),
                     ],
 
-                    // =============================================
-                    // 📋 قطاعات وإدارات الوظائف الإدارية
-                    // =============================================
                     if (showAdminDept) ...[
                       _buildFieldLabel(
                         "edit_announcement.field_admin_sector".tr(),
                         Icons.account_balance,
                         colorScheme,
-                      ),
+                      ), // ✅
                       _buildAdminSectorDropdown(colorScheme),
                       const SizedBox(height: 25),
-
                       _buildFieldLabel(
                         "edit_announcement.field_admin_sub_dept".tr(),
                         Icons.corporate_fare,
                         colorScheme,
-                      ),
+                      ), // ✅
                       _buildAdminSubDeptDropdown(colorScheme),
                       const SizedBox(height: 25),
                     ],
@@ -253,20 +232,20 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                       "edit_announcement.field_desc".tr(),
                       Icons.subject_rounded,
                       colorScheme,
-                    ),
+                    ), // ✅
                     _buildCustomTextField(
                       _bodyController,
                       colorScheme,
                       hint: "edit_announcement.hint_desc".tr(),
                       maxLines: 4,
-                    ),
+                    ), // ✅
                     const SizedBox(height: 25),
 
                     _buildFieldLabel(
                       "edit_announcement.field_image".tr(),
                       Icons.image_outlined,
                       colorScheme,
-                    ),
+                    ), // ✅
                     GestureDetector(
                       onTap: _pickImage,
                       child: Container(
@@ -295,16 +274,6 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                                 child: CachedNetworkImage(
                                   imageUrl: widget.announcement!.imageUrl!,
                                   fit: BoxFit.cover,
-                                  placeholder: (_, _) => Center(
-                                    child: CircularProgressIndicator(
-                                      color: colorScheme.secondary,
-                                    ),
-                                  ),
-                                  errorWidget: (_, _, _) => Icon(
-                                    Icons.broken_image,
-                                    color: colorScheme.error,
-                                    size: 40,
-                                  ),
                                 ),
                               )
                             : Column(
@@ -325,7 +294,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                                         0.5,
                                       ),
                                     ),
-                                  ),
+                                  ), // ✅
                                 ],
                               ),
                       ),
@@ -342,7 +311,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                                 "edit_announcement.field_date".tr(),
                                 Icons.calendar_month_rounded,
                                 colorScheme,
-                              ),
+                              ), // ✅
                               _buildDateField(colorScheme),
                             ],
                           ),
@@ -356,7 +325,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                                 "edit_announcement.field_status".tr(),
                                 Icons.info_outline_rounded,
                                 colorScheme,
-                              ),
+                              ), // ✅
                               _buildStatusDropdown(colorScheme),
                             ],
                           ),
@@ -370,12 +339,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                         Expanded(
                           child: TextButton(
                             onPressed: () => context.pop(),
-                            child: Text(
-                              "common.cancel".tr(),
-                              style: TextStyle(
-                                color: colorScheme.onSurface.withOpacity(0.5),
-                              ),
-                            ),
+                            child: Text("common.cancel".tr()),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -395,7 +359,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
-                            ),
+                            ), // ✅
                           ),
                         ),
                       ],
@@ -411,7 +375,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   }
 
   // ============================================================
-  // 🎯 دروب داون القطاع (التعليم - العليا - المجتمع)
+  // 🎯 دروب داون القطاع
   // ============================================================
   Widget _buildSectorDropdown(ColorScheme colorScheme) {
     return Container(
@@ -425,7 +389,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         child: DropdownButton<String>(
           value: _selectedTargetSector,
           isExpanded: true,
-          hint: Text("edit_announcement.hint_sector".tr()),
+          hint: Text("edit_announcement.hint_sector".tr()), // ✅
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: colorScheme.secondary,
@@ -453,7 +417,6 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   Widget _buildCollegeDropdown(ColorScheme colorScheme) {
     final isArabic = context.locale.languageCode == 'ar';
     final colleges = MansouraUniversitiesData.faculties;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -465,7 +428,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         child: DropdownButton<String>(
           value: _selectedCollegeId,
           isExpanded: true,
-          hint: Text("edit_announcement.hint_college".tr()),
+          hint: Text("edit_announcement.hint_college".tr()), // ✅
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: colorScheme.secondary,
@@ -507,7 +470,6 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
     final departments = MansouraUniversitiesData.getDepartmentsByFacultyId(
       _selectedCollegeId ?? '',
     );
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -521,7 +483,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
               ? _selectedDepartmentId
               : null,
           isExpanded: true,
-          hint: Text("edit_announcement.hint_department".tr()),
+          hint: Text("edit_announcement.hint_department".tr()), // ✅
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: colorScheme.secondary,
@@ -552,12 +514,11 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   }
 
   // ============================================================
-  // 📋 دروب داون القطاع/الإدارة العامة
+  // 📋 دروب داون الإدارة العامة
   // ============================================================
   Widget _buildAdminSectorDropdown(ColorScheme colorScheme) {
     final isArabic = context.locale.languageCode == 'ar';
     final sectors = AdministrativeRolesData.departments;
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -569,7 +530,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         child: DropdownButton<String>(
           value: _selectedAdminSectorId,
           isExpanded: true,
-          hint: Text("edit_announcement.hint_admin_sector".tr()),
+          hint: Text("edit_announcement.hint_admin_sector".tr()), // ✅
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: colorScheme.secondary,
@@ -611,7 +572,6 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
     final subDepts = AdministrativeRolesData.getSubDepartmentsByDepartmentId(
       _selectedAdminSectorId ?? '',
     );
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -625,7 +585,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
               ? _selectedAdminSubDeptId
               : null,
           isExpanded: true,
-          hint: Text("edit_announcement.hint_admin_sub_dept".tr()),
+          hint: Text("edit_announcement.hint_admin_sub_dept".tr()), // ✅
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: colorScheme.secondary,
@@ -657,9 +617,6 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
     );
   }
 
-  // ============================================================
-  // 🎯 دروب داون نوع المسابقة
-  // ============================================================
   Widget _buildTargetRoleDropdown(ColorScheme colorScheme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -684,8 +641,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
           onChanged: (val) {
             setState(() {
               _selectedTargetRole = val!;
-              // ✅ مسح كل الحقول الاختيارية لما يغير النوع
-              _selectedTargetSector = null; // مسح القطاع
+              _selectedTargetSector = null;
               _selectedCollegeId = null;
               _selectedCollegeName = null;
               _selectedDepartmentId = null;
@@ -704,9 +660,6 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
     );
   }
 
-  // ============================================================
-  // 🧩 عناصر الـ UI المساعدة
-  // ============================================================
   Widget _buildFieldLabel(
     String label,
     IconData icon,
@@ -834,7 +787,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
   }
 
   // ============================================================
-  // 💾 حفظ/تحديث البيانات
+  // 💾 حفظ/تحديث البيانات (تم تصحيح مسميات الأخطاء)
   // ============================================================
   void _handleUpdate(BuildContext context) async {
     if (_titleController.text.trim().isEmpty ||
@@ -843,11 +796,10 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         SnackBar(
           content: Text("edit_announcement.error_title_desc_required".tr()),
         ),
-      );
+      ); // ✅
       return;
     }
 
-    // ✅ تحقق ذكي حسب نوع المسابقة (متطابق مع المحرك)
     final showSector =
         _selectedTargetRole == 'vice_president' ||
         _selectedTargetRole == 'vice_dean';
@@ -863,7 +815,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
     if (showSector && _selectedTargetSector == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("edit_announcement.error_sector_required".tr())),
-      );
+      ); // ✅
       return;
     }
 
@@ -875,7 +827,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
               "edit_announcement.error_sector_subdept_required".tr(),
             ),
           ),
-        );
+        ); // ✅
         return;
       }
     } else if (showCollege || showDepartment) {
@@ -884,13 +836,13 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
           SnackBar(
             content: Text("edit_announcement.error_college_required".tr()),
           ),
-        );
+        ); // ✅
         return;
       }
       if (showDepartment && _selectedDepartmentId == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("edit_announcement.error_dept_required".tr())),
-        );
+        ); // ✅
         return;
       }
     }
@@ -902,7 +854,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         status: _selectedStatus,
         deadline: _selectedDeadline,
         targetRole: _selectedTargetRole,
-        targetSector: _selectedTargetSector, // ✅ حفظ القطاع
+        targetSector: _selectedTargetSector,
         collegeId: _selectedCollegeId,
         collegeName: _selectedCollegeName,
         departmentId: _selectedDepartmentId,
@@ -923,7 +875,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
         status: _selectedStatus,
         deadline: _selectedDeadline,
         targetRole: _selectedTargetRole,
-        targetSector: _selectedTargetSector, // ✅ حفظ القطاع
+        targetSector: _selectedTargetSector,
         createdAt: DateTime.now(),
         collegeId: _selectedCollegeId,
         collegeName: _selectedCollegeName,
@@ -947,7 +899,7 @@ class _EditAnnouncementPageState extends State<EditAnnouncementPage> {
           content: Text("edit_announcement.success_msg".tr()),
           backgroundColor: Theme.of(context).colorScheme.primary,
         ),
-      );
+      ); 
     }
   }
 }

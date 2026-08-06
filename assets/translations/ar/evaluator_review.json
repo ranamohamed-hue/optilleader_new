@@ -1,0 +1,11 @@
+{
+  "evaluator_review": {
+    "doctor_info": {
+      "college": "الكلية"
+    },
+    "research": {
+      "title": "الأبحاث العلمية المقدمة",
+      "no_research": "لا توجد أبحاث علمية مقدمة لعرضها"
+    }
+  }
+}

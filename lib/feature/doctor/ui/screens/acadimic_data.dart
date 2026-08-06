@@ -21,10 +21,26 @@ class DoctorProfileDataPage extends StatefulWidget {
 }
 
 class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
+  // ✅ متغيرات جلب بيانات أقدم 3 (بدل FutureBuilder)
+  List<DoctorProfileModel> _allDoctors = [];
+  bool _isLoadingTop3 = true;
+
   @override
   void initState() {
     super.initState();
     context.read<DoctorDataCubit>().getDoctorProfile(widget.doctorUid);
+    _fetchTop3Data(); // ✅ جلب البيانات مرة واحدة فقط
+  }
+
+  // ✅ دالة الجلب في الخلفية
+  Future<void> _fetchTop3Data() async {
+    final doctors = await context.read<DoctorDataCubit>().getAllDoctorsOnce();
+    if (mounted) {
+      setState(() {
+        _allDoctors = doctors;
+        _isLoadingTop3 = false;
+      });
+    }
   }
 
   @override
@@ -95,7 +111,8 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                                 children: [
                                   Text(
                                     isArabic ? doctor.nameAr : doctor.nameEn,
-                                    style: theme.textTheme.titleMedium?.copyWith(
+                                    style: theme.textTheme.titleMedium
+                                        ?.copyWith(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18.sp,
@@ -131,10 +148,10 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                                 backgroundColor: Colors.white12,
                                 backgroundImage:
                                     (doctor.profileImage.isNotEmpty)
-                                        ? CachedNetworkImageProvider(
-                                            doctor.profileImage,
-                                          )
-                                        : null,
+                                    ? CachedNetworkImageProvider(
+                                        doctor.profileImage,
+                                      )
+                                    : null,
                                 child: (doctor.profileImage.isEmpty)
                                     ? Icon(
                                         Icons.person,
@@ -172,7 +189,8 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                         ),
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.social_status".tr(),
+                          label: "acadimic_Data.academicData.social_status"
+                              .tr(),
                           value: isArabic
                               ? doctor.socialStatusAr
                               : doctor.socialStatusEn,
@@ -183,13 +201,17 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                           value: (doctor.isActive)
                               ? "acadimic_Data.statuses.active".tr()
                               : "acadimic_Data.statuses.inactive".tr(),
-                          valueColor: (doctor.isActive) ? Colors.green : Colors.orange,
+                          valueColor: (doctor.isActive)
+                              ? Colors.green
+                              : Colors.orange,
                         ),
                         _buildInfoRow(
                           context,
                           label: "acadimic_Data.academicData.birth_date".tr(),
                           value: doctor.birthDate != null
-                              ? DateFormat('yyyy-MM-dd').format(doctor.birthDate!)
+                              ? DateFormat(
+                                  'yyyy-MM-dd',
+                                ).format(doctor.birthDate!)
                               : '-',
                         ),
                       ],
@@ -240,7 +262,9 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                           context,
                           label: "acadimic_Data.add_doctor.hiring_date".tr(),
                           value: doctor.hiringDate != null
-                              ? DateFormat('yyyy-MM-dd').format(doctor.hiringDate!)
+                              ? DateFormat(
+                                  'yyyy-MM-dd',
+                                ).format(doctor.hiringDate!)
                               : '-',
                         ),
 
@@ -248,21 +272,29 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                         if (doctor.hiringDate != null)
                           _buildValidationCard(
                             context,
-                            label: isArabic
-                                ? "شرط الخبرة الإدارية (10 سنوات)"
-                                : "Admin Experience (10 Years)",
+                            label:
+                                "acadimic_Data.validation_checks.admin_exp_label"
+                                    .tr(),
                             isMet: doctor.yearsSinceHiring >= 10,
-                            details: isArabic
-                                ? "عدد السنوات الحالية: ${doctor.yearsSinceHiring} سنة"
-                                : "Current years: ${doctor.yearsSinceHiring} Years",
+                            details:
+                                "acadimic_Data.validation_checks.admin_exp_details"
+                                    .tr(
+                                      namedArgs: {
+                                        'years': doctor.yearsSinceHiring
+                                            .toString(),
+                                      },
+                                    ),
                           ),
 
                         SizedBox(height: 10.h),
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.add_doctor.professor_rank_date".tr(),
+                          label: "acadimic_Data.add_doctor.professor_rank_date"
+                              .tr(),
                           value: doctor.professorRankDate != null
-                              ? DateFormat('yyyy-MM-dd').format(doctor.professorRankDate!)
+                              ? DateFormat(
+                                  'yyyy-MM-dd',
+                                ).format(doctor.professorRankDate!)
                               : '-',
                         ),
 
@@ -270,15 +302,27 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                         if (doctor.professorRankDate != null)
                           _buildValidationCard(
                             context,
-                            label: isArabic
-                                ? "شرط الأستاذية (3 سنوات + درجة)"
-                                : "Professorship (3 Years + Degree)",
+                            label:
+                                "acadimic_Data.validation_checks.professor_label"
+                                    .tr(),
                             isMet:
                                 _hasProfessorDegree(doctor) &&
                                 doctor.yearsAsProfessor >= 3,
-                            details: isArabic
-                                ? "الأقدمية: ${doctor.yearsAsProfessor} سنة | حاصل على الدرجة: ${_hasProfessorDegree(doctor) ? 'نعم' : 'لا'}"
-                                : "Seniority: ${doctor.yearsAsProfessor} Years | Has Degree: ${_hasProfessorDegree(doctor) ? 'Yes' : 'No'}",
+                            details: _hasProfessorDegree(doctor)
+                                ? "acadimic_Data.validation_checks.professor_details_yes"
+                                      .tr(
+                                        namedArgs: {
+                                          'years': doctor.yearsAsProfessor
+                                              .toString(),
+                                        },
+                                      )
+                                : "acadimic_Data.validation_checks.professor_details_no"
+                                      .tr(
+                                        namedArgs: {
+                                          'years': doctor.yearsAsProfessor
+                                              .toString(),
+                                        },
+                                      ),
                           ),
 
                         SizedBox(height: 10.h),
@@ -374,52 +418,38 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
   }
 
   // ============================================================
-  // ويدجت التحقق الديناميكي لأقدم 3
+  //  ويدجت التحقق الديناميكي لأقدم 3 (بدون FutureBuilder)
   // ============================================================
   Widget _buildTop3DynamicCheck(
     BuildContext context,
     DoctorProfileModel doctor,
   ) {
-    final isArabic = context.locale.languageCode == 'ar';
-    return FutureBuilder<List<DoctorProfileModel>>(
-      future: context.read<DoctorDataCubit>().getAllDoctorsOnce(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Padding(
-            padding: EdgeInsets.all(10.h),
-            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-          );
-        }
+    if (_isLoadingTop3) {
+      return Padding(
+        padding: EdgeInsets.all(10.h),
+        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+      );
+    }
 
-        bool isTop3 = false;
-        String details = isArabic
-            ? "تعذر التحقق التلقائي"
-            : "Automatic check failed";
+    bool isTop3 = false;
+    String details = "acadimic_Data.validation_checks.top3_error".tr();
 
-        if (snapshot.hasData && snapshot.data!.isNotEmpty) {
-          final top3Uids = DoctorProfileModel.getTop3SeniorInDepartment(
-            doctors: snapshot.data!,
-            departmentAr: doctor.departmentAr,
-          );
-          isTop3 = top3Uids.contains(doctor.uid);
-          details = isTop3
-              ? (isArabic
-                    ? "يقع ضمن أقدم 3 أساتذة بالقسم"
-                    : "Falls under Top 3 Senior Professors")
-              : (isArabic
-                    ? "غير ضمن أقدم 3 أساتذة القسم"
-                    : "Not in the Top 3 Senior Professors");
-        }
+    if (_allDoctors.isNotEmpty) {
+      final top3Uids = DoctorProfileModel.getTop3SeniorInDepartment(
+        doctors: _allDoctors,
+        departmentAr: doctor.departmentAr,
+      );
+      isTop3 = top3Uids.contains(doctor.uid);
+      details = isTop3
+          ? "acadimic_Data.validation_checks.top3_met".tr()
+          : "acadimic_Data.validation_checks.top3_unmet".tr();
+    }
 
-        return _buildValidationCard(
-          context,
-          label: isArabic
-              ? "ضمن أقدم 3 أساتذة بالقسم"
-              : "Top 3 Senior Professors",
-          isMet: isTop3,
-          details: details,
-        );
-      },
+    return _buildValidationCard(
+      context,
+      label: "acadimic_Data.validation_checks.top3_label".tr(),
+      isMet: isTop3,
+      details: details,
     );
   }
 

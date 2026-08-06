@@ -23,8 +23,8 @@
       "under_review": "طلبات قيد المراجعة"
     },
     "tooltips": {
-      "profile": "الرئيسية",
-      "logout": "الإعدادات"
+      "home": "الرئيسية",
+      "settings": "الإعدادات"
     },
     "recent_requests_title": "أحدث الطلبات",
     "view_all": "عرض الكل",
@@ -34,7 +34,7 @@
       "vice_dean": "وكيل الكلية",
       "head_dept": "رئيس القسم",
       "other": "أخرى",
-       "quality_manager": "مدير الجودة",
+      "quality_manager": "مدير الجودة",
       "admin_manager": "مدير الإدارة"
     }
   },

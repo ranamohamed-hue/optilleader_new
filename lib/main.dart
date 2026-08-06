@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
+import 'package:onesignal_flutter/onesignal_flutter.dart'; // <--- 1. أضف الاستيراد ده
 import 'package:optialeader/core/services/hive_service.dart';
 import 'package:optialeader/core/services/folder_json_loader.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,30 +16,30 @@ import 'package:optialeader/core/theming/logic/theme_cubit.dart';
 import 'package:optialeader/core/theming/logic/theme_state.dart';
 import 'package:optialeader/feature/auth/logic/cubits/auth_cubit.dart';
 import 'package:optialeader/core/services/one_signal_result_handler.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  try {
-    await Firebase.initializeApp(
-      name: 'SecondaryApp',
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  } catch (e) {
-    debugPrint('SecondaryApp already initialized: $e');
-  }
+  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
+  await OneSignal.initialize("3953796c-32b0-4e43-8c1d-81ab950b5441"); 
 
+  // 3. تشغيل Supabase
   await Supabase.initialize(
     url: 'https://ybmeqikzcqmaudedzxif.supabase.co',
     anonKey: 'sb_publishable_sf2YFT0RYrAapmg5XfjY4A_37kNyqyF',
   );
 
-  // تهيئة hive وفتح صندوق التخزين
+  // 4. تهيئة Hive مع Try-Catch عشان يتجاهل خطأ التشفير في أول مرة
   final hiveService = HiveService();
-  await hiveService.init();
+  try {
+    await hiveService.init();
+  } catch (e) {
+    debugPrint('Hive init skipped (first run or crypto key missing): $e');
+  }
 
-  /// Localization
+  // 5. Localization
   await EasyLocalization.ensureInitialized();
 
   runApp(
@@ -55,9 +56,17 @@ void main() async {
     ),
   );
 
-  // ✅ تشغيل الـ OneSignal Handler بعد التطبيق يفتح
-  WidgetsBinding.instance.addPostFrameCallback((_) {
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
     OneSignalResultHandler.init();
+
+    try {
+      await Firebase.initializeApp(
+        name: 'SecondaryApp',
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+    } catch (e) {
+      debugPrint('SecondaryApp already initialized: $e');
+    }
   });
 }
 

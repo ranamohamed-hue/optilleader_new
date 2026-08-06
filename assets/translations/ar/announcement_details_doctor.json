@@ -118,5 +118,23 @@
   },
   "error": "خطأ",
   "generic_error": "حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى",
-  "invalid_announcement_role": "المسمى الوظيفي لهذا الإعلان غير محدد"
+  "invalid_announcement_role": "المسمى الوظيفي لهذا الإعلان غير محدد",
+  "roles": {
+    "university_president": "رئيس الجامعة",
+    "vice_president": "نائب رئيس الجامعة",
+    "vice_dean": "وكيل الكلية",
+    "dean": "عميد الكلية",
+    "head_department": "رئيس القسم",
+    "quality_manager": "مدير وحدة ضمان الجودة",
+    "admin_manager": "مدير إدارة"
+  },
+  "sectors": {
+    "education": "قطاع التعليم والطلاب",
+    "graduate_studies": "قطاع الدراسات العليا",
+    "community_service": "قطاع خدمة المجتمع وتنوير البيئة",
+    "financial_admin": "قطاع الشئون المالية والإدارية"
+  },
+  "edit_announcement": {
+    "field_sector": "القطاع"
+  }
 }

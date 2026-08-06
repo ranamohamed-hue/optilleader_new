@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart'; // ✅ أضفناها عشان نجيب الـ uid
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -20,12 +20,6 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
-  void initState() {
-    super.initState();
-    // ✅ شيلنا الدالة القديمة اللي كانت بتسحب الإشعارات لما تفتحي الصفحة
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -41,7 +35,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             icon: const Icon(Icons.delete_sweep_outlined),
             tooltip: 'notifications.clear_read'.tr(),
             onPressed: () {
-              // ✅ غيرناها للاسم الجديد اللي يمسح اللي على الشاشة فعلاً
               context.read<NotificationCubit>().clearAllNotifications();
             },
           ),
@@ -123,8 +116,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       direction: DismissDirection.endToStart,
       background: Container(
         color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: EdgeInsets.only(right: 20.w),
+        // ✅ تعديل: استخدام centerEnd بدل centerRight عشان يدعم الاتجاهين (عربي/إنجليزي)
+        alignment: AlignmentDirectional.centerEnd,
+        padding: EdgeInsets.only(right: 20.w, left: 20.w),
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       onDismissed: (direction) {
@@ -172,16 +166,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               mainContext.read<NotificationCubit>().markAsRead(notification.id);
             }
 
-            // ✅✅✅ التوجيهات الذكية
-            if (notification.type == NotificationType.newResearchSubmitted ||
+            // ✅ تعديل: استخدام push بدل go عشان لما يعمل back يرجع لصفحة الإشعارات
+            // ✅ إضافة: توجيه المحكم لصفحة الطلبات لما يضغط على الإشعار
+            if (notification.type == NotificationType.newArbitrationRequest) {
+              mainContext.push(Routes.ordersList);
+            } else if (notification.type ==
+                    NotificationType.newResearchSubmitted ||
                 notification.type == NotificationType.newActivitySubmitted) {
-              mainContext.go('/admin/pending-requests');
-            } else if (notification.type == NotificationType.announcementCreated) {
-              mainContext.go(
+              mainContext.push('/admin/pending-requests');
+            } else if (notification.type ==
+                NotificationType.announcementCreated) {
+              mainContext.push(
                 '${Routes.announcementsDetailsDoctor}?id=${notification.relatedId}',
               );
-            } else if (notification.type == NotificationType.competitionResult) {
-              // ✅ التوجيه لصفحة نتائج المسابقة
+            } else if (notification.type ==
+                NotificationType.competitionResult) {
               final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
               mainContext.push(
                 Routes.competitionResultsView,

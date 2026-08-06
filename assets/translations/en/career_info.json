@@ -16,8 +16,8 @@
       "software_eng": "Software Engineering",
       "computer_science": "Computer Science"
     },
-    "current_role": "Current Position: {}",
-    "experience": "Years of experience: {} years",
+    "current_role": "Current Position: {0}",
+    "experience": "Years of experience: {0} years",
     "previous_positions": "Previous Positions:",
     "no_history": "No Academic History",
     "no_previous_roles": "No Previous Positions",
@@ -32,5 +32,7 @@
     },
     "employment_type": {
       "permanent": "Permanent",
-"temporary": "Temporary"    }
-  }}
+      "temporary": "Temporary"
+    }
+  }
+}

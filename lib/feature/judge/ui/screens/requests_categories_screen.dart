@@ -1,9 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
-import 'package:optialeader/core/routing/routes.dart'; // ✅ إضافة الاستيراد
+import 'package:optialeader/core/routing/routes.dart';
 import 'package:optialeader/feature/admin/data/model/nomination_request_model.dart';
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomination_request_cubit.dart';
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomonation_request_state.dart';
@@ -14,13 +15,10 @@ class RequestsCategoriesScreen extends StatefulWidget {
   const RequestsCategoriesScreen({super.key, required this.filterStatus});
 
   @override
-  State<RequestsCategoriesScreen> createState() =>
-      _RequestsCategoriesScreenState();
+  State<RequestsCategoriesScreen> createState() => _RequestsCategoriesScreenState();
 }
 
 class _RequestsCategoriesScreenState extends State<RequestsCategoriesScreen> {
-  late String? _filterStatus;
-
   final List<Map<String, dynamic>> _categories = [
     {'key': 'dean', 'icon': Icons.account_balance},
     {'key': 'vice_dean', 'icon': Icons.business_center},
@@ -29,12 +27,6 @@ class _RequestsCategoriesScreenState extends State<RequestsCategoriesScreen> {
     {'key': 'admin_manager', 'icon': Icons.admin_panel_settings},
     {'key': 'other', 'icon': Icons.category},
   ];
-
-  @override
-  void initState() {
-    super.initState();
-    _filterStatus = widget.filterStatus;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,10 +53,45 @@ class _RequestsCategoriesScreenState extends State<RequestsCategoriesScreen> {
       ),
       body: BlocBuilder<NominationRequestCubit, NominationRequestState>(
         builder: (context, state) {
+          // ✅ تحسين: إضافة حالة التحميل
+          if (state is NominationRequestLoading) {
+            return Center(child: CircularProgressIndicator(color: gold));
+          }
+
+          // ✅ تحسين: إضافة حالة الخطأ
+          if (state is NominationRequestError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.wifi_off, size: 50.sp, color: Colors.grey),
+                  SizedBox(height: 15.h),
+                  Text(
+                    'حدث خطأ في تحميل البيانات',
+                    style: TextStyle(fontSize: 15.sp, color: Colors.grey[700]),
+                  ),
+                  SizedBox(height: 20.h),
+                  ElevatedButton(
+                    onPressed: () {
+                      context.read<NominationRequestCubit>().fetchEvaluatorRequests(
+                            FirebaseAuth.instance.currentUser?.uid ?? '',
+                          );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: navy,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: Text('إعادة المحاولة'),
+                  ),
+                ],
+              ),
+            );
+          }
+
           List<NominationRequestModel> allRequests = [];
           if (state is NominationRequestLoaded) {
             allRequests = state.requests
-                .where((r) => r.status == _filterStatus)
+                .where((r) => r.status == widget.filterStatus)
                 .toList();
           }
 
@@ -75,7 +102,7 @@ class _RequestsCategoriesScreenState extends State<RequestsCategoriesScreen> {
                 crossAxisCount: 2,
                 crossAxisSpacing: 15.w,
                 mainAxisSpacing: 15.h,
-                childAspectRatio: 1.1,
+                childAspectRatio: 0.95, 
               ),
               itemCount: _categories.length,
               itemBuilder: (context, index) {
@@ -108,13 +135,14 @@ class _RequestsCategoriesScreenState extends State<RequestsCategoriesScreen> {
   }
 
   String _getAppBarTitle() {
-    if (_filterStatus == NominationRequestModel.statusPendingEvaluator) {
+    // ✅ تم الرجوع للحالات الصحيحة الموجودة في الموديل
+    if (widget.filterStatus == NominationRequestModel.statusPendingEvaluator) {
       return 'dashboard.main_cards.new'.tr();
     }
-    if (_filterStatus == NominationRequestModel.statusEvaluated) {
+    if (widget.filterStatus == NominationRequestModel.statusEvaluated) {
       return 'dashboard.main_cards.reviewing'.tr();
     }
-    if (_filterStatus == NominationRequestModel.statusFinalApproved) {
+    if (widget.filterStatus == NominationRequestModel.statusFinalApproved) {
       return 'dashboard.main_cards.evaluated'.tr();
     }
     return 'dashboardJudge.categories.title'.tr();
@@ -133,7 +161,7 @@ class _RequestsCategoriesScreenState extends State<RequestsCategoriesScreen> {
       onTap: () {
         context.push(
           Routes.ordersList, 
-          extra: {'status': _filterStatus, 'role': roleKey},
+          extra: {'status': widget.filterStatus, 'role': roleKey},
         );
       },
       borderRadius: BorderRadius.circular(18.r),

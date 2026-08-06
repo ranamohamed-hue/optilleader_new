@@ -51,9 +51,9 @@ class _DatabaseAdminDashboardState extends State<DatabaseAdminDashboard> {
     }
   }
 
+  // ✅ [تعديل] استخدام الترجمة بدل النصوص الثابتة
   void _showWelcomeDialog() {
     final colorScheme = Theme.of(context).colorScheme;
-    final isArabic = context.locale.languageCode == 'ar';
 
     showDialog(
       context: context,
@@ -71,15 +71,13 @@ class _DatabaseAdminDashboardState extends State<DatabaseAdminDashboard> {
             ),
             SizedBox(width: 10.w),
             Text(
-              isArabic ? 'أهلاً بك!' : 'Welcome!',
+              "dashboard.welcome_title".tr(),
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ],
         ),
         content: Text(
-          isArabic
-              ? 'يسعدنا انضمامك لمنصة OptiLeader.\nيمكنك البدء في استكشاف الميزات الخاصة بك من القائمة.'
-              : 'Welcome to OptiLeader platform.\nYou can start exploring your features from the menu.',
+          "dashboard.welcome_message".tr(),
           style: TextStyle(fontSize: 15.sp, height: 1.5),
         ),
         actions: [
@@ -96,7 +94,7 @@ class _DatabaseAdminDashboardState extends State<DatabaseAdminDashboard> {
               ),
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
-                isArabic ? 'لنبدأ!' : "Let's Start!",
+                "dashboard.lets_start".tr(),
                 style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
               ),
             ),
@@ -193,7 +191,6 @@ class _HomeTab extends StatelessWidget {
           final admin = state.profile;
           final isArabic = context.locale.languageCode == 'ar';
 
-          // ✅ [مهم] ضمان إن الاسم مش فاضي، لو فاضي بيظهر الاسم الافتراضي
           String fullDisplayName = isArabic ? admin.nameAr : admin.nameEn;
           if (fullDisplayName.trim().isEmpty) {
             fullDisplayName = isArabic
@@ -205,7 +202,7 @@ class _HomeTab extends StatelessWidget {
             body: SafeArea(
               child: Column(
                 children: [
-                  /// --- الهيدر العلوي الملكي ---
+                  /// --- الهيدر العلوي ---
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.symmetric(
@@ -216,10 +213,7 @@ class _HomeTab extends StatelessWidget {
                       gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [
-                          AppColors.navyDark,
-                          AppColors.navyLight,
-                        ], 
+                        colors: [AppColors.navyDark, AppColors.navyLight],
                       ),
                       borderRadius: BorderRadius.vertical(
                         bottom: Radius.circular(30.r),
@@ -234,20 +228,18 @@ class _HomeTab extends StatelessWidget {
                               Text(
                                 "dashboard.welcome".tr(),
                                 style: TextStyle(
-                                  color: Colors.white.withOpacity(
-                                    0.8,
-                                  ), // أبيض فاتح للترحيب
+                                  color: Colors.white.withOpacity(0.8),
                                   fontSize: 20.sp,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                               SizedBox(height: 4.h),
                               Text(
-                                fullDisplayName, 
-                                style: TextStyle(
-                                  color: Colors.white, 
+                                fullDisplayName,
+                                style: const TextStyle(
+                                  color: Colors.white,
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 20.sp,
+                                  fontSize: 20,
                                 ),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
@@ -261,7 +253,7 @@ class _HomeTab extends StatelessWidget {
                             border: Border.all(
                               color: AppColors.darkGold,
                               width: 2,
-                            ), // إطار ذهبي
+                            ),
                           ),
                           child: CircleAvatar(
                             radius: 30.r,

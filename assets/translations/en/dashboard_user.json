@@ -1,26 +1,28 @@
 {
-  "dashboard_user":{
-  "welcome": "Welcome,",
-  "doctor_default": "Doctor",
-  "achievements": "Achievements",
-  "achievements_msg": "You have {0} achievements",
-  "academic_data": "Academic Data",
-  "no_credentials": "No Credentials",
-  "requests_status": "Requests Status",
-  "pending": "Pending",
-  "career_path": "Career Path",
-  "completed_percent": "{0} Completed",
-  "latest_opportunities": "Latest Opportunities",
-  "no_opportunities": "No opportunities or announcements available",
-  "view_all": "View All",
-  "nav": {
-    "settings": "Settings",
-    "notifications": "Notifications",
-    "files": "Files",
-    "home": "Home",
-    "message":"Welcome to OptiLeader platform.\nYou can start exploring your features from the menu.",
-    "lets_start":"letis start"
-  },
-  "error_message": "An unexpected error occurred",
-  "retry": "Retry"
-}}
+  "dashboard_user": {
+    "welcome": "Welcome,",
+    "doctor_default": "Doctor",
+    "achievements": "Achievements",
+    "achievements_msg": "You have {0} achievements",
+    "academic_data": "Academic Data",
+    "no_credentials": "No Credentials",
+    "requests_status": "Requests Status",
+    "pending": "Pending",
+    "career_path": "Career Path",
+    "completed_percent": "{0} Completed",
+    "latest_opportunities": "Latest Opportunities",
+    "no_opportunities": "No opportunities or announcements available",
+    "view_all": "View All",
+    "results_badge": "Results",
+    "message": "Welcome to OptiLeader platform.\nYou can start exploring your features from the menu.",
+    "lets_start": "Let's start",
+    "error_message": "An unexpected error occurred",
+    "retry": "Retry",
+    "nav": {
+      "settings": "Settings",
+      "notifications": "Notifications",
+      "files": "Files",
+      "home": "Home"
+    }
+  }
+}

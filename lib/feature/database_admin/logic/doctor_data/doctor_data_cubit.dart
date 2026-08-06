@@ -13,6 +13,7 @@ import 'package:optialeader/feature/database_admin/data/repo/doctor_repository/d
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_state.dart';
 import 'package:optialeader/firebase_options.dart';
 import 'package:optialeader/feature/database_admin/logic/leadership_scoring_engine/leadership_criteria_engine.dart';
+
 class DoctorDataCubit extends Cubit<DoctorDataState> {
   final DoctorRepo doctorRepo;
   StreamSubscription? _doctorsSubscription;
@@ -28,29 +29,20 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     );
   }
 
-  //  دالة التحقق من الأهلية (تم إضافة الـ Null Check)
   Future<(bool isEligible, List<CriterionStatus> unmetCriteria)>
-      checkEligibility({
+  checkEligibility({
     required String targetRole,
     String? uid,
-    String? sector, // <--- تم إضافته هنا
+    String? sector,
   }) async {
     final currentUid = uid ?? FirebaseAuth.instance.currentUser?.uid;
-    if (currentUid == null) {
-      return (false, <CriterionStatus>[]);
-    }
+    if (currentUid == null) return (false, <CriterionStatus>[]);
 
     final result = await doctorRepo.getDoctorProfile(currentUid);
-
     DoctorProfileModel? doctor;
-    result.fold(
-      (error) => null,
-      (d) => doctor = d,
-    );
+    result.fold((error) => null, (d) => doctor = d);
 
-    if (doctor == null) {
-      return (false, <CriterionStatus>[]);
-    }
+    if (doctor == null) return (false, <CriterionStatus>[]);
 
     List<DoctorProfileModel> departmentDoctors = [];
     if (targetRole == 'head_department') {
@@ -62,24 +54,20 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     final criteria = LeadershipCriteriaEngine.checkMandatoryCriteria(
       doctor: doctor!,
       targetRole: targetRole,
-      sector: sector, // <--- تم تمريره هنا
-      departmentDoctors: departmentDoctors, 
+      sector: sector,
+      departmentDoctors: departmentDoctors,
     );
 
     final unmetCriteria = criteria.where((c) => !c.isMet).toList();
-
     return (unmetCriteria.isEmpty, unmetCriteria);
   }
-   Future<Either<String, void>> saveDoctorData(DoctorProfileModel doctor) async {
+
+  Future<Either<String, void>> saveDoctorData(DoctorProfileModel doctor) async {
     try {
-      // ✅ set مع merge هيحمي كل الحقول القديمة ويحدث الجديدة فقط
       await FirebaseFirestore.instance
           .collection('users')
           .doc(doctor.uid)
-          .set(
-            doctor.toMap(), // هنا بيتنادى على الـ toMap() اللي فيها اللجان وتاريخ التعيين
-            SetOptions(merge: true),
-          );
+          .set(doctor.toMap(), SetOptions(merge: true));
       return const Right(null);
     } catch (e) {
       return Left(e.toString());
@@ -98,7 +86,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
 
   Future<void> uploadAndSetProfileImage(String uid, File imageFile) async {
     emit(DoctorLoading());
-
     try {
       final Uint8List? compressedBytes =
           await FlutterImageCompress.compressWithFile(
@@ -107,12 +94,10 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
             minHeight: 1024,
             quality: 85,
           );
-
       if (compressedBytes == null) {
         emit(DoctorError(error: "فشل ضغط الصورة"));
         return;
       }
-
       final String fileExtension = p.extension(imageFile.path);
       final String storagePath = 'profiles/$uid/profile$fileExtension';
 
@@ -121,7 +106,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
         storagePath,
         bucketName: 'images',
       );
-
       uploadResult.fold((error) => emit(DoctorError(error: error)), (
         imageUrl,
       ) async {
@@ -143,7 +127,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     required String category,
   }) async {
     emit(DoctorLoading());
-
     try {
       final fileBytes = await file.readAsBytes();
       final String fileExtension = p.extension(file.path);
@@ -155,7 +138,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
         storagePath,
         bucketName: 'files',
       );
-
       await uploadResult.fold(
         (error) async {
           emit(DoctorError(error: error));
@@ -168,11 +150,9 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
             'file_url': fileUrl,
             'uploaded_at': DateTime.now().toIso8601String(),
           };
-
           final updateResult = await doctorRepo.updateDoctorProfileData(uid, {
             'digital_archive': FieldValue.arrayUnion([newFileData]),
           });
-
           updateResult.fold(
             (error) => emit(DoctorError(error: error)),
             (_) => getDoctorProfile(uid),
@@ -206,16 +186,18 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     );
   }
 
-  Future<void> createNewDoctor(DoctorProfileModel doctor) async {
+  // ✅✅✅ الدالة المعدلة لقبول الصورة ورفعها ✅✅✅
+  Future<void> createNewDoctor(
+    DoctorProfileModel doctor, {
+    File? profileImageFile,
+  }) async {
     emit(DoctorLoading());
     UserCredential? credential;
-
     try {
       FirebaseApp secondaryApp;
       final isSecondaryAppInitialized = Firebase.apps.any(
         (app) => app.name == 'SecondaryApp',
       );
-
       if (isSecondaryAppInitialized) {
         secondaryApp = Firebase.app('SecondaryApp');
       } else {
@@ -241,12 +223,46 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
       final updatedDoctor = doctor.copyWith(uid: newUid);
       final result = await doctorRepo.saveDoctorData(updatedDoctor);
 
-      result.fold((error) async {
-        try {
-          await firebaseUser.delete();
-        } catch (_) {}
-        emit(DoctorError(error: error));
-      }, (_) => emit(DoctorSuccess()));
+      result.fold(
+        (error) async {
+          try {
+            await firebaseUser.delete();
+          } catch (_) {}
+          emit(DoctorError(error: error));
+        },
+        (_) async {
+          // ✅ رفع الصورة لو موجودة
+          if (profileImageFile != null) {
+            try {
+              final Uint8List? compressedBytes =
+                  await FlutterImageCompress.compressWithFile(
+                    profileImageFile.absolute.path,
+                    minWidth: 1024,
+                    minHeight: 1024,
+                    quality: 85,
+                  );
+              if (compressedBytes != null) {
+                final String fileExtension = p.extension(profileImageFile.path);
+                final String storagePath =
+                    'profiles/$newUid/profile$fileExtension';
+                final uploadResult = await doctorRepo.uploadFile(
+                  compressedBytes,
+                  storagePath,
+                  bucketName: 'images',
+                );
+                uploadResult.fold((error) => print("فشل رفع الصورة: $error"), (
+                  imageUrl,
+                ) async {
+                  await doctorRepo.updateDoctorImage(newUid, imageUrl);
+                });
+              }
+            } catch (e) {
+              print("خطأ في ضغط الصورة: $e");
+            }
+          }
+          emit(DoctorSuccess());
+        },
+      );
     } on FirebaseAuthException catch (e) {
       String errorCode = "ERROR_AUTH_UNKNOWN";
       if (e.code == 'email-already-in-use') {
@@ -279,23 +295,21 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
       (_) => emit(DoctorSuccess()),
     );
   }
-  // أضف الدالة دي في الـ Cubet
-    // ✅ أضف الدالة دي في الـ Cubet (استبدل القديمة بالجديدة)
+
   Future<List<DoctorProfileModel>> getAllDoctorsOnce() async {
     try {
-      // ✅ استخدام get() مباشرة عشان نجلب الداتا فوراً ومتنتظرش Stream
       final snapshot = await FirebaseFirestore.instance
           .collection('users')
           .where('role', isEqualTo: 'doctor')
           .get();
-
-      return snapshot.docs.map((doc) {
-        return DoctorProfileModel.fromJson(doc.data(), doc.id);
-      }).toList();
+      return snapshot.docs
+          .map((doc) => DoctorProfileModel.fromJson(doc.data(), doc.id))
+          .toList();
     } catch (e) {
       return [];
     }
   }
+
   @override
   Future<void> close() {
     _doctorsSubscription?.cancel();

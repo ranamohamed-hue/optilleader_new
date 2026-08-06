@@ -571,9 +571,9 @@ class _AddResearchPaperPageState extends State<AddResearchPaperPage> {
             final totalAuthors =
                 int.tryParse(_totalAuthorsController.text) ?? 0;
 
-            if (sameSpecialty > totalAuthors) {
-              return 'لا يمكن أن يكون أكبر من إجمالي الباحثين';
-            }
+           if (sameSpecialty > totalAuthors) {
+  return 'addResearch.validation_authors_count'.tr(); 
+}
 
             return null;
           },

@@ -114,8 +114,7 @@ class _DoctorNominationPageState extends State<DoctorNominationPage> {
 
     if (_doctor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error: Doctor data not loaded")),
-      );
+SnackBar(content: Text("nomination.error_unexpected".tr())),      );
       return;
     }
 

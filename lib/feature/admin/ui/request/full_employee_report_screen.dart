@@ -683,13 +683,13 @@ class _FullEmployeeReportScreenState extends State<FullEmployeeReportScreen> {
     );
   }
 
-  Widget _buildEvaluatorReportAndFinalDecision(
-    BuildContext context,
-    Color navy,
-    Color gold,
-  ) {
+   Widget _buildEvaluatorReportAndFinalDecision(BuildContext context, Color navy, Color gold) {
     final request = widget.request;
     final evaluation = request.interviewEvaluation ?? {};
+    
+    // ✅ كشف النظام
+    bool isNewFormat = evaluation.containsKey('emotionalBalanceCriteria');
+    double displayTotal = (evaluation['totalScore'] ?? request.evaluatorPoints ?? 0).toDouble();
 
     return Container(
       padding: EdgeInsets.all(20.w),
@@ -703,163 +703,58 @@ class _FullEmployeeReportScreenState extends State<FullEmployeeReportScreen> {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.rate_review_rounded,
-                color: Colors.orange.shade800,
-                size: 22.sp,
-              ),
+              Icon(Icons.rate_review_rounded, color: Colors.orange.shade800, size: 22.sp),
               SizedBox(width: 8.w),
-              Text(
-                "report.evaluation_report.title".tr(),
-                style: TextStyle(
-                  color: Colors.orange.shade900,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16.sp,
-                ),
-              ),
+              Text("report.evaluation_report.title".tr(), style: TextStyle(color: Colors.orange.shade900, fontWeight: FontWeight.bold, fontSize: 16.sp)),
             ],
           ),
           Divider(height: 20.h, color: Colors.orange.shade200),
-          _buildReportRow(
-            context,
-            Icons.person_outline,
-            'report.evaluation_report.evaluator_name'.tr(),
-            request.evaluatorName ??
-                'report.evaluation_report.not_specified'.tr(),
-          ),
+          _buildReportRow(context, Icons.person_outline, 'report.evaluation_report.evaluator_name'.tr(), request.evaluatorName ?? 'report.evaluation_report.not_specified'.tr()),
           SizedBox(height: 12.h),
-          // ✅ تم تصحيح المسافات الزائدة والنقط
-          _buildReportRow(
-            context,
-            Icons.calendar_month,
-            'report.evaluation_report.interview_date'.tr(),
-            request.interviewDate != null
-                ? "${request.interviewDate!.day}/${request.interviewDate!.month}/${request.interviewDate!.year}"
-                : 'report.evaluation_report.not_set'.tr(),
-          ),
+          _buildReportRow(context, Icons.calendar_month, 'report.evaluation_report.interview_date'.tr(), request.interviewDate != null ? "${request.interviewDate!.day}/${request.interviewDate!.month}/${request.interviewDate!.year}" : 'report.evaluation_report.not_set'.tr()),
           SizedBox(height: 12.h),
-          // ✅ تم تصحيح المسافات والترجمة
-          _buildReportRow(
-            context,
-            Icons.score_rounded,
-            'report.evaluation_report.score'.tr(),
-            "${request.evaluatorPoints ?? 0} ${'report.system_points.point_unit'.tr()}",
-          ),
+          
+          // ✅ عرض المجموع الصحيح
+          _buildReportRow(context, Icons.score_rounded, 'report.evaluation_report.score'.tr(), "$displayTotal ${'report.system_points.point_unit'.tr()}"),
           SizedBox(height: 20.h),
 
-          // ✅ تم تصحيح مسارات الترجمة لتتشابه مع الـ JSON الجديد
-          _buildScoreDetailRow(
-            'report.evaluation.scores.scientific'.tr(),
-            evaluation['scientificScore'],
-            40,
-          ),
-          _buildScoreDetailRow(
-            'report.evaluation.scores.leadership'.tr(),
-            evaluation['leadershipScore'],
-            25,
-          ),
-          _buildScoreDetailRow(
-            'report.evaluation.scores.student_activities'.tr(),
-            evaluation['studentActivitiesScore'],
-            15,
-          ),
-          _buildScoreDetailRow(
-            'report.evaluation.scores.community_activities'.tr(),
-            evaluation['communityActivitiesScore'],
-            10,
-          ),
-          _buildScoreDetailRow(
-            'report.evaluation.scores.human_relation'.tr(),
-            evaluation['humanRelationsScore'],
-            10,
-          ),
+          // ✅ سحب الدرجات بأمان
+          _buildScoreDetailRow('report.evaluation.scores.scientific'.tr(), _getScoreSafe(evaluation, 'scientificScore', 'strategicThinkingScore'), isNewFormat ? 25 : 40),
+          _buildScoreDetailRow('report.evaluation.scores.leadership'.tr(), _getScoreSafe(evaluation, 'leadershipScore', 'participatoryLeadershipScore'), isNewFormat ? 20 : 25),
+          _buildScoreDetailRow('report.evaluation.scores.student_activities'.tr(), _getScoreSafe(evaluation, 'studentActivitiesScore', 'emotionalBalanceScore'), isNewFormat ? 20 : 15),
+          _buildScoreDetailRow('report.evaluation.scores.community_activities'.tr(), _getScoreSafe(evaluation, 'communityActivitiesScore', 'communityInteractionScore'), isNewFormat ? 15 : 10),
+          _buildScoreDetailRow('report.evaluation.scores.human_relation'.tr(), _getScoreSafe(evaluation, 'humanRelationsScore', 'legalAwarenessScore'), isNewFormat ? 20 : 10),
 
           SizedBox(height: 20.h),
-          // ✅ تم تصحيح المسافات وإضافة .tr()
-          Text(
-            'report.evaluation_report.notes_label'.tr(),
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: navy,
-              fontSize: 13.sp,
-            ),
-          ),
+          Text('report.evaluation_report.notes_label'.tr(), style: TextStyle(fontWeight: FontWeight.bold, color: navy, fontSize: 13.sp)),
           SizedBox(height: 5.h),
           Container(
             width: double.infinity,
             padding: EdgeInsets.all(10.w),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: Colors.orange.shade100),
-            ),
-            child: Text(
-              request.evaluatorNotes ??
-                  'report.evaluation_report.no_notes'.tr(),
-              style: TextStyle(fontSize: 13.sp, color: Colors.grey[800]),
-            ),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(10.r), border: Border.all(color: Colors.orange.shade100)),
+            // ✅ سحب الملاحظات بأمان
+            child: Text(request.evaluatorNotes ?? evaluation['emotionalBalanceNotes'] ?? 'report.evaluation_report.no_notes'.tr(), style: TextStyle(fontSize: 13.sp, color: Colors.grey[800])),
           ),
           SizedBox(height: 30.h),
-          // ✅ تم تصحيح المسافات وإضافة .tr()
-          Text(
-            'report.evaluation_report.final_decision'.tr(),
-            style: TextStyle(
-              color: navy,
-              fontWeight: FontWeight.bold,
-              fontSize: 15.sp,
-            ),
-          ),
+          Text('report.evaluation_report.final_decision'.tr(), style: TextStyle(color: navy, fontWeight: FontWeight.bold, fontSize: 15.sp)),
           SizedBox(height: 15.h),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _showRejectionDialog(
-                    context,
-                    NominationRequestModel.statusFinalRejected,
-                  ),
+                  onPressed: () => _showRejectionDialog(context, NominationRequestModel.statusFinalRejected),
                   icon: const Icon(Icons.cancel_outlined, color: Colors.red),
-                  label: Text(
-                    'report.evaluation_report.final_reject'.tr(),
-                    style: TextStyle(
-                      color: Colors.red,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.red),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                  ),
+                  label: Text('report.evaluation_report.final_reject'.tr(), style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                  style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.red), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)), padding: EdgeInsets.symmetric(vertical: 12.h)),
                 ),
               ),
               SizedBox(width: 15.w),
               Expanded(
                 child: ElevatedButton.icon(
-                  onPressed: () =>
-                      context.read<NominationRequestCubit>().adminTakeAction(
-                        request: widget.request,
-                        newStatus: NominationRequestModel
-                            .statusFinalApprovedPendingAnnouncement,
-                      ),
+                  onPressed: () => context.read<NominationRequestCubit>().adminTakeAction(request: widget.request, newStatus: NominationRequestModel.statusFinalApprovedPendingAnnouncement),
                   icon: const Icon(Icons.verified_rounded, color: Colors.white),
-                  // ✅ تم تصحيح المسافة الزائدة
-                  label: Text(
-                    'report.evaluation_report.final_approve'.tr(),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.green.shade700,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.r),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 12.h),
-                  ),
+                  label: Text('report.evaluation_report.final_approve'.tr(), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green.shade700, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)), padding: EdgeInsets.symmetric(vertical: 12.h)),
                 ),
               ),
             ],
@@ -869,6 +764,11 @@ class _FullEmployeeReportScreenState extends State<FullEmployeeReportScreen> {
     );
   }
 
+  // ✅ نفس الدالة المساعدة هنا عشان متتعلقش بالملف التاني
+  double _getScoreSafe(Map<String, dynamic> eval, String oldKey, String newKey) {
+    if (eval.containsKey(newKey)) return (eval[newKey] as num?)?.toDouble() ?? 0.0;
+    return (eval[oldKey] as num?)?.toDouble() ?? 0.0;
+  }
   Widget _buildScoreDetailRow(String label, dynamic score, double max) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 4.h),

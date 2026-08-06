@@ -165,7 +165,14 @@
     "reject_reason_body": "Please write the reason for rejection to be sent to the user.",
     "reject_hint": "Write the reason here...",
     "no_reason": "No reason provided",
-    "confirm_reject": "Confirm Rejection"
+    "confirm_reject": "Confirm Rejection",
+          "venue_art_faculties": "Art Faculties Halls",
+      "venue_fine_arts_sector": "Fine Arts Sector Halls",
+      "venue_foreign_centers": "Foreign Cultural Centers",
+      "venue_art_syndicates": "Art Syndicates Halls",
+      "venue_culture_palaces": "Culture Palaces Halls",
+      "venue_ateliers": "Cairo & Alexandria Ateliers",
+      "venue_private_galleries": "Private Galleries"
   },
   "common": {
     "cancel": "Cancel",

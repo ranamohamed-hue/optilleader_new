@@ -364,7 +364,11 @@ class _NominationRequestDetailsScreenState
     Color goldAccent,
   ) {
     final evaluation = request.interviewEvaluation!;
-    final totalScore = (evaluation['totalScore'] ?? 0).toDouble();
+    final totalScore =
+        (evaluation['totalScore'] ?? request.evaluatorPoints ?? 0).toDouble();
+
+    // ✅ كشف: هل التقييم بال نظام القديم ولا الجديد؟
+    bool isNewFormat = evaluation.containsKey('emotionalBalanceCriteria');
 
     return Container(
       padding: EdgeInsets.all(16.w),
@@ -388,7 +392,7 @@ class _NominationRequestDetailsScreenState
               Icon(Icons.gavel_rounded, color: goldAccent, size: 22.sp),
               SizedBox(width: 10.w),
               Text(
-                'nomination_details.evaluator.title'.tr(), // تم التعديل هنا
+                'nomination_details.evaluator.title'.tr(),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
@@ -415,74 +419,99 @@ class _NominationRequestDetailsScreenState
           ),
           Divider(height: 20.h),
           _buildInfoRow(
-            'nomination_details.evaluator.evaluator_name'
-                .tr(), // تم التعديل هنا
+            'nomination_details.evaluator.evaluator_name'.tr(),
             request.evaluatorName ?? '-',
           ),
           if (request.interviewDate != null)
             _buildInfoRow(
-              'nomination_details.evaluator.interview_date'
-                  .tr(), // تم التعديل هنا
+              'nomination_details.evaluator.interview_date'.tr(),
               DateFormat('yyyy-MM-dd').format(request.interviewDate!),
             ),
           if (request.interviewLocation != null)
             _buildInfoRow(
-              'nomination_details.evaluator.interview_location'
-                  .tr(), // تم التعديل هنا
+              'nomination_details.evaluator.interview_location'.tr(),
               request.interviewLocation!,
             ),
           if (request.interviewTime != null)
             _buildInfoRow(
-              'nomination_details.evaluator.interview_time'
-                  .tr(), // تم التعديل هنا
+              'nomination_details.evaluator.interview_time'.tr(),
               request.interviewTime!,
             ),
 
+          // ✅ سحب الدرجات بأمان (يتكيف مع القديم والجديد)
           _buildScoreRow(
-            'nomination_details.evaluation.scores.scientific'
-                .tr(), // تم التعديل هنا
-            evaluation['scientificScore'],
-            40,
+            'nomination_details.evaluation.scores.scientific'.tr(),
+            _getScoreSafe(
+              evaluation,
+              'scientificScore',
+              'strategicThinkingScore',
+            ),
+            isNewFormat ? 25 : 40,
           ),
           _buildScoreRow(
-            'nomination_details.evaluation.scores.leadership'
-                .tr(), // تم التعديل هنا
-            evaluation['leadershipScore'],
-            25,
+            'nomination_details.evaluation.scores.leadership'.tr(),
+            _getScoreSafe(
+              evaluation,
+              'leadershipScore',
+              'participatoryLeadershipScore',
+            ),
+            isNewFormat ? 20 : 25,
           ),
           _buildScoreRow(
-            'nomination_details.evaluation.scores.student_activities'
-                .tr(), // تم التعديل هنا
-            evaluation['studentActivitiesScore'],
-            15,
+            'nomination_details.evaluation.scores.student_activities'.tr(),
+            _getScoreSafe(
+              evaluation,
+              'studentActivitiesScore',
+              'emotionalBalanceScore',
+            ),
+            isNewFormat ? 20 : 15,
           ),
           _buildScoreRow(
-            'nomination_details.evaluation.scores.community_activities'
-                .tr(), // تم التعديل هنا
-            evaluation['communityActivitiesScore'],
-            10,
+            'nomination_details.evaluation.scores.community_activities'.tr(),
+            _getScoreSafe(
+              evaluation,
+              'communityActivitiesScore',
+              'communityInteractionScore',
+            ),
+            isNewFormat ? 15 : 10,
           ),
           _buildScoreRow(
-            'nomination_details.evaluation.scores.human_relation'
-                .tr(), // تم التعديل هنا
-            evaluation['humanRelationsScore'],
-            10,
+            'nomination_details.evaluation.scores.human_relation'.tr(),
+            _getScoreSafe(
+              evaluation,
+              'humanRelationsScore',
+              'legalAwarenessScore',
+            ),
+            isNewFormat ? 20 : 10,
           ),
 
           Divider(height: 20.h),
           Text(
-            'nomination_details.evaluator.notes'.tr(), // تم التعديل هنا
+            'nomination_details.evaluator.notes'.tr(),
             style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp),
           ),
           SizedBox(height: 8.h),
           Text(
+            // ✅ سحب الملاحظات بأمان
             request.evaluatorNotes ??
-                'nomination_details.evaluator.no_notes'.tr(), // تم التعديل هنا
+                evaluation['emotionalBalanceNotes'] ??
+                'nomination_details.evaluator.no_notes'.tr(),
             style: TextStyle(fontSize: 13.sp, color: Colors.grey[700]),
           ),
         ],
       ),
     );
+  }
+
+  // ✅ دالة مساعدة لسحب الدرجة بأمان
+  double _getScoreSafe(
+    Map<String, dynamic> eval,
+    String oldKey,
+    String newKey,
+  ) {
+    if (eval.containsKey(newKey))
+      return (eval[newKey] as num?)?.toDouble() ?? 0.0;
+    return (eval[oldKey] as num?)?.toDouble() ?? 0.0;
   }
 
   Widget _buildScoreRow(String label, dynamic score, double max) {
@@ -637,7 +666,7 @@ class _NominationRequestDetailsScreenState
     }
   }
 
-   void _showEvaluatorSelectionDialog(NominationRequestModel request) {
+  void _showEvaluatorSelectionDialog(NominationRequestModel request) {
     final cubit = context.read<NominationRequestCubit>();
 
     // 1. اطلب البيانات من الـ Cubit
@@ -675,110 +704,114 @@ class _NominationRequestDetailsScreenState
             ),
 
             // 3. الـ UI هيستجيب للـ State بشكل سليم دلوقتي
-            content: BlocBuilder<NominationRequestCubit, NominationRequestState>(
-              builder: (context, state) {
-                // حالة التحميل
-                if (state is EvaluatorsLoading) {
-                  return Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(30.w),
-                      child: CircularProgressIndicator(
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                  );
-                }
-
-                // حالة الخطأ
-                if (state is EvaluatorsError) {
-                  return Center(
-                    child: Text(
-                      state.message,
-                      style: TextStyle(color: Colors.red, fontSize: 13.sp),
-                      textAlign: TextAlign.center,
-                    ),
-                  );
-                }
-
-                // حالة النجاح وجلب الداتا
-                if (state is EvaluatorsLoaded) {
-                  if (state.evaluators.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(20.w),
-                        child: Text(
-                          'nomination_details.actions.no_evaluators'.tr(),
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 13.sp,
+            content:
+                BlocBuilder<NominationRequestCubit, NominationRequestState>(
+                  builder: (context, state) {
+                    // حالة التحميل
+                    if (state is EvaluatorsLoading) {
+                      return Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(30.w),
+                          child: CircularProgressIndicator(
+                            color: Theme.of(context).primaryColor,
                           ),
                         ),
-                      ),
-                    );
-                  }
+                      );
+                    }
 
-                  return Container(
-                    width: double.maxFinite,
-                    height: 300.h,
-                    child: ListView.separated(
-                      shrinkWrap: true,
-                      itemCount: state.evaluators.length,
-                      separatorBuilder: (context, index) =>
-                          Divider(height: 1, color: Colors.grey.shade200),
-                      itemBuilder: (context, index) {
-                        final eval = state.evaluators[index];
-                        final evalId = eval['id'];
-                        final evalName = eval['nameAr'] ?? eval['name'] ?? 'بدون اسم';
+                    // حالة الخطأ
+                    if (state is EvaluatorsError) {
+                      return Center(
+                        child: Text(
+                          state.message,
+                          style: TextStyle(color: Colors.red, fontSize: 13.sp),
+                          textAlign: TextAlign.center,
+                        ),
+                      );
+                    }
 
-                        return InkWell(
-                          onTap: () {
-                            Navigator.pop(ctx); // إغلاق الـ Dialog أولاً
-                            cubit.adminTakeAction( // استدعاء دالة التحويل
-                              request: request,
-                              newStatus: NominationRequestModel.statusPendingEvaluator,
-                              evaluatorId: evalId,
-                              evaluatorName: evalName,
-                            );
-                          },
-                          child: ListTile(
-                            contentPadding: EdgeInsets.symmetric(
-                              horizontal: 8.w,
-                              vertical: 4.h,
-                            ),
-                            leading: CircleAvatar(
-                              radius: 18.r,
-                              backgroundColor: Theme.of(context)
-                                  .primaryColor
-                                  .withOpacity(0.1),
-                              child: Icon(
-                                Icons.person_outline,
-                                color: Theme.of(context).primaryColor,
-                                size: 20.sp,
-                              ),
-                            ),
-                            title: Text(
-                              evalName,
+                    // حالة النجاح وجلب الداتا
+                    if (state is EvaluatorsLoaded) {
+                      if (state.evaluators.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: EdgeInsets.all(20.w),
+                            child: Text(
+                              'nomination_details.actions.no_evaluators'.tr(),
                               style: TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14.sp,
-                                color: Colors.black87,
+                                color: Colors.grey[600],
+                                fontSize: 13.sp,
                               ),
-                            ),
-                            trailing: Icon(
-                              Icons.arrow_forward_ios_rounded,
-                              size: 16.sp,
-                              color: Colors.grey,
                             ),
                           ),
                         );
-                      },
-                    ),
-                  );
-                }
+                      }
 
-                return SizedBox.shrink();
-              },
-            ),
+                      return Container(
+                        width: double.maxFinite,
+                        height: 300.h,
+                        child: ListView.separated(
+                          shrinkWrap: true,
+                          itemCount: state.evaluators.length,
+                          separatorBuilder: (context, index) =>
+                              Divider(height: 1, color: Colors.grey.shade200),
+                          itemBuilder: (context, index) {
+                            final eval = state.evaluators[index];
+                            final evalId = eval['id'];
+                            final evalName =
+                                eval['nameAr'] ?? eval['name'] ?? 'بدون اسم';
+
+                            return InkWell(
+                              onTap: () {
+                                Navigator.pop(ctx); // إغلاق الـ Dialog أولاً
+                                cubit.adminTakeAction(
+                                  // استدعاء دالة التحويل
+                                  request: request,
+                                  newStatus: NominationRequestModel
+                                      .statusPendingEvaluator,
+                                  evaluatorId: evalId,
+                                  evaluatorName: evalName,
+                                );
+                              },
+                              child: ListTile(
+                                contentPadding: EdgeInsets.symmetric(
+                                  horizontal: 8.w,
+                                  vertical: 4.h,
+                                ),
+                                leading: CircleAvatar(
+                                  radius: 18.r,
+                                  backgroundColor: Theme.of(
+                                    context,
+                                  ).primaryColor.withOpacity(0.1),
+                                  child: Icon(
+                                    Icons.person_outline,
+                                    color: Theme.of(context).primaryColor,
+                                    size: 20.sp,
+                                  ),
+                                ),
+                                title: Text(
+                                  evalName,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14.sp,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                trailing: Icon(
+                                  Icons.arrow_forward_ios_rounded,
+                                  size: 16.sp,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }
+
+                    return SizedBox.shrink();
+                  },
+                ),
 
             actions: [
               TextButton(
@@ -798,6 +831,7 @@ class _NominationRequestDetailsScreenState
       },
     );
   }
+
   void _showRejectDialog(
     NominationRequestModel request, {
     bool isFinalReject = false,

@@ -1,11 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart'; 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
-import 'package:optialeader/core/routing/routes.dart'; 
+import 'package:optialeader/core/routing/routes.dart';
 import 'package:optialeader/feature/admin/data/model/nomination_request_model.dart';
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomination_request_cubit.dart';
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomonation_request_state.dart';
@@ -21,10 +21,13 @@ class JudgeOrdersListScreen extends StatefulWidget {
 }
 
 class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
+  Color get _primaryNavy => Theme.of(context).primaryColor;
+  Color get _goldAccent => Theme.of(context).colorScheme.secondary;
+
   @override
   void initState() {
     super.initState();
-    final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
     if (uid.isNotEmpty) {
       context.read<NominationRequestCubit>().fetchEvaluatorRequests(uid);
     }
@@ -32,10 +35,6 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final primaryNavy = theme.primaryColor;
-    final goldAccent = theme.colorScheme.secondary;
-
     String pageTitle = 'judge_orders.title'.tr();
     if (widget.filterRole != null) {
       pageTitle = 'dashboardJudge.categories.${widget.filterRole}'.tr();
@@ -45,9 +44,9 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
     }
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: _primaryNavy.withOpacity(0.04),
       appBar: AppBar(
-        backgroundColor: primaryNavy,
+        backgroundColor: _primaryNavy,
         title: Text(
           pageTitle,
           style: TextStyle(
@@ -67,13 +66,13 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
         ),
         bottom: PreferredSize(
           preferredSize: Size.fromHeight(2.h),
-          child: Container(color: goldAccent, height: 2.h),
+          child: Container(color: _goldAccent, height: 2.h),
         ),
       ),
       body: BlocBuilder<NominationRequestCubit, NominationRequestState>(
         builder: (context, state) {
           if (state is NominationRequestLoading) {
-            return Center(child: CircularProgressIndicator(color: goldAccent));
+            return Center(child: CircularProgressIndicator(color: _goldAccent));
           }
           if (state is NominationRequestError) {
             return Center(child: Text(state.message.tr()));
@@ -135,8 +134,6 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
                 return _buildRequestCard(
                   context,
                   request,
-                  primaryNavy,
-                  goldAccent,
                 );
               },
             );
@@ -150,8 +147,6 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
   Widget _buildRequestCard(
     BuildContext context,
     NominationRequestModel request,
-    Color primaryColor,
-    Color accentColor,
   ) {
     return Container(
       margin: EdgeInsets.only(bottom: 20.h),
@@ -163,10 +158,10 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 15,
-            offset: Offset(0, 5),
+            offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(color: primaryColor.withOpacity(0.05), width: 1),
+        border: Border.all(color: _primaryNavy.withOpacity(0.05), width: 1),
       ),
       child: Row(
         children: [
@@ -175,30 +170,30 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
             height: 70.h,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: primaryColor.withOpacity(0.05),
-              border: Border.all(color: accentColor.withOpacity(0.3), width: 2),
+              color: _primaryNavy.withOpacity(0.05),
+              border: Border.all(color: _goldAccent.withOpacity(0.3), width: 2),
             ),
             child: ClipOval(
               child: request.doctorImageUrl != null &&
                       request.doctorImageUrl!.isNotEmpty
-                  ? CachedNetworkImage( // ✅ 3. استبدال Image.network بـ CachedNetworkImage
+                  ? CachedNetworkImage(
                       imageUrl: request.doctorImageUrl!,
                       fit: BoxFit.cover,
                       placeholder: (_, __) => Icon(
                         Icons.person_outline,
                         size: 35.sp,
-                        color: primaryColor.withOpacity(0.5),
+                        color: _primaryNavy.withOpacity(0.5),
                       ),
                       errorWidget: (_, __, ___) => Icon(
                         Icons.person_outline,
                         size: 35.sp,
-                        color: primaryColor,
+                        color: _primaryNavy,
                       ),
                     )
                   : Icon(
                       Icons.person_outline,
                       size: 35.sp,
-                      color: primaryColor,
+                      color: _primaryNavy,
                     ),
             ),
           ),
@@ -228,14 +223,14 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
                         vertical: 4.h,
                       ),
                       decoration: BoxDecoration(
-                        color: accentColor.withOpacity(0.1),
+                        color: _goldAccent.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(8.r),
                       ),
                       child: Text(
                         request.targetRole.tr(),
                         style: TextStyle(
                           fontSize: 11.sp,
-                          color: primaryColor,
+                          color: _primaryNavy,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -248,8 +243,8 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
 
           SizedBox(width: 10.w),
           ElevatedButton.icon(
-                        onPressed: () => context.push(
-              Routes.judgeEvaluation, // ✅ حط اسم المسار الصحيح بتاعك هنا
+            onPressed: () => context.push(
+              Routes.judgeEvaluation,
               extra: request,
             ),
             icon: Icon(
@@ -259,7 +254,7 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
             ),
             label: Text('judge_orders.evaluate'.tr()),
             style: ElevatedButton.styleFrom(
-              backgroundColor: accentColor,
+              backgroundColor: _goldAccent,
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
               shape: RoundedRectangleBorder(

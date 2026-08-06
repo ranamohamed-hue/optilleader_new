@@ -30,6 +30,17 @@
       "no_committees": "No committees assigned"
     },
     "error_message": "An unexpected error occurred",
-    "retry": "Retry"
+    "retry": "Retry",
+    "validation_checks": {
+  "admin_exp_label": "Admin Experience (10 Years)",
+  "admin_exp_details": "Current years: {years} Years",
+  "professor_label": "Professorship (3 Years + Degree)",
+  "professor_details_yes": "Seniority: {years} Years | Has Degree: Yes",
+  "professor_details_no": "Seniority: {years} Years | Has Degree: No",
+  "top3_label": "Top 3 Senior Professors",
+  "top3_met": "Falls under Top 3 Senior Professors",
+  "top3_unmet": "Not in the Top 3 Senior Professors",
+  "top3_error": "Automatic check failed"
+}
   }
 }

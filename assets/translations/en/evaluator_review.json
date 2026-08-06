@@ -1,0 +1,11 @@
+{
+  "evaluator_review": {
+    "doctor_info": {
+      "college": "College"
+    },
+    "research": {
+      "title": "Submitted Scientific Research",
+      "no_research": "No scientific research submitted to display"
+    }
+  }
+}

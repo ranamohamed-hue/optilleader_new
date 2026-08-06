@@ -102,11 +102,11 @@ class AppProviders {
           DatabseAdminCubit(DatabaseAdminRepoImpl(FirebaseFirestore.instance)),
     ),
 
-    BlocProvider(
+      BlocProvider(
       create: (context) => AnnouncementCubit(
         AnnouncementRepositoryImpl(FirebaseFirestore.instance),
         context.read<NotificationRepo>(),
-      )..fetchAnnouncements(),
+      ),
     ),
 
     BlocProvider(create: (context) => SettingCubit(SettingRepoImpl())),
@@ -128,13 +128,13 @@ class AppProviders {
       ),
     ),
 
-    BlocProvider(
+       BlocProvider(
       create: (context) {
         final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
         return NotificationCubit(
           notificationRepo: context.read<NotificationRepo>(),
           userId: uid,
-        )..fetchNotifications();
+        );
       },
     ),
 

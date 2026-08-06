@@ -29,6 +29,37 @@ class AnnouncementDetailsDoctorPage extends StatefulWidget {
 class _AnnouncementDetailsDoctorPageState
     extends State<AnnouncementDetailsDoctorPage> {
   bool _isCheckingEligibility = false;
+  
+  // ✅ إصلاح الأداء: تخزين البيانات مرة واحدة فقط
+  DocumentSnapshot? _announcementSnapshot;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAnnouncement();
+  }
+
+  // ✅ جلب البيانات في initState بدل build
+  Future<void> _fetchAnnouncement() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('announcements')
+          .doc(widget.announcementId)
+          .get();
+      
+      if (mounted) {
+        setState(() {
+          _announcementSnapshot = snapshot;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
 
   Future<void> _handleApply(AnnouncementModel announcement) async {
     final targetRole = announcement.targetRole;
@@ -42,8 +73,6 @@ class _AnnouncementDetailsDoctorPageState
     try {
       final cubit = context.read<DoctorDataCubit>();
 
-      // ملاحظة: إذا كان محرك الشروط لديك يتطلب الـ sector داخل الـ cubit،
-      // يمكنك تعديل الاستدعاء ليكون: cubit.checkEligibility(targetRole: targetRole, sector: announcement.targetSector)
       final (isEligible, unmetCriteria) = await cubit.checkEligibility(
         targetRole: targetRole,
       );
@@ -140,235 +169,230 @@ class _AnnouncementDetailsDoctorPageState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance
-          .collection('announcements')
-          .doc(widget.announcementId)
-          .get(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Scaffold(
-            appBar: AppBar(),
-            body: Center(
-              child: CircularProgressIndicator(color: colorScheme.secondary),
-            ),
-          );
-        }
+    // ✅ حالة التحميل الأولى
+    if (_isLoading) {
+      return Scaffold(
+        appBar: AppBar(),
+        body: Center(
+          child: CircularProgressIndicator(color: colorScheme.secondary),
+        ),
+      );
+    }
 
-        if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-          return Scaffold(
-            appBar: AppBar(title: Text('announcement_details.title'.tr())),
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 60.sp, color: Colors.grey),
-                  SizedBox(height: 10.h),
-                  Text('announcement_details.not_found'.tr()),
-                ],
-              ),
-            ),
-          );
-        }
-
-        final data = snapshot.data!.data() as Map<String, dynamic>;
-        final announcement = AnnouncementModel.fromMap(
-          data,
-          widget.announcementId,
-        );
-
-        final String currentLang = context.locale.languageCode;
-        final String title =
-            data['title_$currentLang'] ??
-            data['title'] ??
-            'announcement_details.no_title'.tr();
-        final String description =
-            data['description_$currentLang'] ??
-            data['description'] ??
-            'announcement_details.no_description'.tr();
-        final String? imageUrl = data['imageUrl'];
-
-        final Timestamp? deadlineTimestamp = data['deadline'];
-        final Timestamp? createdAtTimestamp = data['createdAt'];
-
-        String formattedDeadline = '';
-        if (deadlineTimestamp != null) {
-          formattedDeadline = DateFormat(
-            'EEEE, d MMMM yyyy',
-            currentLang,
-          ).format(deadlineTimestamp.toDate());
-        }
-
-        String postedDate = '';
-        if (createdAtTimestamp != null) {
-          postedDate = DateFormat(
-            'd MMM yyyy',
-            currentLang,
-          ).format(createdAtTimestamp.toDate());
-        }
-
-        return Scaffold(
-          backgroundColor: theme.primaryColor,
-          floatingActionButton: FloatingActionButton.extended(
-            onPressed: _isCheckingEligibility
-                ? null
-                : () => _handleApply(announcement),
-            elevation: 4,
-            backgroundColor: colorScheme.secondary,
-            icon: _isCheckingEligibility
-                ? SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: colorScheme.primary,
-                      strokeWidth: 2,
-                    ),
-                  )
-                : Icon(Icons.send_rounded, color: colorScheme.primary),
-            label: Text(
-              "announce.details.apply_button".tr(),
-              style: TextStyle(
-                color: colorScheme.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 14.sp,
-              ),
-            ),
+    // ✅ حالة الخطأ أو عدم وجود الإعلان
+    if (_announcementSnapshot == null || !_announcementSnapshot!.exists) {
+      return Scaffold(
+        appBar: AppBar(title: Text('announcement_details.title'.tr())),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.error_outline, size: 60.sp, color: Colors.grey),
+              SizedBox(height: 10.h),
+              Text('announcement_details.not_found'.tr()),
+            ],
           ),
-          body: CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              SliverAppBar(
-                expandedHeight: imageUrl != null ? 159.0.h : 80.0.h,
-                pinned: true,
-                automaticallyImplyLeading: false,
-                backgroundColor: colorScheme.primary,
-                elevation: 0,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(
-                    bottom: Radius.circular(35),
-                  ),
+        ),
+      );
+    }
+
+    // ✅ حالة عرض البيانات
+    final data = _announcementSnapshot!.data() as Map<String, dynamic>;
+    final announcement = AnnouncementModel.fromMap(
+      data,
+      widget.announcementId,
+    );
+
+    final String currentLang = context.locale.languageCode;
+    final String title =
+        data['title_$currentLang'] ??
+        data['title'] ??
+        'announcement_details.no_title'.tr();
+    final String description =
+        data['description_$currentLang'] ??
+        data['description'] ??
+        'announcement_details.no_description'.tr();
+    final String? imageUrl = data['imageUrl'];
+
+    final Timestamp? deadlineTimestamp = data['deadline'];
+    final Timestamp? createdAtTimestamp = data['createdAt'];
+
+    String formattedDeadline = '';
+    if (deadlineTimestamp != null) {
+      formattedDeadline = DateFormat(
+        'EEEE, d MMMM yyyy',
+        currentLang,
+      ).format(deadlineTimestamp.toDate());
+    }
+
+    String postedDate = '';
+    if (createdAtTimestamp != null) {
+      postedDate = DateFormat(
+        'd MMM yyyy',
+        currentLang,
+      ).format(createdAtTimestamp.toDate());
+    }
+
+    return Scaffold(
+      backgroundColor: theme.primaryColor,
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _isCheckingEligibility
+            ? null
+            : () => _handleApply(announcement),
+        elevation: 4,
+        backgroundColor: colorScheme.secondary,
+        icon: _isCheckingEligibility
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  color: colorScheme.primary,
+                  strokeWidth: 2,
                 ),
-                flexibleSpace: FlexibleSpaceBar(
-                  collapseMode: CollapseMode.pin,
-                  background: Stack(
-                    fit: StackFit.expand,
-                    children: [
-                      if (imageUrl != null)
-                        CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) =>
-                              Container(color: Colors.black12),
-                          errorWidget: (context, url, error) => Container(
-                            color: colorScheme.primary.withOpacity(0.1),
-                            child: Icon(
-                              Icons.broken_image_outlined,
-                              color: colorScheme.primary,
-                              size: 40.sp,
-                            ),
-                          ),
+              )
+            : Icon(Icons.send_rounded, color: colorScheme.primary),
+        label: Text(
+          "announce.details.apply_button".tr(),
+          style: TextStyle(
+            color: colorScheme.primary,
+            fontWeight: FontWeight.bold,
+            fontSize: 14.sp,
+          ),
+        ),
+      ),
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          SliverAppBar(
+            expandedHeight: imageUrl != null ? 159.0.h : 80.0.h,
+            pinned: true,
+            automaticallyImplyLeading: false,
+            backgroundColor: colorScheme.primary,
+            elevation: 0,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(
+                bottom: Radius.circular(35),
+              ),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.pin,
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (imageUrl != null)
+                    CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          Container(color: Colors.black12),
+                      errorWidget: (context, url, error) => Container(
+                        color: colorScheme.primary.withOpacity(0.1),
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          color: colorScheme.primary,
+                          size: 40.sp,
                         ),
-                      Container(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withOpacity(
-                                imageUrl != null ? 0.3 : 0.0,
+                      ),
+                    ),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(
+                            imageUrl != null ? 0.3 : 0.0,
+                          ),
+                          colorScheme.primary.withOpacity(
+                            imageUrl != null ? 0.8 : 1.0,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(15.w, 45.h, 20.w, 0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        IconButton(
+                          icon: Icon(
+                            Icons.arrow_back_ios_new,
+                            color: Colors.white,
+                            size: 22.sp,
+                          ),
+                          onPressed: () => context.pop(),
+                        ),
+                        SizedBox(width: 5.w),
+                        Expanded(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "announce.details.badge_title_user".tr(),
+                                style: theme.textTheme.titleMedium
+                                    ?.copyWith(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1.5,
+                                    ),
                               ),
-                              colorScheme.primary.withOpacity(
-                                imageUrl != null ? 0.8 : 1.0,
+                              Text(
+                                "common.app_name".tr(),
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: colorScheme.secondary.withOpacity(
+                                    0.9,
+                                  ),
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(15.w, 45.h, 20.w, 0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.arrow_back_ios_new,
-                                color: Colors.white,
-                                size: 22.sp,
-                              ),
-                              onPressed: () => context.pop(),
+                        Container(
+                          padding: const EdgeInsets.all(2.5),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: colorScheme.secondary,
+                              width: 2,
                             ),
-                            SizedBox(width: 5.w),
-                            Expanded(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "announce.details.badge_title_user".tr(),
-                                    style: theme.textTheme.titleMedium
-                                        ?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.5,
-                                        ),
-                                  ),
-                                  Text(
-                                    "common.app_name".tr(),
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.secondary.withOpacity(
-                                        0.9,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          ),
+                          child: CircleAvatar(
+                            radius: 26.r,
+                            backgroundColor: Colors.white24,
+                            child: Icon(
+                              Icons.campaign_rounded,
+                              color: Colors.white,
+                              size: 24.sp,
                             ),
-                            Container(
-                              padding: const EdgeInsets.all(2.5),
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: colorScheme.secondary,
-                                  width: 2,
-                                ),
-                              ),
-                              child: CircleAvatar(
-                                radius: 26.r,
-                                backgroundColor: Colors.white24,
-                                child: Icon(
-                                  Icons.campaign_rounded,
-                                  color: Colors.white,
-                                  size: 24.sp,
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: EdgeInsets.all(20.w),
-                sliver: SliverList(
-                  delegate: SliverChildListDelegate([
-                    _buildDetailCard(
-                      context,
-                      announcement: announcement,
-                      title: title,
-                      description: description,
-                      deadline: formattedDeadline,
-                      postedDate: postedDate,
+                      ],
                     ),
-                    SizedBox(height: 100.h),
-                  ]),
-                ),
+                  ),
+                ],
               ),
-            ],
+            ),
           ),
-        );
-      },
+          SliverPadding(
+            padding: EdgeInsets.all(20.w),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildDetailCard(
+                  context,
+                  announcement: announcement,
+                  title: title,
+                  description: description,
+                  deadline: formattedDeadline,
+                  postedDate: postedDate,
+                ),
+                SizedBox(height: 100.h),
+              ]),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -383,9 +407,6 @@ class _AnnouncementDetailsDoctorPageState
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    // =============================================
-    // 🧠 تحديد ما يُعرض بناءً على نوع الإعلان (متوافق مع المحركين)
-    // =============================================
     final bool showSector =
         announcement.targetRole == 'vice_president' ||
         announcement.targetRole == 'vice_dean';
@@ -427,7 +448,6 @@ class _AnnouncementDetailsDoctorPageState
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ====== بادجة الفرصة ======
                 Container(
                   padding: EdgeInsets.symmetric(
                     horizontal: 16.w,
@@ -448,7 +468,6 @@ class _AnnouncementDetailsDoctorPageState
                 ),
                 SizedBox(height: 25.h),
 
-                // ====== العنوان ======
                 Text(
                   title,
                   style: theme.textTheme.headlineSmall?.copyWith(
@@ -459,7 +478,6 @@ class _AnnouncementDetailsDoctorPageState
                 ),
                 SizedBox(height: 18.h),
 
-                // ====== الوصف ======
                 Text(
                   description,
                   style: theme.textTheme.bodyLarge?.copyWith(
@@ -473,29 +491,26 @@ class _AnnouncementDetailsDoctorPageState
                   child: Divider(thickness: 0.8),
                 ),
 
-                // ====== نوع الوظيفة المستهدفة ======
                 _buildInfoRow(
                   context,
                   Icons.military_tech,
                   "announce.details.target_role".tr(),
-                  announcement.targetRole.tr(),
+                  announcement.targetRole.tr(), // ✅ هيترجم من ملف roles.json
                   colorScheme.secondary,
                 ),
                 SizedBox(height: 20.h),
 
-                // ✅ ====== القطاع (لنائب الرئيس ووكيل الكلية) ======
                 if (showSector && announcement.targetSector != null) ...[
                   _buildInfoRow(
                     context,
                     Icons.account_tree_outlined,
                     "edit_announcement.field_sector".tr(),
-                    "sectors.${announcement.targetSector}".tr(),
+                    "sectors.${announcement.targetSector}".tr(), // ✅ هيترجم من ملف sectors.json
                     Colors.deepOrange,
                   ),
                   SizedBox(height: 20.h),
                 ],
 
-                // ====== الموعد النهائي ======
                 if (deadline.isNotEmpty)
                   _buildInfoRow(
                     context,
@@ -506,7 +521,6 @@ class _AnnouncementDetailsDoctorPageState
                   ),
                 if (deadline.isNotEmpty) SizedBox(height: 20.h),
 
-                // ====== تاريخ النشر ======
                 if (postedDate.isNotEmpty)
                   _buildInfoRow(
                     context,
@@ -517,9 +531,6 @@ class _AnnouncementDetailsDoctorPageState
                   ),
                 if (postedDate.isNotEmpty) SizedBox(height: 20.h),
 
-                // =============================================
-                // 🏛️ الكلية
-                // =============================================
                 if (showCollege && announcement.collegeName != null) ...[
                   _buildInfoRow(
                     context,
@@ -531,9 +542,6 @@ class _AnnouncementDetailsDoctorPageState
                   SizedBox(height: 20.h),
                 ],
 
-                // =============================================
-                // 🏢 القسم الأكاديمي
-                // =============================================
                 if (showDepartment && announcement.departmentName != null) ...[
                   _buildInfoRow(
                     context,
@@ -545,9 +553,6 @@ class _AnnouncementDetailsDoctorPageState
                   SizedBox(height: 20.h),
                 ],
 
-                // =============================================
-                // 📋 القطاع / الإدارة العامة
-                // =============================================
                 if (showAdminDept && announcement.adminSectorName != null) ...[
                   _buildInfoRow(
                     context,
@@ -559,9 +564,6 @@ class _AnnouncementDetailsDoctorPageState
                   SizedBox(height: 20.h),
                 ],
 
-                // =============================================
-                // 📁 الإدارة الفرعية
-                // =============================================
                 if (showAdminDept && announcement.adminSubDeptName != null) ...[
                   _buildInfoRow(
                     context,
@@ -598,7 +600,6 @@ class _AnnouncementDetailsDoctorPageState
         ),
         SizedBox(width: 15.w),
         Expanded(
-          // ✅ إضافة Expanded لمنع تجاوز النصوص للأسماء الإدارية الطويلة
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

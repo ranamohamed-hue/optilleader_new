@@ -668,7 +668,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
               ),
             ),
 
-            if (showResultsBadge) ...[
+                      if (showResultsBadge) ...[
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
@@ -681,7 +681,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
                     Icon(Icons.emoji_events, size: 12.sp, color: Colors.white),
                     SizedBox(width: 3.w),
                     Text(
-                      'النتائج',
+                      'dashboard_user.results_badge'.tr(), 
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 9.sp,

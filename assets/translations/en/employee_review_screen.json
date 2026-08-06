@@ -1,0 +1,32 @@
+{
+  "review": {
+    "app_bar_title": "Employee Review",
+    "employee_name": "Employee Name",
+    "birth_date": "Birth Date",
+    "join_date": "Join Date",
+
+    "sections": {
+      "promotions": "Promotions",
+      "teaching_load": "Teaching Load",
+      "attachments": "Attachments"
+    },
+
+    "footers": {
+      "load_reviewed": "Teaching load has been reviewed",
+      "docs_reviewed": "Documents have been reviewed"
+    },
+
+    "tables": {
+      "new_title": "New Title",
+      "old_title": "Old Title",
+      "date": "Date",
+      "hours_count": "Hours",
+      "course_name": "Course Name"
+    },
+
+    "fields": {
+      "select_judge": "Select Judge",
+      "submit_btn": "Submit Review"
+    }
+  }
+}

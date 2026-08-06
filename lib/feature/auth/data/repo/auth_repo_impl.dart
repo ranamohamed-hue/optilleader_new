@@ -25,36 +25,50 @@ class AuthRepoImpl implements AuthRepo {
 
   //  تسجيل الدخول - هنا الباسورد هو الرقم القومي في أول مرة
   @override
-  Future<Either<String, UserModel>> login({
-    required String email,
-    required String password,
-  }) async {
-    try {
-      final credential = await auth.signInWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(), // بيمثل الرقم القومي في حالة isFirstLogin
-      );
+ Future<Either<String, UserModel>> login({
+  required String email,
+  required String password,
+}) async {
+  try {
+    print("STEP 1");
 
-      final user = credential.user;
-      if (user == null) return const Left("فشل تسجيل الدخول");
+    final credential = await auth.signInWithEmailAndPassword(
+      email: email.trim(),
+      password: password.trim(),
+    );
 
-      final doc = await firestore.collection('users').doc(user.uid).get();
+    print("STEP 2");
 
-      if (!doc.exists) {
-        return const Left("بيانات المستخدم غير موجودة في قاعدة البيانات");
-      }
+    final user = credential.user;
 
-      final userModel = UserModel.fromFirestore(doc);
-      await hiveService.saveUser(UserHiveModel.fromUserModel(userModel));
-
-      return Right(userModel);
-    } on FirebaseAuthException catch (e) {
-      return Left(_handleAuthError(e.code));
-    } catch (e) {
-      return Left("حدث خطأ غير متوقع: ${e.toString()}");
+    if (user == null) {
+      print("USER NULL");
+      return const Left("فشل");
     }
-  }
 
+    print("UID = ${user.uid}");
+
+    print("STEP 3");
+
+    final doc = await firestore.collection("users").doc(user.uid).get();
+
+    print("STEP 4");
+
+    final userModel = UserModel.fromFirestore(doc);
+
+    print("STEP 5");
+
+    await hiveService.saveUser(UserHiveModel.fromUserModel(userModel));
+
+    print("STEP 6");
+
+    return Right(userModel);
+  } catch (e, s) {
+    print(e);
+    print(s);
+    return Left(e.toString());
+  }
+}
   //  تحديث الباسورد وتحويل الرقم القومي لباسورد جديد خاص بالمستخدم
   @override
   Future<Either<String, String>> completeFirstLogin({

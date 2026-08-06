@@ -66,15 +66,23 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20.r),
+        ),
         title: Row(
           children: [
             Icon(Icons.waving_hand_rounded, color: Colors.orange, size: 28.sp),
             SizedBox(width: 10.w),
-            Text('dashboardJudge.welcome_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
+            Text(
+              'dashboardJudge.welcome_title'.tr(),
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
           ],
         ),
-        content: Text('dashboardJudge.welcome_body'.tr(), style: TextStyle(fontSize: 15.sp, height: 1.5)),
+        content: Text(
+          'dashboardJudge.welcome_body'.tr(),
+          style: TextStyle(fontSize: 15.sp, height: 1.5),
+        ),
         actions: [
           SizedBox(
             width: double.infinity,
@@ -83,10 +91,15 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
               ),
               onPressed: () => Navigator.pop(dialogContext),
-              child: Text('dashboardJudge.lets_start'.tr(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
+              child: Text(
+                'dashboardJudge.lets_start'.tr(),
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
+              ),
             ),
           ),
         ],
@@ -103,7 +116,9 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     return BlocBuilder<JudgeDataCubit, JudgeDataState>(
       builder: (context, state) {
         if (state is JudgeInitial || state is JudgeLoading) {
-          return Scaffold(body: Center(child: CircularProgressIndicator(color: colorGold)));
+          return Scaffold(
+            body: Center(child: CircularProgressIndicator(color: colorGold)),
+          );
         }
 
         if (state is JudgeError) {
@@ -114,8 +129,12 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
           final judge = state.judge!;
           final isArabic = context.locale.languageCode == 'ar';
           final displayName = isArabic
-              ? (judge.nameAr.isNotEmpty ? judge.nameAr : "dashboardJudge.default_name".tr())
-              : (judge.nameEn.isNotEmpty ? judge.nameEn : "dashboardJudge.default_name".tr());
+              ? (judge.nameAr.isNotEmpty
+                    ? judge.nameAr
+                    : "dashboardJudge.default_name".tr())
+              : (judge.nameEn.isNotEmpty
+                    ? judge.nameEn
+                    : "dashboardJudge.default_name".tr());
 
           return Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
@@ -125,47 +144,84 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                   width: double.infinity,
                   decoration: BoxDecoration(
                     color: colorPrimary,
-                    borderRadius: BorderRadius.vertical(bottom: Radius.circular(30.r)),
+                    borderRadius: BorderRadius.vertical(
+                      bottom: Radius.circular(30.r),
+                    ),
                   ),
                   child: SafeArea(
                     bottom: false,
                     child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10.w),
-                      child: Column(
-                        children: [
-                          _buildHeaderRow(context, colorGold, displayName, judge.profileImage),
-                          SizedBox(height: 20.h),
-                        ],
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
+                      ),
+                      child: _buildHeaderRow(
+                        context,
+                        colorGold,
+                        displayName,
+                        judge.profileImage,
                       ),
                     ),
                   ),
                 ),
-                Container(width: double.infinity, height: 3.0, color: colorGold),
+                Container(
+                  width: double.infinity,
+                  height: 3.0,
+                  color: colorGold,
+                ),
                 Expanded(
                   child: SingleChildScrollView(
                     physics: const BouncingScrollPhysics(),
-                    padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 25.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 20.w,
+                      vertical: 25.h,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('dashboardJudge.system_overview'.tr(), style: TextStyle(fontSize: 17.sp, fontWeight: FontWeight.bold, color: colorPrimary)),
+                        Text(
+                          'dashboardJudge.system_overview'.tr(),
+                          style: TextStyle(
+                            fontSize: 17.sp,
+                            fontWeight: FontWeight.bold,
+                            color: colorPrimary,
+                          ),
+                        ),
                         SizedBox(height: 20.h),
 
-                        BlocBuilder<NominationRequestCubit, NominationRequestState>(
+                        BlocBuilder<
+                          NominationRequestCubit,
+                          NominationRequestState
+                        >(
                           builder: (context, reqState) {
                             int newCount = 0;
                             int reviewingCount = 0;
                             int completedCount = 0;
 
                             if (reqState is NominationRequestLoaded) {
+                              // ✅ تم الرجوع للحالات الصحيحة الموجودة في الموديل
                               newCount = reqState.requests
-                                  .where((r) => r.status == NominationRequestModel.statusPendingEvaluator)
+                                  .where(
+                                    (r) =>
+                                        r.status ==
+                                        NominationRequestModel
+                                            .statusPendingEvaluator,
+                                  )
                                   .length;
                               reviewingCount = reqState.requests
-                                  .where((r) => r.status == NominationRequestModel.statusEvaluated)
+                                  .where(
+                                    (r) =>
+                                        r.status ==
+                                        NominationRequestModel.statusEvaluated,
+                                  )
                                   .length;
                               completedCount = reqState.requests
-                                  .where((r) => r.status == NominationRequestModel.statusFinalApproved)
+                                  .where(
+                                    (r) =>
+                                        r.status ==
+                                        NominationRequestModel
+                                            .statusFinalApproved,
+                                  )
                                   .length;
                             }
 
@@ -204,10 +260,17 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
 
                         SizedBox(height: 30.h),
 
-                        BlocBuilder<NominationRequestCubit, NominationRequestState>(
+                        BlocBuilder<
+                          NominationRequestCubit,
+                          NominationRequestState
+                        >(
                           builder: (context, reqState) {
-                            if (reqState is NominationRequestLoaded && reqState.requests.isNotEmpty) {
-                              return _buildRecentRequestsSection(context, reqState.requests);
+                            if (reqState is NominationRequestLoaded &&
+                                reqState.requests.isNotEmpty) {
+                              return _buildRecentRequestsSection(
+                                context,
+                                reqState.requests,
+                              );
                             }
                             return const SizedBox.shrink();
                           },
@@ -220,7 +283,12 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                 ),
               ],
             ),
-            bottomNavigationBar: _buildBottomNav(colorPrimary, colorGold, judge.uid, judge.role),
+            bottomNavigationBar: _buildBottomNav(
+              colorPrimary,
+              colorGold,
+              judge.uid,
+              judge.role,
+            ),
           );
         }
         return const Scaffold(body: SizedBox.shrink());
@@ -228,7 +296,10 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     );
   }
 
-  Widget _buildRecentRequestsSection(BuildContext context, List<NominationRequestModel> allRequests) {
+  Widget _buildRecentRequestsSection(
+    BuildContext context,
+    List<NominationRequestModel> allRequests,
+  ) {
     final theme = Theme.of(context);
     final gold = theme.colorScheme.secondary;
     final navy = theme.primaryColor;
@@ -243,13 +314,20 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle(gold, navy, 'dashboardJudge.recent_requests_title'.tr()),
+            _buildSectionTitle(
+              gold,
+              navy,
+              'dashboardJudge.recent_requests_title'.tr(),
+            ),
             TextButton(
               onPressed: () async {
                 await context.push('/judge/orders-list', extra: {});
                 _refreshRequests();
               },
-              child: Text('dashboardJudge.view_all'.tr(), style: TextStyle(color: gold, fontSize: 12.sp)),
+              child: Text(
+                'dashboardJudge.view_all'.tr(),
+                style: TextStyle(color: gold, fontSize: 12.sp),
+              ),
             ),
           ],
         ),
@@ -258,7 +336,9 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(18.r),
-            boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10)],
+            boxShadow: [
+              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+            ],
           ),
           child: Column(
             children: List.generate(recentList.length, (index) {
@@ -272,18 +352,41 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                     ? BorderRadius.vertical(bottom: Radius.circular(18.r))
                     : BorderRadius.zero,
                 child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 15.w,
+                    vertical: 12.h,
+                  ),
                   child: Row(
                     children: [
                       CircleAvatar(
                         radius: 22.r,
                         backgroundColor: navy.withOpacity(0.05),
-                        backgroundImage: request.doctorImageUrl != null
-                            ? NetworkImage(request.doctorImageUrl!)
-                            : null,
-                        child: request.doctorImageUrl == null
-                            ? Icon(Icons.person_outline, color: navy, size: 22.sp)
-                            : null,
+                        child: ClipOval(
+                          child:
+                              request.doctorImageUrl != null &&
+                                  request.doctorImageUrl!.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: request.doctorImageUrl!,
+                                  width: 44.r,
+                                  height: 44.r,
+                                  fit: BoxFit.cover,
+                                  placeholder: (_, __) => Icon(
+                                    Icons.person_outline,
+                                    color: navy,
+                                    size: 22.sp,
+                                  ),
+                                  errorWidget: (_, __, ___) => Icon(
+                                    Icons.person_outline,
+                                    color: navy,
+                                    size: 22.sp,
+                                  ),
+                                )
+                              : Icon(
+                                  Icons.person_outline,
+                                  color: navy,
+                                  size: 22.sp,
+                                ),
+                        ),
                       ),
                       SizedBox(width: 15.w),
                       Expanded(
@@ -292,25 +395,41 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                           children: [
                             Text(
                               request.doctorName,
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp, color: navy),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13.sp,
+                                color: navy,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             SizedBox(height: 4.h),
                             Text(
-                              "dashboardJudge.nomination_for_role".tr(namedArgs: {'role': request.targetRole.tr()}),
-                              style: TextStyle(fontSize: 11.sp, color: Colors.grey[600]),
+                              "dashboardJudge.nomination_for_role".tr(
+                                namedArgs: {'role': request.targetRole.tr()},
+                              ),
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: Colors.grey[600],
+                              ),
                             ),
                           ],
                         ),
                       ),
                       Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 8.w,
+                          vertical: 4.h,
+                        ),
                         decoration: BoxDecoration(
                           color: gold.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
-                        child: Icon(Icons.chevron_right, color: gold, size: 18.sp),
+                        child: Icon(
+                          Icons.chevron_right,
+                          color: gold,
+                          size: 18.sp,
+                        ),
                       ),
                     ],
                   ),
@@ -323,7 +442,14 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     );
   }
 
-  Widget _buildMainStatCard(BuildContext context, String title, String count, IconData icon, Color color, String filterStatus) {
+  Widget _buildMainStatCard(
+    BuildContext context,
+    String title,
+    String count,
+    IconData icon,
+    Color color,
+    String filterStatus,
+  ) {
     return InkWell(
       onTap: () async {
         await context.push(
@@ -338,14 +464,19 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20.r),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10)],
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+          ],
           border: Border.all(color: color.withOpacity(0.2), width: 1.5),
         ),
         child: Row(
           children: [
             Container(
               padding: EdgeInsets.all(12.w),
-              decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(15.r)),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(15.r),
+              ),
               child: Icon(icon, color: color, size: 28.sp),
             ),
             SizedBox(width: 20.w),
@@ -353,9 +484,19 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.black87)),
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
                   SizedBox(height: 5.h),
-                  Text("$count ${'dashboard.main_cards.request'.tr()}", style: TextStyle(fontSize: 12.sp, color: Colors.grey[600])),
+                  Text(
+                    "$count ${'dashboard.main_cards.request'.tr()}",
+                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+                  ),
                 ],
               ),
             ),
@@ -366,33 +507,50 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     );
   }
 
-  Widget _buildHeaderRow(BuildContext context, Color gold, String name, String? imageUrl) {
+  // ✅ تحسين: مسح زر الرجوع لأن ده الصفحة الرئيسية
+  Widget _buildHeaderRow(
+    BuildContext context,
+    Color gold,
+    String name,
+    String? imageUrl,
+  ) {
     final isArabic = context.locale.languageCode == 'ar';
     return Row(
       textDirection: isArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
       children: [
-        IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, size: 20.sp, color: Colors.white),
-          onPressed: () => context.canPop() ? context.pop() : null,
-        ),
-        SizedBox(width: 5.w),
         Expanded(
           child: Text(
             'dashboardJudge.welcome'.tr(args: [name]),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: Colors.white, fontSize: 16.sp, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16.sp,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
         SizedBox(width: 15.w),
         Container(
-          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: gold, width: 3.w)),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: gold, width: 3.w),
+          ),
           child: CircleAvatar(
             radius: 28.r,
             backgroundColor: Colors.white.withOpacity(0.15),
             child: ClipOval(
               child: (imageUrl != null && imageUrl.isNotEmpty)
-                  ? CachedNetworkImage(imageUrl: imageUrl, width: 56.r, height: 56.r, fit: BoxFit.cover, placeholder: (_, _) => Icon(Icons.person, color: gold, size: 30.sp), errorWidget: (_, _, _) => Icon(Icons.person, color: gold, size: 30.sp))
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      width: 56.r,
+                      height: 56.r,
+                      fit: BoxFit.cover,
+                      placeholder: (_, _) =>
+                          Icon(Icons.person, color: gold, size: 30.sp),
+                      errorWidget: (_, _, _) =>
+                          Icon(Icons.person, color: gold, size: 30.sp),
+                    )
                   : Icon(Icons.person, color: gold, size: 30.sp),
             ),
           ),
@@ -404,13 +562,28 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
   Widget _buildSectionTitle(Color gold, Color navy, String title) {
     return Row(
       children: [
-        Container(width: 5.w, height: 20.h, decoration: BoxDecoration(color: gold, borderRadius: BorderRadius.circular(10))),
+        Container(
+          width: 5.w,
+          height: 20.h,
+          decoration: BoxDecoration(
+            color: gold,
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
         SizedBox(width: 12.w),
-        Text(title, style: TextStyle(fontSize: 16.sp, fontWeight: FontWeight.bold, color: navy)),
+        Text(
+          title,
+          style: TextStyle(
+            fontSize: 16.sp,
+            fontWeight: FontWeight.bold,
+            color: navy,
+          ),
+        ),
       ],
     );
   }
 
+  // ✅ تحسين: تصحيح أسماء شريط التنقل
   Widget _buildBottomNav(Color navy, Color gold, String uid, String role) {
     return BottomNavigationBar(
       selectedItemColor: gold,
@@ -430,15 +603,30 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
             _refreshRequests();
             break;
           case 3:
-            await context.push(Routes.settings, extra: {'uid': uid, 'role': role});
+            await context.push(
+              Routes.settings,
+              extra: {'uid': uid, 'role': role},
+            );
             break;
         }
       },
       items: [
-        BottomNavigationBarItem(icon: const Icon(Icons.grid_view_rounded), label: 'dashboardJudge.tooltips.profile'.tr()),
-        BottomNavigationBarItem(icon: const Icon(Icons.notifications_active_outlined), label: 'dashboardJudge.notifications'.tr()),
-        BottomNavigationBarItem(icon: const Icon(Icons.assignment_outlined), label: 'orders.title'.tr()),
-        BottomNavigationBarItem(icon: const Icon(Icons.settings_outlined), label: 'dashboardJudge.tooltips.logout'.tr()),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.grid_view_rounded),
+          label: 'dashboardJudge.tooltips.home'.tr(),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.notifications_active_outlined),
+          label: 'dashboardJudge.notifications'.tr(),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.assignment_outlined),
+          label: 'orders.title'.tr(),
+        ),
+        BottomNavigationBarItem(
+          icon: const Icon(Icons.settings_outlined),
+          label: 'dashboardJudge.tooltips.settings'.tr(),
+        ),
       ],
     );
   }

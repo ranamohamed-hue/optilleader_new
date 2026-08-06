@@ -204,17 +204,19 @@ class LeadershipScoringEngine {
     );
   }
 
+  // ✅ تم تعديل الدالة لتتوافق مع الموديل الجديد للمقابلة
   static NominationScoreModel addInterviewScore(
     NominationScoreModel scoreModel,
     InterviewScoringModel interview,
   ) {
     return scoreModel.copyWith(
       interviewScore: interview.totalScore,
-      scientificInterviewScore: interview.scientificScore,
-      leadershipInterviewScore: interview.leadershipScore,
-      studentActivitiesScore: interview.studentActivitiesScore,
-      communityActivitiesScore: interview.communityActivitiesScore,
-      humanRelationsScore: interview.humanRelationsScore,
+      // ربط المحاور الخمسة الجديدة بالمتغيرات الموجودة في نموذج الترشيح
+      scientificInterviewScore: interview.strategicThinkingScore,      // الفكر الاستراتيجي
+      leadershipInterviewScore: interview.participatoryLeadershipScore,// القيادة التشاركية
+      studentActivitiesScore: interview.emotionalBalanceScore,         // الاتزان الانفعالي
+      communityActivitiesScore: interview.communityInteractionScore,   // التفاعل المجتمعي
+      humanRelationsScore: interview.legalAwarenessScore,              // الوعي القانوني
     );
   }
 

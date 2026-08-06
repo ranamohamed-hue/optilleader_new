@@ -10,20 +10,25 @@ class AuthCubit extends Cubit<AuthState> {
     checkAuthStatus();
   }
 
-  void checkAuthStatus() {
-    final cachedUser = authRepo.getCachedUser(); 
+    void checkAuthStatus() {
+    try {
+      final cachedUser = authRepo.getCachedUser(); 
 
-    if (cachedUser != null) {
-      if (cachedUser.isFirstLogin) {
-        emit(NewUserFirstLoginState(cachedUser));
+      if (cachedUser != null) {
+        if (cachedUser.isFirstLogin) {
+          emit(NewUserFirstLoginState(cachedUser));
+        } else {
+          emit(AuthenticatedState(cachedUser));
+        }
       } else {
-        emit(AuthenticatedState(cachedUser));
+        emit(AuthInitialState());
       }
-    } else {
+    } catch (e) {
+      // لو حصل أي خطأ (زي إن الهيف مفتحش)، خليه يروح للوجين عادي
+      print('Error checking auth status: $e');
       emit(AuthInitialState());
     }
   }
-
   Future<void> login({required String email, required String password}) async {
     emit(LoginLoadingState());
     final result = await authRepo.login(email: email, password: password);

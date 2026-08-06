@@ -27,7 +27,7 @@
     "success_msg": "Admin added successfully",
     "edit_success_msg": "Details updated successfully",
     "email_in_use": "This email is already in use",
-    "weak_password": "Weak password (National ID must be at least 6 digits)",
+    "weak_password": "Weak password (National ID must be at least 14 digits)",
     "edit_mode": "Edit",
     "lock_mode": "Lock Editing",
     "delete_user": "Delete User",

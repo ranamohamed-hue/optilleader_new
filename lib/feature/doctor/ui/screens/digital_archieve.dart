@@ -177,7 +177,7 @@ class DigitalArchivePage extends StatelessWidget {
       itemBuilder: (context, index) {
         final file = archivedFiles[index];
         return _buildFileCard(context, {
-          'name': file['title'] ?? 'Unknown File',
+          'name': file['title'] ?? 'archive.unknown_file'.tr(),
           'url': file['file_url'] ?? '',
           'type': _getExtensionFromUrl(file['file_url'] ?? ''),
         });
