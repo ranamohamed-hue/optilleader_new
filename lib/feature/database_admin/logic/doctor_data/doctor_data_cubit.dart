@@ -62,15 +62,18 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     return (unmetCriteria.isEmpty, unmetCriteria);
   }
 
-  Future<Either<String, void>> saveDoctorData(DoctorProfileModel doctor) async {
+  // ✅ الدالة المحدثة عشان الشاشة تقفل وتظهر رسالة النجاح
+  Future<void> saveDoctorData(DoctorProfileModel doctor) async {
+    emit(DoctorLoading());
     try {
       await FirebaseFirestore.instance
           .collection('users')
           .doc(doctor.uid)
           .set(doctor.toMap(), SetOptions(merge: true));
-      return const Right(null);
+      
+      emit(DoctorSuccess());
     } catch (e) {
-      return Left(e.toString());
+      emit(DoctorError(error: e.toString()));
     }
   }
 

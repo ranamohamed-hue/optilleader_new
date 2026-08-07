@@ -3,6 +3,7 @@
     "title": "Career Information",
     "sections": {
       "credentials": "Academic Credentials",
+      "promotions_track": "Promotions & Academic Track",
       "path": "Career Path",
       "current_employment": "Current Employment Data"
     },
@@ -20,7 +21,11 @@
     "experience": "Years of experience: {0} years",
     "previous_positions": "Previous Positions:",
     "no_history": "No Academic History",
+    "no_promotions": "No Academic Track Data Available",
     "no_previous_roles": "No Previous Positions",
+    "years": "Years",
+    "months": "Months",
+    "until_now": "Present",
     "roles": {
       "lecturer": "Lecturer",
       "ta": "Teaching Assistant"

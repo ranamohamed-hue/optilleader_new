@@ -85,6 +85,10 @@
     "archive_details": "Archive Details",
     "file_title": "File Title",
     "file_desc": "File Description",
-    "file_category": "File Category"
+    "file_category": "File Category",
+    "degree_bachelor": "Bachelor",
+    "degree_diploma": "Diploma",
+    "degree_master": "Master",
+    "degree_phd": "PhD"
   }
 }

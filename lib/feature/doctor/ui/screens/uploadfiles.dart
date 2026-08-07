@@ -108,7 +108,7 @@ content: Text(state.error ?? "upload.unexpected_error".tr()),        backgroundC
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.bold,
-                  color: primaryDark,
+                  color: Colors.white, // ✅ تم التعديل للأبيض
                 ),
               ),
               SizedBox(height: 30.h),
@@ -214,7 +214,7 @@ content: Text(state.error ?? "upload.unexpected_error".tr()),        backgroundC
     );
   }
 
-  Widget _buildCategoryDropdown(Color primary, Color gold) {
+   Widget _buildCategoryDropdown(Color primary, Color gold) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -222,23 +222,24 @@ content: Text(state.error ?? "upload.unexpected_error".tr()),        backgroundC
           "upload.label_category".tr(),
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: primary,
+            color: Colors.white, 
             fontSize: 14.sp,
           ),
         ),
         SizedBox(height: 8.h),
         DropdownButtonFormField<String>(
-          style: TextStyle(fontSize: 13.sp, color: Colors.black),
+          style: TextStyle(fontSize: 13.sp, color: Colors.white),
+          dropdownColor: Colors.grey.shade800, // لون خلفية القائمة المنسدلة
           decoration: InputDecoration(
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Colors.white.withOpacity(0.05),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,
               vertical: 12.h,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: primary.withOpacity(0.1)),
+              borderSide: BorderSide(color: Colors.white24),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
@@ -248,12 +249,16 @@ content: Text(state.error ?? "upload.unexpected_error".tr()),        backgroundC
           initialValue: _selectedCategory,
           hint: Text(
             "upload.hint_category".tr(),
-            style: TextStyle(fontSize: 13.sp),
+            style: TextStyle(fontSize: 13.sp, color: Colors.white54), 
           ),
+          // ✅ التعديل الأساسي هنا:
           items: _categories.map((String category) {
             return DropdownMenuItem<String>(
               value: category,
-              child: Text(category.tr()),
+              child: Text(
+                category.tr(),
+                style: TextStyle(color: Colors.white, fontSize: 13.sp), // تحديد اللون الأبيض صراحةً للنصوص جوا الليست
+              ),
             );
           }).toList(),
           onChanged: (value) {
@@ -264,9 +269,7 @@ content: Text(state.error ?? "upload.unexpected_error".tr()),        backgroundC
         ),
       ],
     );
-  }
-
-  Widget _buildInputField({
+  }Widget _buildInputField({
     required String label,
     required String hint,
     required TextEditingController controller,
@@ -281,7 +284,7 @@ content: Text(state.error ?? "upload.unexpected_error".tr()),        backgroundC
           label,
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: primary,
+            color: Colors.white, // ✅ تم التعديل للأبيض
             fontSize: 14.sp,
           ),
         ),
@@ -289,19 +292,19 @@ content: Text(state.error ?? "upload.unexpected_error".tr()),        backgroundC
         TextFormField(
           controller: controller,
           maxLines: maxLines,
-          style: TextStyle(fontSize: 13.sp, color: Colors.black),
+          style: TextStyle(fontSize: 13.sp, color: Colors.white), // ✅ تم التعديل للأبيض
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(fontSize: 13.sp, color: Colors.grey.shade400),
+            hintStyle: TextStyle(fontSize: 13.sp, color: Colors.white54), // ✅ تم التعديل لأبيض شفاف
             filled: true,
-            fillColor: Colors.white,
+            fillColor: Colors.white.withOpacity(0.05), // ✅ خلفية شفافة تناسب الدارك مود
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16.w,
               vertical: 12.h,
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: BorderSide(color: primary.withOpacity(0.1)),
+              borderSide: BorderSide(color: Colors.white24), // ✅ بوادر أبيض شفاف
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),

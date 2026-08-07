@@ -141,10 +141,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
-                    'dashboard_user.welcome'.tr(),
-                    style: TextStyle(color: Colors.white70, fontSize: 15.sp),
-                  ),
+                  
                   Text(
                     context.locale.languageCode == 'ar'
                         ? (doctor?.nameAr ??
@@ -156,8 +153,27 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
                       fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
                     ),
+
+
                     overflow: TextOverflow.ellipsis,
                   ),
+                  SizedBox(height: 6,),
+ Text(
+                    context.locale.languageCode == 'ar'
+                        ? (doctor?.currentJobAr??
+                              'dashboard_user.doctor_default'.tr())
+                        : (doctor?.currentJobEn ??
+                              'dashboard_user.doctor_default'.tr()),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15.sp,
+                      fontWeight: FontWeight.bold,
+                    ),
+
+
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
                 ],
               ),
               actions: [
@@ -402,7 +418,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
               style: TextStyle(
                 fontSize: 15.sp,
                 fontWeight: FontWeight.bold,
-                color: navy,
+                color: Colors.white,
               ),
             ),
           ],

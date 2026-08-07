@@ -22,8 +22,9 @@ import 'package:optialeader/feature/doctor/ui/screens/dashboard_user.dart';
 import 'package:optialeader/feature/auth/data/models/user_model.dart';
 import 'package:optialeader/feature/database_admin/ui/screens/database_admin_dashboard.dart';
 import 'routes.dart';
-
-// ✅ تحديد النوع بدقة
+import 'package:provider/provider.dart';
+import 'package:optialeader/feature/admin/logic/admin_providers.dart';
+import 'package:optialeader/feature/judge/data/judge_providers.dart';
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 GoRouter createRouter(AuthCubit authCubit) {
@@ -98,14 +99,22 @@ GoRouter createRouter(AuthCubit authCubit) {
         builder: (context, state) => const DatabaseAdminDashboard(),
         routes: databaseAdminSubRoutes,
       ),
+             /// --- ADMIN ROUTE ---
       GoRoute(
         path: Routes.admin,
-        builder: (context, state) => const DashboardScreen(),
+        builder: (context, state) => const AdminWrapper(), // ✅ بدل DashboardScreen
         routes: adminSubRoutes,
       ),
+      
+      /// --- JUDGE ROUTE ---
       GoRoute(
         path: Routes.judge,
-        builder: (context, state) => const MohakemDashboardHome(),
+        builder: (context, state) => const JudgeWrapper(), // ✅ بدل MohakemDashboardHome
+        routes: judgeSubRoutes,
+      ),
+        GoRoute(
+        path: Routes.judge,
+        builder: (context, state) => const JudgeWrapper(), // ✅ بدل MohakemDashboardHome
         routes: judgeSubRoutes,
       ),
       GoRoute(
@@ -149,4 +158,30 @@ GoRouter createRouter(AuthCubit authCubit) {
       ),
     ],
   );
+}
+
+class AdminWrapper extends StatelessWidget {
+  const AdminWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: AdminProviders.providers(),
+      child: const DashboardScreen(),
+    );
+  }
+}
+
+
+// ✅ غلاف المحكم
+class JudgeWrapper extends StatelessWidget {
+  const JudgeWrapper({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: JudgeProviders.providers(),
+      child: const MohakemDashboardHome(),
+    );
+  }
 }

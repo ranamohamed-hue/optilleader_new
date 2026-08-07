@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'dart:typed_data';
+import 'dart:isolate';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -71,9 +73,7 @@ class AnnouncementRepositoryImpl implements IAnnouncementRepository {
             await _supabase.storage.from('images').remove([storagePath]);
           }
         } catch (storageError) {
-          print(
-            'Failed to delete announcement image from Supabase: $storageError',
-          );
+          print('Failed to delete announcement image from Supabase: $storageError');
         }
       }
       await _collection.doc(id).delete();
@@ -83,23 +83,25 @@ class AnnouncementRepositoryImpl implements IAnnouncementRepository {
     }
   }
 
+  // ✅✅✅ الحل: قراءة الملف سريعاً، ثم ضغطه في Isolate منفصل عشان متجمدش الشاشة ✅✅✅
   @override
   Future<Either<String, String>> uploadAnnouncementImage(
     String filePath,
   ) async {
     try {
-      final Uint8List? compressedBytes =
-          await FlutterImageCompress.compressWithFile(
-            filePath,
-            minHeight: 800,
-            minWidth: 800,
-            quality: 85,
-          );
-      if (compressedBytes == null)
-        return const Left("ERROR_IMAGE_COMPRESS_FAILED");
+      // 1. قراءة الملف كـ bytes (دي عملية I/O عادية وسريعة)
+      final File imageFile = File(filePath);
+      final Uint8List originalBytes = await imageFile.readAsBytes();
 
-      final storagePath =
-          'announcements/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      // 2. ضغط الصورة في Isolate منفصل (الواجهة هتستمر في الشغل بشكل طبيعي)
+      final Uint8List? compressedBytes = await Isolate.run(() => _compressImageInIsolate(originalBytes));
+      
+      if (compressedBytes == null) {
+        return const Left("ERROR_IMAGE_COMPRESS_FAILED");
+      }
+
+      // 3. رفع الصورة المضغوطة على Supabase
+      final storagePath = 'announcements/${DateTime.now().millisecondsSinceEpoch}.jpg';
       await _supabase.storage
           .from('images')
           .uploadBinary(
@@ -110,12 +112,26 @@ class AnnouncementRepositoryImpl implements IAnnouncementRepository {
               contentType: 'image/jpeg',
             ),
           );
-      final imageUrl = _supabase.storage
-          .from('images')
-          .getPublicUrl(storagePath);
+      
+      final imageUrl = _supabase.storage.from('images').getPublicUrl(storagePath);
       return Right(imageUrl);
     } catch (e) {
       return Left("ERROR_IMAGE_UPLOAD_SUPABASE: ${e.toString()}");
+    }
+  }
+
+  // ✅ دالة منفصلة تتعامل مع الـ Isolate بشكل آمن
+  static Future<Uint8List?> _compressImageInIsolate(Uint8List bytes) async {
+    try {
+      final result = await FlutterImageCompress.compressWithList(
+        bytes,
+        minHeight: 800,
+        minWidth: 800,
+        quality: 85,
+      );
+      return result;
+    } catch (e) {
+      return null;
     }
   }
 
@@ -136,7 +152,6 @@ class AnnouncementRepositoryImpl implements IAnnouncementRepository {
     }
   }
 
-  // ✅✅✅ دالة التقفيل التلقائي الجديدة
   @override
   Future<Either<String, Unit>> autoCloseExpiredAnnouncements(
     List<AnnouncementModel> announcements,

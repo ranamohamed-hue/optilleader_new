@@ -24,8 +24,8 @@ class NotificationRepoImpl extends NotificationRepo {
   @override
   Future<Either<String, Unit>> sendRoleBasedNotification(AppNotificationModel notification) async {
     try {
-      final roles = _getRolesForTarget(notification.target);
-      if (roles.isEmpty) return right(unit);
+      final List<String> roles = _getRolesForTarget(notification.target);
+            if (roles.isEmpty) return right(unit);
 
       final usersQuery = await firebaseFirestore
           .collection('users')

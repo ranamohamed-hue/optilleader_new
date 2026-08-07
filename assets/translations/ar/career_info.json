@@ -3,6 +3,7 @@
     "title": "البيانات الوظيفية",
     "sections": {
       "credentials": "المؤهلات العلمية",
+      "promotions_track": "سلم الترقيات والمسار الأكاديمي",
       "path": "المسار الوظيفي",
       "current_employment": "بيانات العمل الحالية"
     },
@@ -20,7 +21,11 @@
     "experience": "عدد سنوات الخبرة: {0} سنوات",
     "previous_positions": "الوظائف السابقة:",
     "no_history": "لا يوجد سجل أكاديمي",
+    "no_promotions": "لا توجد بيانات مسار أكاديمي مسجلة",
     "no_previous_roles": "لا توجد وظائف سابقة",
+    "years": "سنوات",
+    "months": "أشهر",
+    "until_now": "حتى الآن",
     "roles": {
       "lecturer": "مدرس",
       "ta": "معيد"

@@ -31,7 +31,7 @@ class FilePickerField extends StatelessWidget {
         RichText(
           text: TextSpan(
             text: label,
-            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.black87),
+            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.white),
             children: [
               if (isRequired)
                 const TextSpan(text: ' *', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),

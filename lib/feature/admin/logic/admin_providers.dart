@@ -18,12 +18,39 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdminProviders {
   static List<SingleChildWidget> providers() => [
-    RepositoryProvider(create: (context) => NominationRequestRepositoryImpl(FirebaseFirestore.instance, Supabase.instance.client)),
-    
+    // ✅ أضف <NominationRequestRepository> هنا
+    RepositoryProvider<NominationRequestRepository>(
+      create: (context) => NominationRequestRepositoryImpl(
+        FirebaseFirestore.instance,
+        Supabase.instance.client,
+      ),
+    ),
+
     BlocProvider(create: (context) => AdminDataCubit(AdminRepoImpl())),
-    BlocProvider(create: (context) => DatabseAdminCubit(DatabaseAdminRepoImpl(FirebaseFirestore.instance))),
-    BlocProvider(create: (context) => AnnouncementCubit(AnnouncementRepositoryImpl(FirebaseFirestore.instance), context.read<NotificationRepo>())),
-    BlocProvider(create: (context) => AdminApprovalCubit(adminApprovalRepo: AdminApprovalRepoImpl(firebaseFirestore: FirebaseFirestore.instance, researchPaperRepo: context.read<ResearchPaperRepo>(), notificationRepo: context.read<NotificationRepo>()))),
-    BlocProvider(create: (context) => NominationRequestCubit(context.read<NominationRequestRepository>(), context.read<NotificationRepo>())),
+    BlocProvider(
+      create: (context) =>
+          DatabseAdminCubit(DatabaseAdminRepoImpl(FirebaseFirestore.instance)),
+    ),
+    BlocProvider(
+      create: (context) => AnnouncementCubit(
+        AnnouncementRepositoryImpl(FirebaseFirestore.instance),
+        context.read<NotificationRepo>(),
+      ),
+    ),
+    BlocProvider(
+      create: (context) => AdminApprovalCubit(
+        adminApprovalRepo: AdminApprovalRepoImpl(
+          firebaseFirestore: FirebaseFirestore.instance,
+          researchPaperRepo: context.read<ResearchPaperRepo>(),
+          notificationRepo: context.read<NotificationRepo>(),
+        ),
+      ),
+    ),
+     BlocProvider(
+      create: (context) => NominationRequestCubit(
+        context.read<NominationRequestRepository>(), 
+        context.read<NotificationRepo>(),
+      ),
+    ),
   ];
 }

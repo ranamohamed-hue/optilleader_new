@@ -27,6 +27,12 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
     context.read<DoctorDataCubit>().getDoctorProfile(widget.doctorUid);
   }
 
+  // ✅ دالة مساعدة عشان تتعامل مع المسافات الفاضية والنصوص الفارغة
+  String _validateText(String? text) {
+    if (text == null || text.trim().isEmpty) return '-';
+    return text.trim();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -36,6 +42,13 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
 
     return BlocBuilder<DoctorDataCubit, DoctorDataState>(
       builder: (context, state) {
+        if (state is DoctorLoading) {
+          return Scaffold(
+            backgroundColor: theme.scaffoldBackgroundColor,
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+
         DoctorProfileModel? doctor;
         if (state is DoctorLoaded) {
           doctor = state.doctor;
@@ -130,9 +143,10 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
                     Map<String, dynamic> cert = entry.value;
                     bool isLast = index == doctor!.academicHistory.length - 1;
 
-                    String degree = cert['degree'] ?? '-';
-                    String major = cert['major'] ?? '-';
-                    String place = cert['place'] ?? '-';
+                    // ✅ استخدام دالة التحقق
+                    String degree = _validateText(cert['degree']);
+                    String major = _validateText(cert['major']);
+                    String place = _validateText(cert['place']);
                     String dateStr = '-';
                     if (cert['date'] != null) {
                       final date = cert['date'] is DateTime
@@ -154,20 +168,34 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
                   })
                 else
                   _buildEmptyCard(context, 'career.no_history'.tr()),
+
                 SizedBox(height: 25.h),
+
+                _buildSectionHeader(
+                  context,
+                  Icons.trending_up_rounded,
+                  'career.sections.promotions_track'.tr(),
+                ),
+                _buildPromotionTrackCard(context, doctor),
+
+                SizedBox(height: 25.h),
+
                 _buildSectionHeader(
                   context,
                   Icons.history_edu_rounded,
                   'career.sections.path'.tr(),
                 ),
                 _buildCareerPathCard(context, doctor),
+
                 SizedBox(height: 25.h),
+
                 _buildSectionHeader(
                   context,
                   Icons.badge_outlined,
                   'career.sections.current_employment'.tr(),
                 ),
                 _buildCurrentInfoCard(context, doctor),
+
                 SizedBox(height: 30.h),
               ],
             ),
@@ -176,6 +204,190 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
       },
     );
   }
+
+  // ============================================================
+  // ويدجت سلم الترقيات (Timeline)
+  // ============================================================
+  Widget _buildPromotionTrackCard(
+    BuildContext context,
+    DoctorProfileModel? doctor,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    if (doctor?.academicHistory == null || doctor!.academicHistory.isEmpty) {
+      return _buildEmptyCard(context, 'career.no_promotions'.tr());
+    }
+
+    final sortedHistory = List<Map<String, dynamic>>.from(
+      doctor.academicHistory,
+    );
+    sortedHistory.sort((a, b) {
+      final dateA = a['date'] as DateTime?;
+      final dateB = b['date'] as DateTime?;
+      if (dateA == null && dateB == null) return 0;
+      if (dateA == null) return 1;
+      if (dateB == null) return -1;
+      return dateA.compareTo(dateB);
+    });
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(18.w),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(15.r)),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.1)),
+      ),
+      child: Column(
+        children: sortedHistory.asMap().entries.map((entry) {
+          int index = entry.key;
+          Map<String, dynamic> item = entry.value;
+          bool isLast = index == sortedHistory.length - 1;
+
+          String durationText = '';
+          final currentDate = item['date'] as DateTime?;
+
+          if (!isLast) {
+            final nextDate = sortedHistory[index + 1]['date'] as DateTime?;
+            if (currentDate != null && nextDate != null) {
+              int years = nextDate.year - currentDate.year;
+              int months = nextDate.month - currentDate.month;
+              if (months < 0) {
+                years--;
+                months += 12;
+              }
+              if (years > 0) {
+                durationText = '$years ${'career.years'.tr()}';
+                if (months > 0)
+                  durationText += ' و $months ${'career.months'.tr()}';
+              } else if (months > 0) {
+                durationText = '$months ${'career.months'.tr()}';
+              }
+            }
+          } else {
+            durationText = '(${'career.until_now'.tr()})';
+          }
+
+          // ✅ استخدام دالة التحقق في التيم لاين
+          return _buildTimelineItem(
+            context: context,
+            title: _validateText(item['degree']),
+            place: _validateText(item['place']),
+            date: currentDate != null
+                ? DateFormat('yyyy').format(currentDate)
+                : '-',
+            duration: durationText,
+            isLast: isLast,
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildTimelineItem({
+    required BuildContext context,
+    required String title,
+    required String place,
+    required String date,
+    required String duration,
+    required bool isLast,
+  }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Container(
+                width: 14.w,
+                height: 14.w,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorScheme.secondary,
+                  border: Border.all(
+                    color: theme.cardTheme.color ?? Colors.white,
+                    width: 3.w,
+                  ),
+                ),
+              ),
+              if (!isLast)
+                Expanded(
+                  child: Container(
+                    width: 2.5.w,
+                    color: colorScheme.secondary.withOpacity(0.4),
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(width: 15.w),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 20.h, top: 1.h),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                            fontSize: 14.sp,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        date,
+                        style: TextStyle(
+                          color: colorScheme.secondary,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (place != '-')
+                    Padding(
+                      padding: EdgeInsets.only(top: 2.h),
+                      child: Text(
+                        place,
+                        style: TextStyle(
+                          color: theme.textTheme.bodySmall?.color,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ),
+                  if (duration.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(top: 4.h),
+                      child: Text(
+                        duration,
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
+                          fontSize: 11.sp,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  // باقي الويدجتس
+  // ============================================================
 
   Widget _buildEmptyCard(BuildContext context, String message) {
     return Container(
@@ -262,7 +474,7 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
                   degree,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
+                    color: colorScheme.onSurface,
                     fontSize: 14.sp,
                   ),
                 ),
@@ -275,11 +487,10 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (major.isNotEmpty)
+                if (major != '-')
                   Text(major, style: theme.textTheme.bodyMedium),
-                if (place.isNotEmpty)
-                  Text(place, style: theme.textTheme.bodySmall),
-                if (date.isNotEmpty)
+                if (place != '-') Text(place, style: theme.textTheme.bodySmall),
+                if (date != '-')
                   Text(
                     date,
                     style: theme.textTheme.bodySmall?.copyWith(
@@ -302,15 +513,7 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
     final colorScheme = theme.colorScheme;
     final isArabic = context.locale.languageCode == 'ar';
 
-    int experienceYears = 0;
-    if (doctor?.professorRankDate != null) {
-      experienceYears = DateTime.now().year - doctor!.professorRankDate!.year;
-      if (DateTime.now().month < doctor.professorRankDate!.month ||
-          (DateTime.now().month == doctor.professorRankDate!.month &&
-              DateTime.now().day < doctor.professorRankDate!.day)) {
-        experienceYears--;
-      }
-    }
+    int experienceYears = doctor?.yearsSinceHiring ?? 0;
 
     return Container(
       width: double.infinity,
@@ -331,7 +534,11 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
                     : (doctor?.currentJobEn ?? '-'),
               ],
             ),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 14,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 8.h),
           Text(
@@ -344,7 +551,11 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
           Divider(height: 30.h, color: colorScheme.primary.withOpacity(0.1)),
           Text(
             'career.previous_positions'.tr(),
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13,
+              color: colorScheme.onSurface,
+            ),
           ),
           SizedBox(height: 10.h),
           if (doctor?.previousLeadershipRoles != null &&
@@ -369,7 +580,11 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
           Expanded(
             child: Text(
               title,
-              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
           if (period.isNotEmpty)
@@ -443,13 +658,20 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
         SizedBox(width: 8.w),
         Text(
           label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 13,
+            color: colorScheme.onSurface,
+          ),
         ),
         SizedBox(width: 5.w),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(fontSize: 13, color: Colors.black87),
+            style: TextStyle(
+              fontSize: 13,
+              color: colorScheme.onSurface.withOpacity(0.8),
+            ),
           ),
         ),
       ],

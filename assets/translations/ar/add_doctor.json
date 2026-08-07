@@ -85,6 +85,10 @@
     "archive_details": "تفاصيل الأرشيف",
     "file_title": "عنوان الملف",
     "file_desc": "وصف الملف",
-    "file_category": "تصنيف الملف"
+    "file_category": "تصنيف الملف",
+    "degree_bachelor": "بكالوريوس",
+    "degree_diploma": "دبلومة",
+    "degree_master": "ماجستير",
+    "degree_phd": "دكتوراه"
   }
 }

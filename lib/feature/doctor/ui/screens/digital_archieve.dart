@@ -222,12 +222,12 @@ class DigitalArchivePage extends StatelessWidget {
   Widget _buildSearchAndSortBar(ColorScheme colorScheme) {
     return Row(
       children: [
-        Icon(Icons.sort_rounded, color: colorScheme.primary, size: 22.sp),
+        Icon(Icons.sort_rounded, color: Colors.white, size: 22.sp),
         SizedBox(width: 10.w),
         Text(
           "archive.sort_by_date".tr(),
           style: TextStyle(
-            color: colorScheme.primary,
+            color: Colors.white,
             fontWeight: FontWeight.w600,
             fontSize: 13.sp,
           ),
@@ -238,10 +238,10 @@ class DigitalArchivePage extends StatelessWidget {
           child: Container(
             padding: EdgeInsets.all(8.w),
             decoration: BoxDecoration(
-              color: colorScheme.primary.withOpacity(0.05),
+              color: colorScheme.primary,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.search, color: colorScheme.primary, size: 20.sp),
+            child: Icon(Icons.search, color:Colors.white, size: 20.sp),
           ),
         ),
       ],

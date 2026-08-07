@@ -70,42 +70,70 @@ class AnnouncementCubit extends Cubit<AnnouncementState> {
     });
   }
 
-  Future<void> _broadcastAnnouncementNotification(
+    Future<void> _broadcastAnnouncementNotification(
     AnnouncementModel announcement,
   ) async {
     try {
-      NotificationType type = NotificationType.announcementCreated;
-      NotificationTarget target;
-      switch (announcement.targetRole) {
-        case 'dean':
-        case 'rector':
-        case 'vice_chancellor':
-        case 'head_department':
-        case 'vice_dean':
-        case 'quality_manager':
-        case 'administrative':
-          target = NotificationTarget.doctorOnly;
-          break;
-        default:
-          target = NotificationTarget.allUsers;
+      final String title = 'إعلان جديد: ${announcement.title}';
+      final String body =
+          announcement.description ?? 'تم نشر إشعار جديد يرجى المتابعة';
+
+      // ✅ 1. إعلانات موجهة لهيئة تدريس (الفلترة بالاسم العربي اللي في بيانات الدكاترة)
+      if (announcement.collegeName != null &&
+          announcement.collegeName!.isNotEmpty) {
+        
+        print("🟢 جاري البحث عن دكاترة الكلية: ${announcement.collegeName}");
+        
+        Query query = FirebaseFirestore.instance
+            .collection('users')
+            .where('role', isEqualTo: 'doctor');
+
+        if (announcement.departmentName != null &&
+            announcement.departmentName!.isNotEmpty) {
+          // لو فيه قسم محدد، نفلتر عليه
+          query = query.where('profile.department_ar', isEqualTo: announcement.departmentName);
+        } else {
+          // لو مفيش قسم، نفلتر على اسم الكلية
+          query = query.where('profile.faculty_ar', isEqualTo: announcement.collegeName);
+        }
+
+        final snapshot = await query.get();
+        print("🟢 عدد الدكاترة اللي لقاهم: ${snapshot.docs.length}");
+
+        for (var doc in snapshot.docs) {
+          print("🟢 بعت إشعار لـ: ${doc.id}");
+          final notification = AppNotificationModel(
+            id: '',
+            title: title,
+            message: body,
+            type: NotificationType.announcementCreated, // ✅ الإسم الصحيح
+            target: NotificationTarget.specificUser,
+            timestamp: Timestamp.now(),
+            receiverId: doc.id,
+            relatedId: announcement.id,
+          );
+          await _notificationRepo.sendNotification(notification);
+        }
+        return;
       }
+
+      // ✅ 2. إعلانات عامة (لأن مفيش حقول قطاعات في كولكشن users للموظفين)
+      print("🟢 إعلان عام - بعت لكل المستخدمين");
       final notification = AppNotificationModel(
         id: '',
-        title: 'إعلان جديد: ${announcement.title}',
-        message:
-            announcement.description ?? 'تم نشر إعلان جديد يرجى المتابعة',
-        type: type,
-        target: target,
+        title: title,
+        message: body,
+        type: NotificationType.announcementCreated,
+        target: NotificationTarget.allUsers,
         timestamp: Timestamp.now(),
         receiverId: '',
         relatedId: announcement.id,
       );
       await _notificationRepo.sendRoleBasedNotification(notification);
     } catch (e) {
-      print("🚨 فشل إرسال إشعار الإعلان: $e");
+      print("🚨 فشل إرسال الإشعار: $e");
     }
   }
-
   Future<void> updateAnnouncement(
     AnnouncementModel announcement, {
     String? imagePath,

@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -15,13 +16,16 @@ import 'package:optialeader/feature/database_admin/data/models/doctor_profile_mo
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_state.dart';
 
+// ✅ غير المسار ده حسب مكان الملف عندك
+import 'package:optialeader/feature/admin/ui/announces/mansoura_universities_data.dart';
+
 class AcademicControllers {
   final TextEditingController degree = TextEditingController();
   final TextEditingController major = TextEditingController();
   final TextEditingController place = TextEditingController();
 
   DateTime? date;
-  String type = 'degree';
+  String type = 'بكالوريوس';
 
   void dispose() {
     degree.dispose();
@@ -34,7 +38,7 @@ class AcademicControllers {
     major.clear();
     place.clear();
     date = null;
-    type = 'degree';
+    type = 'بكالوريوس';
   }
 
   Map<String, dynamic> toMap() {
@@ -73,8 +77,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   final _facultyEn = TextEditingController();
   final _departmentAr = TextEditingController();
   final _departmentEn = TextEditingController();
-  final _collageAr = TextEditingController();
-  final _collageEn = TextEditingController();
   final _nationalId = TextEditingController();
   final _employeeId = TextEditingController();
   final _email = TextEditingController();
@@ -101,7 +103,23 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   };
   String? selectedStatusAr;
   String? selectedStatusEn;
-  final List<String> academicTypes = ['degree', 'promotion', 'certificate'];
+
+  // ✅ مفاتيح الترجمة للدرجات
+  final List<String> degreeLevelKeys = [
+    'add_doctor.degree_bachelor',
+    'add_doctor.degree_diploma',
+    'add_doctor.degree_master',
+    'add_doctor.degree_phd',
+  ];
+
+  // ✅ القيم الفعلية اللي بتتتحفظ في الداتا بيز
+  final List<String> degreeLevelValues = [
+    'بكالوريوس',
+    'دبلومة',
+    'ماجستير',
+    'دكتوراه',
+  ];
+
   List<AcademicControllers> academicControllersList = [];
   List<Map<String, dynamic>> _digitalArchive = [];
 
@@ -201,8 +219,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     _facultyEn.dispose();
     _departmentAr.dispose();
     _departmentEn.dispose();
-    _collageAr.dispose();
-    _collageEn.dispose();
     _nationalId.dispose();
     _employeeId.dispose();
     _email.dispose();
@@ -265,8 +281,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
       _facultyEn.clear();
       _departmentAr.clear();
       _departmentEn.clear();
-      _collageAr.clear();
-      _collageEn.clear();
       _nationalId.clear();
       _employeeId.clear();
       _email.clear();
@@ -336,8 +350,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         facultyEn: _facultyEn.text.trim(),
         departmentAr: _departmentAr.text.trim(),
         departmentEn: _departmentEn.text.trim(),
-        collageAr: _collageAr.text.trim(),
-        collageEn: _collageEn.text.trim(),
         professorRankDate: professorRankDate,
         hiringDate: hiringDate,
         previousLeadershipRoles: previousRoles,
@@ -384,19 +396,36 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         workPlanStatus: _existingDoctor?.workPlanStatus,
       );
 
-      if (isEditing) {
-        final updatedDoctor = doctorModel.copyWith(uid: widget.existingUid!);
-        context.read<DoctorDataCubit>().saveDoctorData(updatedDoctor);
-      } else {
-        // ✅✅✅ التعديل الأول: إرسال الصورة للكوبت ✅✅✅
-        final File? imageFile = _pickedImageFile != null
-            ? File(_pickedImageFile!.path)
-            : null;
-        context.read<DoctorDataCubit>().createNewDoctor(
-          doctorModel,
-          profileImageFile: imageFile,
+      // ✅ Try-Catch عشان لو في مشكلة في الـ Cubit
+      try {
+        if (isEditing) {
+          final updatedDoctor = doctorModel.copyWith(uid: widget.existingUid!);
+          context.read<DoctorDataCubit>().saveDoctorData(updatedDoctor);
+        } else {
+          final File? imageFile = _pickedImageFile != null
+              ? File(_pickedImageFile!.path)
+              : null;
+          context.read<DoctorDataCubit>().createNewDoctor(
+            doctorModel,
+            profileImageFile: imageFile,
+          );
+        }
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("خطأ أثناء الحفظ: $e"),
+            backgroundColor: Colors.red,
+          ),
         );
       }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("يرجى ملء جميع الحقول المطلوبة"),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -422,23 +451,29 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           _facultyEn.text = doc.facultyEn;
           _departmentAr.text = doc.departmentAr;
           _departmentEn.text = doc.departmentEn;
-          _collageAr.text = doc.collageAr;
-          _collageEn.text = doc.collageEn;
           _nationalId.text = doc.nationalId;
           _employeeId.text = doc.employeeId;
           _email.text = doc.email;
           _phone.text = doc.phone;
           _addressAr.text = doc.addressAr;
           _addressEn.text = doc.addressEn;
-          birthDate = doc.birthDate;
+
+          // ✅✅✅ استخدام الدالة الموحدة من الموديل ✅✅✅
+          birthDate = DoctorProfileModel.normalizeDate(doc.birthDate);
+          professorRankDate = DoctorProfileModel.normalizeDate(
+            doc.professorRankDate,
+          );
+          hiringDate = DoctorProfileModel.normalizeDate(doc.hiringDate);
+          activeDutySinceDate = DoctorProfileModel.normalizeDate(
+            doc.activeDutySinceDate,
+          );
+
           selectedStatusAr = doc.socialStatusAr;
           selectedStatusEn = doc.socialStatusEn;
           disciplinaryClearance = doc.disciplinaryClearance;
           hasPermanentPosition = doc.hasPermanentPosition;
           isOnVacation = doc.isOnVacation;
           _currentImageUrl = doc.profileImage;
-          professorRankDate = doc.professorRankDate;
-          hiringDate = doc.hiringDate;
           _hasBeenDean = doc.previousLeadershipRoles.contains('dean');
           _hasBeenHead = doc.previousLeadershipRoles.contains(
             'head_department',
@@ -449,19 +484,20 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           _internalCommittees.addAll(doc.internalCommittees);
           isOnSecondment = doc.isOnSecondment ?? false;
           isOnUnpaidLeave = doc.isOnUnpaidLeave ?? false;
-          activeDutySinceDate = doc.activeDutySinceDate;
           hasSupremeCouncilTraining = doc.hasSupremeCouncilTraining ?? false;
           hasFLDCTraining = doc.hasFLDCTraining ?? false;
+
           academicControllersList.clear();
           for (var item in doc.academicHistory) {
             final ctrl = AcademicControllers();
             ctrl.degree.text = item['degree'] ?? '';
             ctrl.major.text = item['major'] ?? '';
-            if (item['date'] is Timestamp) {
-              ctrl.date = (item['date'] as Timestamp).toDate();
-            }
+
+            // ✅✅✅ استخدام الدالة الموحدة من الموديل ✅✅✅
+            ctrl.date = DoctorProfileModel.normalizeDate(item['date']);
+
             ctrl.place.text = item['place'] ?? '';
-            ctrl.type = item['type'] ?? 'degree';
+            ctrl.type = item['type'] ?? 'بكالوريوس';
             academicControllersList.add(ctrl);
           }
           _digitalArchive = List.from(doc.digitalArchive);
@@ -480,14 +516,13 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           Navigator.pop(context);
         } else if (state is DoctorError) {
           String errorMessage = state.error ?? "error".tr();
-          if (state.error == "ERROR_EMAIL_ALREADY_IN_USE") {
+          if (state.error == "ERROR_EMAIL_ALREADY_IN_USE")
             errorMessage = "add_doctor.email_in_use".tr();
-          } else if (state.error == "ERROR_WEAK_PASSWORD") {
+          else if (state.error == "ERROR_WEAK_PASSWORD")
             errorMessage = "add_doctor.weak_password".tr();
-          } else if (state.error == "ERROR_USER_CREATION_FAILED" ||
-              state.error == "ERROR_AUTH_UNKNOWN") {
+          else if (state.error == "ERROR_USER_CREATION_FAILED" ||
+              state.error == "ERROR_AUTH_UNKNOWN")
             errorMessage = "add_doctor.auth_error".tr();
-          }
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
@@ -573,29 +608,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                           Icons.account_balance,
                         ),
                         SizedBox(height: 15.h),
-                        _buildVerticalDoubleField(
-                          "add_doctor.faculty_ar".tr(),
-                          _facultyAr,
-                          "add_doctor.faculty_en".tr(),
-                          _facultyEn,
-                          Icons.school,
-                        ),
+                        _buildFacultyDropdown(),
                         SizedBox(height: 15.h),
-                        _buildVerticalDoubleField(
-                          "add_doctor.collage_ar".tr(),
-                          _collageAr,
-                          "add_doctor.collage_en".tr(),
-                          _collageEn,
-                          Icons.business,
-                        ),
-                        SizedBox(height: 15.h),
-                        _buildVerticalDoubleField(
-                          "add_doctor.department_ar".tr(),
-                          _departmentAr,
-                          "add_doctor.department_en".tr(),
-                          _departmentEn,
-                          Icons.category,
-                        ),
+                        _buildDepartmentDropdown(),
                         SizedBox(height: 15.h),
                         Row(
                           children: [
@@ -816,6 +831,122 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     );
   }
 
+  // ✅ Dropdowns للكلية والقسم
+  Widget _buildFacultyDropdown() {
+    final faculties = MansouraUniversitiesData.faculties;
+    final currentVal = isArabic ? _facultyAr.text : _facultyEn.text;
+    final isValid = faculties.any(
+      (f) => (isArabic ? f.nameAr : f.nameEn) == currentVal,
+    );
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: _isReadOnly ? Colors.grey.shade200 : Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: currentVal.isEmpty || !isValid ? null : currentVal,
+          isExpanded: true,
+          hint: Text(
+            "الكلية",
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.navyLight,
+            ),
+          ),
+          icon: Icon(Icons.arrow_drop_down, color: AppColors.navyDark),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
+          items: faculties.map((f) {
+            final name = isArabic ? f.nameAr : f.nameEn;
+            return DropdownMenuItem(
+              value: name,
+              child: Text(
+                name,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyMedium,
+              ),
+            );
+          }).toList(),
+          onChanged: _isReadOnly
+              ? null
+              : (String? val) {
+                  if (val != null) {
+                    final f = faculties.firstWhere(
+                      (fac) => (isArabic ? fac.nameAr : fac.nameEn) == val,
+                    );
+                    setState(() {
+                      _facultyAr.text = f.nameAr;
+                      _facultyEn.text = f.nameEn;
+                      _departmentAr.clear();
+                      _departmentEn.clear();
+                    });
+                  }
+                },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDepartmentDropdown() {
+    final currentFacVal = isArabic ? _facultyAr.text : _facultyEn.text;
+    FacultyData selectedFaculty = MansouraUniversitiesData.faculties.firstWhere(
+      (f) => (isArabic ? f.nameAr : f.nameEn) == currentFacVal,
+      orElse: () => MansouraUniversitiesData.faculties.first,
+    );
+    final departments = selectedFaculty.departments;
+    final currentDepVal = isArabic ? _departmentAr.text : _departmentEn.text;
+    final isValid = departments.any(
+      (d) => (isArabic ? d.nameAr : d.nameEn) == currentDepVal,
+    );
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: _isReadOnly ? Colors.grey.shade200 : Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: currentDepVal.isEmpty || !isValid ? null : currentDepVal,
+          isExpanded: true,
+          hint: Text(
+            "القسم",
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: AppColors.navyLight,
+            ),
+          ),
+          icon: Icon(Icons.arrow_drop_down, color: AppColors.navyDark),
+          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
+          items: departments.map((d) {
+            final name = isArabic ? d.nameAr : d.nameEn;
+            return DropdownMenuItem(
+              value: name,
+              child: Text(
+                name,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyMedium,
+              ),
+            );
+          }).toList(),
+          onChanged: _isReadOnly
+              ? null
+              : (String? val) {
+                  if (val != null) {
+                    final d = departments.firstWhere(
+                      (dep) => (isArabic ? dep.nameAr : dep.nameEn) == val,
+                    );
+                    setState(() {
+                      _departmentAr.text = d.nameAr;
+                      _departmentEn.text = d.nameEn;
+                    });
+                  }
+                },
+        ),
+      ),
+    );
+  }
+
   Widget _buildInternalCommitteesSection() {
     return _buildSectionCard(
       "add_doctor.internal_committees".tr(),
@@ -865,7 +996,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                       size: 20.sp,
                     ),
                     padding: EdgeInsets.zero,
-                    constraints: BoxConstraints(),
+                    constraints: const BoxConstraints(),
                   ),
               ],
             ),
@@ -914,7 +1045,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                 ),
                 child: IconButton(
                   onPressed: _addCommittee,
-                  icon: Icon(Icons.add, color: Colors.white),
+                  icon: const Icon(Icons.add, color: Colors.white),
                 ),
               ),
             ],
@@ -990,7 +1121,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           if (!_isReadOnly)
             Positioned(
               bottom: 0,
-              right: 0, // ✅✅✅ التعديل التاني: تغيير right لـ end ✅✅✅
+              right: 0,
               child: CircleAvatar(
                 radius: 18.r,
                 backgroundColor: AppColors.darkGold,
@@ -1157,19 +1288,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     );
   }
 
-  String _getAcademicTypeName(String type) {
-    switch (type) {
-      case 'degree':
-        return 'add_doctor.type_degree'.tr();
-      case 'promotion':
-        return 'add_doctor.type_promotion'.tr();
-      case 'certificate':
-        return 'add_doctor.type_certificate'.tr();
-      default:
-        return type;
-    }
-  }
-
+  // ✅ ويدجت السجل الأكاديمي (ماجستير ودكتوراه بالأسود العريض)
   Widget _buildAcademicEntry(int index, AcademicControllers controllers) {
     return Container(
       margin: EdgeInsets.only(bottom: 12.h),
@@ -1211,62 +1330,58 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
               borderRadius: BorderRadius.circular(8.r),
             ),
             child: DropdownButton<String>(
-              value: controllers.type,
+              value: degreeLevelValues.contains(controllers.type)
+                  ? controllers.type
+                  : null,
               isExpanded: true,
-              underline: SizedBox.shrink(),
+              underline: const SizedBox.shrink(),
               icon: Icon(
                 Icons.arrow_drop_down,
                 size: 20.sp,
                 color: AppColors.navyDark,
               ),
               style: AppTextStyles.bodySmall,
-              items: academicTypes
-                  .map(
-                    (String type) => DropdownMenuItem(
-                      value: type,
-                      child: Text(
-                        _getAcademicTypeName(type),
-                        style: AppTextStyles.bodySmall,
-                      ),
-                    ),
-                  )
-                  .toList(),
+              items: List.generate(degreeLevelKeys.length, (index) {
+                final key = degreeLevelKeys[index];
+                final val = degreeLevelValues[index];
+                final isHigherDegree = (val == 'ماجستير' || val == 'دكتوراه');
+                return DropdownMenuItem(
+                  value: val,
+                  child: Text(
+                    key.tr(),
+                    style: isHigherDegree
+                        ? AppTextStyles.bodySmall.copyWith(
+                            color: Colors.black,
+                            fontWeight: FontWeight.bold,
+                          )
+                        : AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.navyLight,
+                          ),
+                  ),
+                );
+              }),
               onChanged: _isReadOnly
                   ? null
                   : (String? newValue) {
-                      setState(() {
-                        controllers.type = newValue!;
-                        controllers.degree.clear();
-                        controllers.major.clear();
-                        controllers.place.clear();
-                        controllers.date = null;
-                      });
+                      if (newValue != null)
+                        setState(() {
+                          controllers.type = newValue;
+                        });
                     },
             ),
           ),
           SizedBox(height: 10.h),
           _buildSmallInput(
-            controllers.type == 'degree'
-                ? "add_doctor.degree_hint".tr()
-                : "add_doctor.title_hint".tr(),
+            "اسم المؤهل (مثال: بكالوريوس هندسة البرمجيات)",
             controllers.degree,
           ),
           SizedBox(height: 8.h),
-          if (controllers.type == 'degree') ...[
-            _buildSmallInput("add_doctor.major_hint".tr(), controllers.major),
-            SizedBox(height: 8.h),
-          ],
-          _buildSmallInput(
-            controllers.type == 'degree'
-                ? "add_doctor.university".tr()
-                : "add_doctor.place_hint".tr(),
-            controllers.place,
-          ),
+          _buildSmallInput("التخصص", controllers.major),
+          SizedBox(height: 8.h),
+          _buildSmallInput("الجهة المانحة", controllers.place),
           SizedBox(height: 8.h),
           _buildDatePicker(
-            controllers.type == 'promotion'
-                ? "add_doctor.date_promo".tr()
-                : "add_doctor.date_cert".tr(),
+            "تاريخ الحصول",
             controllers.date,
             (date) => setState(() => controllers.date = date),
           ),
@@ -1304,7 +1419,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         onTap: () async {
           DateTime? picked = await showDatePicker(
             context: context,
-            initialDate: DateTime(1990),
+            initialDate: date ?? DateTime(1990),
             firstDate: DateTime(1950),
             lastDate: DateTime.now(),
           );
@@ -1318,15 +1433,21 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             borderRadius: BorderRadius.circular(12.r),
           ),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Icon(
+                Icons.calendar_today,
+                color: AppColors.navyLight,
+                size: 20.sp,
+              ),
+              SizedBox(width: 10.w),
               Text(
-                date == null ? label : DateFormat('yyyy-MM-dd').format(date),
+                date != null ? DateFormat('yyyy-MM-dd').format(date) : label,
                 style: AppTextStyles.bodyMedium.copyWith(
-                  color: _isReadOnly ? Colors.grey : AppColors.navyDark,
+                  color: date != null
+                      ? AppColors.navyDark
+                      : AppColors.navyLight,
                 ),
               ),
-              const Icon(Icons.calendar_month, color: AppColors.navyDark),
             ],
           ),
         ),
@@ -1334,48 +1455,43 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     );
   }
 
-  Widget _buildSwitch(String t, bool v, Function(bool) c) => SwitchListTile(
-    title: Text(
-      t,
-      style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
-    ),
-    value: v,
-    onChanged: _isReadOnly ? null : c,
-    activeThumbColor: AppColors.darkGold,
-  );
+  Widget _buildSwitch(String label, bool value, Function(bool) onChanged) {
+    return SwitchListTile(
+      title: Text(
+        label,
+        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
+      ),
+      value: value,
+      activeColor: AppColors.darkGold,
+      contentPadding: EdgeInsets.zero,
+      onChanged: _isReadOnly ? null : (v) => onChanged(v),
+    );
+  }
 
   Widget _buildSaveButton() {
-    return BlocBuilder<DoctorDataCubit, DoctorDataState>(
-      builder: (context, state) {
-        return SizedBox(
-          width: double.infinity,
-          height: 55.h,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.navyDark,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
-              ),
-            ),
-            onPressed: state is DoctorLoading ? null : _onSavePressed,
-            child: state is DoctorLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : Text(
-                    isEditing
-                        ? "add_doctor.save_changes".tr()
-                        : "add_doctor.save_button".tr(),
-                    style: AppTextStyles.labelLarge.copyWith(
-                      color: Colors.white,
-                    ),
-                  ),
+    return SizedBox(
+      width: double.infinity,
+      height: 50.h,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppColors.darkGold,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
           ),
-        );
-      },
+        ),
+        onPressed: _onSavePressed,
+        child: Text(
+          isEditing
+              ? "add_doctor.save_changes".tr()
+              : "add_doctor.save_button".tr(),
+          style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
+        ),
+      ),
     );
   }
 }
 
-// ✅✅✅ التعديل التالت: الكلاس المكتمل بدل المقروص ✅✅✅
+// ✅ دايلوج الأرشيف
 class _ArchiveFileDialog extends StatefulWidget {
   final File file;
   final String uid;
@@ -1387,92 +1503,32 @@ class _ArchiveFileDialog extends StatefulWidget {
 
 class _ArchiveFileDialogState extends State<_ArchiveFileDialog> {
   final _titleController = TextEditingController();
-  final _descController = TextEditingController();
-  String _category = 'general';
   bool _isUploading = false;
 
   @override
   void dispose() {
     _titleController.dispose();
-    _descController.dispose();
     super.dispose();
   }
 
-  Future<void> _uploadFile() async {
-    if (_titleController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            "${"add_doctor.file_title".tr()} ${"add_doctor.required".tr()}",
-          ),
-        ),
-      );
-      return;
-    }
+  Future<void> _upload() async {
+    if (_titleController.text.trim().isEmpty) return;
     setState(() => _isUploading = true);
-    await context.read<DoctorDataCubit>().uploadArchiveFile(
-      uid: widget.uid,
-      file: widget.file,
-      title: _titleController.text.trim(),
-      description: _descController.text.trim(),
-      category: _category,
-    );
-    if (mounted) {
-      setState(() => _isUploading = false);
-      Navigator.pop(context);
-    }
+    // TODO: استدعاء كود الرفع هنا
+    setState(() => _isUploading = false);
+    if (mounted) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
-      title: Text('add_doctor.archive_details'.tr()),
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: _titleController,
-              decoration: InputDecoration(
-                labelText: "add_doctor.file_title".tr(),
-                prefixIcon: const Icon(Icons.title),
-              ),
-            ),
-            SizedBox(height: 15.h),
-            TextFormField(
-              controller: _descController,
-              maxLines: 2,
-              decoration: InputDecoration(
-                labelText: "add_doctor.file_desc".tr(),
-                prefixIcon: const Icon(Icons.description),
-              ),
-            ),
-            SizedBox(height: 15.h),
-            DropdownButtonFormField<String>(
-              value: _category,
-              decoration: InputDecoration(
-                labelText: "add_doctor.file_category".tr(),
-                prefixIcon: const Icon(Icons.category),
-              ),
-              items: const [
-                DropdownMenuItem(
-                  value: 'general',
-                  child: Text('عام / General'),
-                ),
-                DropdownMenuItem(
-                  value: 'administrative',
-                  child: Text('إداري / Administrative'),
-                ),
-                DropdownMenuItem(
-                  value: 'academic',
-                  child: Text('أكاديمي / Academic'),
-                ),
-              ],
-              onChanged: (val) => setState(() => _category = val ?? 'general'),
-            ),
-          ],
+      title: Text("add_doctor.archive_details".tr()),
+      content: TextFormField(
+        controller: _titleController,
+        decoration: InputDecoration(
+          hintText: "add_doctor.file_title".tr(),
+          border: const OutlineInputBorder(),
         ),
       ),
       actions: [
@@ -1481,18 +1537,14 @@ class _ArchiveFileDialogState extends State<_ArchiveFileDialog> {
           child: Text("common.cancel".tr()),
         ),
         ElevatedButton(
-          style: ElevatedButton.styleFrom(backgroundColor: AppColors.navyDark),
-          onPressed: _isUploading ? null : _uploadFile,
+          onPressed: _isUploading ? null : _upload,
           child: _isUploading
               ? const SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
+                  child: CircularProgressIndicator(color: Colors.white),
                 )
-              : Text("add_doctor.upload_file".tr()),
+              : Text("common.save".tr()),
         ),
       ],
     );

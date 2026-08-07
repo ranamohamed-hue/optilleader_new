@@ -24,5 +24,5 @@ static const Color navyDark = Color(0xFF0D1B2A);
 
   // --- الربط بالثيم الفاتح ونصوصه ---
   static const Color lightPrimary = navyDark;
-  static const Color lightTextSecondary = Color(0xFF6D6D6D);
+  static const Color lightTextSecondary = Color.fromARGB(255, 241, 231, 231);
 }

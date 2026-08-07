@@ -253,94 +253,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                     ),
 
                     // ===== قسم القيادات والأهلية =====
-                    _buildSectionCard(
-                      context,
-                      icon: Icons.military_tech_outlined,
-                      title: "acadimic_Data.add_doctor.leadership_section".tr(),
-                      children: [
-                        _buildInfoRow(
-                          context,
-                          label: "acadimic_Data.add_doctor.hiring_date".tr(),
-                          value: doctor.hiringDate != null
-                              ? DateFormat(
-                                  'yyyy-MM-dd',
-                                ).format(doctor.hiringDate!)
-                              : '-',
-                        ),
-
-                        // تحقق: 10 سنين خبرة إدارية
-                        if (doctor.hiringDate != null)
-                          _buildValidationCard(
-                            context,
-                            label:
-                                "acadimic_Data.validation_checks.admin_exp_label"
-                                    .tr(),
-                            isMet: doctor.yearsSinceHiring >= 10,
-                            details:
-                                "acadimic_Data.validation_checks.admin_exp_details"
-                                    .tr(
-                                      namedArgs: {
-                                        'years': doctor.yearsSinceHiring
-                                            .toString(),
-                                      },
-                                    ),
-                          ),
-
-                        SizedBox(height: 10.h),
-                        _buildInfoRow(
-                          context,
-                          label: "acadimic_Data.add_doctor.professor_rank_date"
-                              .tr(),
-                          value: doctor.professorRankDate != null
-                              ? DateFormat(
-                                  'yyyy-MM-dd',
-                                ).format(doctor.professorRankDate!)
-                              : '-',
-                        ),
-
-                        // تحقق: أستاذية 3 سنين + درجة الأستاذية
-                        if (doctor.professorRankDate != null)
-                          _buildValidationCard(
-                            context,
-                            label:
-                                "acadimic_Data.validation_checks.professor_label"
-                                    .tr(),
-                            isMet:
-                                _hasProfessorDegree(doctor) &&
-                                doctor.yearsAsProfessor >= 3,
-                            details: _hasProfessorDegree(doctor)
-                                ? "acadimic_Data.validation_checks.professor_details_yes"
-                                      .tr(
-                                        namedArgs: {
-                                          'years': doctor.yearsAsProfessor
-                                              .toString(),
-                                        },
-                                      )
-                                : "acadimic_Data.validation_checks.professor_details_no"
-                                      .tr(
-                                        namedArgs: {
-                                          'years': doctor.yearsAsProfessor
-                                              .toString(),
-                                        },
-                                      ),
-                          ),
-
-                        SizedBox(height: 10.h),
-
-                        // تحقق ديناميكي: أقدم 3 أساتذة بالقسم
-                        _buildTop3DynamicCheck(context, doctor),
-
-                        SizedBox(height: 10.h),
-
-                        // اللجان الداخلية
-                        _buildCommitteesWidget(
-                          context,
-                          doctor.internalCommittees,
-                        ),
-                      ],
-                    ),
-
-                    // ===== قسم بيانات التواصل =====
+                // ===== قسم بيانات التواصل =====
                     _buildSectionCard(
                       context,
                       icon: Icons.contact_mail_outlined,
@@ -619,7 +532,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                 Text(
                   title,
                   style: theme.textTheme.titleSmall?.copyWith(
-                    color: colorScheme.primary,
+                    color: Colors.white,
                     fontWeight: FontWeight.bold,
                     fontSize: 14.sp,
                   ),
@@ -652,7 +565,7 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
           Text(
             label,
             style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.primary.withOpacity(0.7),
+              color: Colors.white,
               fontWeight: FontWeight.w600,
               fontSize: 11.sp,
             ),

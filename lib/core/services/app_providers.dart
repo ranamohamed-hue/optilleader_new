@@ -11,13 +11,13 @@ import 'package:provider/single_child_widget.dart';
 
 import 'package:optialeader/feature/admin/logic/admin_providers.dart';
 import 'package:optialeader/feature/doctor/logic/doctor_providers.dart';
-import 'package:optialeader/feature/database_admin/logic/general_data_providers.dart';
 import 'package:optialeader/feature/judge/data/judge_providers.dart';
+import 'package:optialeader/feature/database_admin/logic/general_data_providers.dart';
 
 class AppProviders {
   static List<SingleChildWidget> providers({required HiveService hiveService}) => [
     
-    // 1. الأساسيات
+    // 1. الأساسيات (الريبو الأساسي والثيم والأوث)
     RepositoryProvider<NotificationRepo>(create: (context) => NotificationRepoImpl()),
     BlocProvider(create: (context) => ThemeCubit()),
     BlocProvider(
@@ -30,13 +30,13 @@ class AppProviders {
       ),
     ),
 
-    // 2. ملف الدكاترة
+    // 2. ملف الدكاترة (لازم ييجي الأول عشان الـ Admin يعتمد عليه)
     ...DoctorProviders.providers(),
     
     // 3. ملف الأدمن
     ...AdminProviders.providers(),
 
-    // ✅ 4. ملف المحكمين
+    // 4. ملف المحكمين
     ...JudgeProviders.providers(),
 
     // 5. ملف البيانات العامة (الموظفين، الإعدادات، الإشعارات...)

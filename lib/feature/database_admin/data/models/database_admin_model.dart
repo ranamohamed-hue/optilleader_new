@@ -8,8 +8,8 @@ class DatabaseAdminProfileModel {
   final String profileImage;
   final String role;
   final String phone;
-  final String nationalId;  // ✅ [تعديل] توحيد التسمية camelCase زي باقي الموديلات
-  final String employeeId;  // ✅ [تعديل] توحيد التسمية camelCase زي باقي الموديلات
+  final String nationalId;
+  final String employeeId;
   final bool isFirstLogin;
 
   const DatabaseAdminProfileModel({
@@ -35,17 +35,18 @@ class DatabaseAdminProfileModel {
 
     return DatabaseAdminProfileModel(
       uid: id,
-      // ✅ [تعديل] إضافة Fallback للأسامي، لو ملقاهمش جوه profile هيدور عليهم بره
-      nameAr: profile['display_name']?['ar'] ?? json['name_ar'] ?? '',
-      nameEn: profile['display_name']?['en'] ?? json['name_en'] ?? '',
+      // ✅✅✅ التعديل: يدور على display_name في الجذر أولاً، لو ملقاهوش يدور جوه profile ✅✅✅
+      nameAr: json['display_name']?['ar'] ?? profile['display_name']?['ar'] ?? json['name_ar'] ?? '',
+      nameEn: json['display_name']?['en'] ?? profile['display_name']?['en'] ?? json['name_en'] ?? '',
       email: json['university_email'] ?? '',
-      addressAr: profile['address']?['ar'] ?? '',
-      addressEn: profile['address']?['en'] ?? '',
+      // ✅ نفس التعديل للعنوان والباقي (عشان متتخنش حاجة)
+      addressAr: json['address']?['ar'] ?? profile['address']?['ar'] ?? '',
+      addressEn: json['address']?['en'] ?? profile['address']?['en'] ?? '',
       profileImage: profile['profile_image'] ?? '',
       role: json['role'] ?? 'database_admin',
-      phone: profile['phone']?['phone1'] ?? '',
-      nationalId: profile['national_id'] ?? json['national_id'] ?? '',
-      employeeId: profile['employee_id'] ?? json['employee_id'] ?? '',
+      phone: json['phone'] ?? profile['phone']?['phone1'] ?? '',
+      nationalId: json['national_id'] ?? profile['national_id'] ?? '',
+      employeeId: json['employee_id'] ?? profile['employee_id'] ?? '',
       isFirstLogin: json['isFirstLogin'] ?? true,
     );
   }
@@ -55,7 +56,7 @@ class DatabaseAdminProfileModel {
       'role': role,
       'university_email': email,
       'isFirstLogin': isFirstLogin,
-      'national_id': nationalId, // ✅ لازم يتكتب برضه في الجذر لو كان موجود هناك
+      'national_id': nationalId,
       'employee_id': employeeId, 
       'profile': {
         'display_name': {'ar': nameAr, 'en': nameEn},
