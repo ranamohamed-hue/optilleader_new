@@ -4,7 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
-import 'package:onesignal_flutter/onesignal_flutter.dart'; // <--- 1. أضف الاستيراد ده
+// ❌ تم حذف استيراد OneSignal
 import 'package:optialeader/core/services/hive_service.dart';
 import 'package:optialeader/core/services/folder_json_loader.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,23 +15,22 @@ import 'package:optialeader/core/theming/app_theme.dart';
 import 'package:optialeader/core/theming/logic/theme_cubit.dart';
 import 'package:optialeader/core/theming/logic/theme_state.dart';
 import 'package:optialeader/feature/auth/logic/cubits/auth_cubit.dart';
-import 'package:optialeader/core/services/one_signal_result_handler.dart';
-
+// ❌ تم حذف استيراد OneSignalResultHandler
+import 'package:firebase_auth/firebase_auth.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 1. تهيئة Firebase (مرة واحدة فقط)
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  OneSignal.Debug.setLogLevel(OSLogLevel.verbose);
-  await OneSignal.initialize("3953796c-32b0-4e43-8c1d-81ab950b5441"); 
 
-  // 3. تشغيل Supabase
+  // 2. تهيئة Supabase
   await Supabase.initialize(
     url: 'https://ybmeqikzcqmaudedzxif.supabase.co',
     anonKey: 'sb_publishable_sf2YFT0RYrAapmg5XfjY4A_37kNyqyF',
   );
 
-  // 4. تهيئة Hive مع Try-Catch عشان يتجاهل خطأ التشفير في أول مرة
+  // 3. تهيئة Hive مع Try-Catch
   final hiveService = HiveService();
   try {
     await hiveService.init();
@@ -39,10 +38,11 @@ void main() async {
     debugPrint('Hive init skipped (first run or crypto key missing): $e');
   }
 
-  // 5. Localization
+  // 4. تهيئة Localization
   await EasyLocalization.ensureInitialized();
-
-  runApp(
+await hiveService.clearUser();
+await FirebaseAuth.instance.signOut();
+   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('ar')],
       path: 'assets/translations',
@@ -56,18 +56,6 @@ void main() async {
     ),
   );
 
-  WidgetsBinding.instance.addPostFrameCallback((_) async {
-    OneSignalResultHandler.init();
-
-    try {
-      await Firebase.initializeApp(
-        name: 'SecondaryApp',
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-    } catch (e) {
-      debugPrint('SecondaryApp already initialized: $e');
-    }
-  });
 }
 
 class MyApp extends StatefulWidget {
@@ -83,20 +71,23 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
+      print(">>> MyApp initState");
     _router = createRouter(context.read<AuthCubit>());
   }
 
   @override
   Widget build(BuildContext context) {
+      print(">>> MyApp build");
     return ScreenUtilInit(
       designSize: const Size(360, 690),
       minTextAdapt: true,
       splitScreenMode: true,
       builder: (context, child) {
         return BlocBuilder<ThemeCubit, ThemeState>(
-          builder: (context, state) {
-            return MaterialApp.router(
+          builder: (context, state) {  print("MaterialApp child = ${child.runtimeType}");
+           return MaterialApp.router(
               debugShowCheckedModeBanner: false,
+              
               title: "Optia Leader",
               theme: AppTheme.lightTheme,
               darkTheme: AppTheme.darkTheme,
@@ -105,7 +96,9 @@ class _MyAppState extends State<MyApp> {
               supportedLocales: context.supportedLocales,
               localizationsDelegates: context.localizationDelegates,
               routerConfig: _router,
+            
             );
+            
           },
         );
       },

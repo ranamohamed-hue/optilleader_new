@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:optialeader/core/routing/router_refresh_notifier.dart';
 import 'package:optialeader/feature/admin/admin_routes.dart';
-import 'package:optialeader/feature/admin/ui/dashboaer.dart'; // تأكدي من مسمى الملف ده (dashboard)
+import 'package:optialeader/feature/admin/ui/dashboaer.dart';
 import 'package:optialeader/feature/auth/logic/cubits/auth_cubit.dart';
 import 'package:optialeader/feature/auth/logic/cubits/auth_state.dart';
 import 'package:optialeader/feature/auth/ui/change_password_screen.dart';
@@ -23,9 +23,10 @@ import 'package:optialeader/feature/auth/data/models/user_model.dart';
 import 'package:optialeader/feature/database_admin/ui/screens/database_admin_dashboard.dart';
 import 'routes.dart';
 
+// ✅ تحديد النوع بدقة
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 GoRouter createRouter(AuthCubit authCubit) {
-  // دالة مساعدة لتحديد الصفحة الرئيسية بناءً على الدور
   String getHomeByRole(UserRole role) {
     switch (role) {
       case UserRole.database_admin:
@@ -37,7 +38,7 @@ GoRouter createRouter(AuthCubit authCubit) {
       case UserRole.user:
         return Routes.user;
       case UserRole.employee:
-        return Routes.employee; // أو شاشة خاصة بيه
+        return Routes.employee;
     }
   }
 
@@ -45,42 +46,37 @@ GoRouter createRouter(AuthCubit authCubit) {
     navigatorKey: navigatorKey,
     initialLocation: Routes.login,
     refreshListenable: RouterRefreshNotifier(authCubit),
-    redirect: (context, state) {
+    redirect: (context, state) {  print("========== REDIRECT ==========");
+  print(authCubit.state);
+  print(state.matchedLocation);
       final authState = authCubit.state;
-      final location = state.uri.toString();
+      final isLogin = state.matchedLocation == Routes.login;
+      final isChangePass = state.matchedLocation == Routes.changePassword;
 
-      final isOnLogin = location == Routes.login;
-      final isOnRegister = location == Routes.register;
-      final isOnChangePassword = location == Routes.changePassword;
-
-      // 1. لو لسه في البداية أو بيحمل أو حصل خطأ (خليه في صفحة الـ Login)
-      if (authState is AuthInitialState ||
-          authState is LoginErrorState ||
-          authState is LogoutSuccessState) {
-        if (isOnLogin || isOnRegister) return null;
-        return Routes.login;
-      }
-
-      // 2. أول ما ينجح في تسجيل الدخول (LoginSuccessState)
-      if (authState is LoginSuccessState) {
-        final role = authState.userModel.role;
-        return getHomeByRole(role);
-      }
-
-      // 3. حالة المستخدم الجديد (إجبار على تغيير الباسورد)
+      // 1. إجبار تغيير كلمة السر للمستخدمين الجدد فقط
       if (authState is NewUserFirstLoginState) {
-        if (isOnChangePassword) return null;
-        return Routes.changePassword;
+        return isChangePass ? null : Routes.changePassword;
       }
 
-      // 4. حالة المصادقة النهائية المستقرة (AuthenticatedState)
+      // ✅ 2. حالة المستخدم المسجل دخله بشكل مستقر (بدون dynamic)
       if (authState is AuthenticatedState) {
-        final role = authState.userModel.role;
-        // لو هو مسجل دخول وبيحاول يروح لصفحات الـ Auth، رجعه لبيته
-        if (isOnLogin || isOnRegister || isOnChangePassword) {
-          return getHomeByRole(role);
+        if (isLogin) {
+          return getHomeByRole(authState.userModel.role);
         }
         return null;
+      }
+
+      // ✅ 3. أول ما ينجح في تسجيل الدخول (بدون dynamic)
+      if (authState is LoginSuccessState) {
+        if (isLogin) {
+          return getHomeByRole(authState.userModel.role);
+        }
+        return null;
+      }
+
+      // 4. أي حالة تانية (Initial, Error, Logout) - وجهه للوجين
+      if (!isLogin && !isChangePass) {
+        return Routes.login;
       }
 
       return null;
@@ -117,9 +113,9 @@ GoRouter createRouter(AuthCubit authCubit) {
         builder: (context, state) => const DashboardUserPage(),
         routes: userSubRoutes,
       ),
-       GoRoute(
+      GoRoute(
         path: Routes.employee,
-        builder: (context, state) => const EmployeeDashboardScreen(), 
+        builder: (context, state) => const EmployeeDashboardScreen(),
       ),
 
       /// --- SETTINGS ---
@@ -134,26 +130,23 @@ GoRouter createRouter(AuthCubit authCubit) {
         },
       ),
 
-      ///Notification
-      ///Notification
+      /// --- NOTIFICATION ---
       GoRoute(
         path: Routes.notification,
         builder: (context, state) {
-          //  بنستدعي الـ Cubit وبنشغل جلب البيانات بمجرد فتح الصفحة
           final notificationCubit = context.read<NotificationCubit>();
           notificationCubit.fetchNotifications();
-
           return const NotificationsScreen();
         },
       ),
+
+      /// --- EMPLOYEE COURSES ---
       GoRoute(
-  path: Routes.employeeCourses,
-  builder: (context, state) => EmployeeCoursesPage(
-    // بنستقبل الـ employee model اللي هنبعتها من الداشبورد
-    employee: state.extra as EmployeeModel,
-  ),
-),
+        path: Routes.employeeCourses,
+        builder: (context, state) => EmployeeCoursesPage(
+          employee: state.extra as EmployeeModel,
+        ),
+      ),
     ],
   );
-  
 }

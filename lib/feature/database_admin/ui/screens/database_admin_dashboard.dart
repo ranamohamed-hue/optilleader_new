@@ -112,6 +112,7 @@ class _DatabaseAdminDashboardState extends State<DatabaseAdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
+      print("DatabaseAdminDashboard build");
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _tabs),
       bottomNavigationBar: BottomNavigationBar(
@@ -150,7 +151,7 @@ class _HomeTab extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return BlocBuilder<DatabseAdminCubit, DatabaseAdminState>(
-      builder: (context, state) {
+      builder: (context, state) {    print("DatabaseAdminState = $state");
         if (state is DatabaseAdminLoading) {
           return Scaffold(
             body: Center(

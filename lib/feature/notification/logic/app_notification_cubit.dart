@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart'; // ✅ 1. أضف هذا الاستيراد في أعلى الملف
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:rxdart/rxdart.dart'; 
@@ -8,16 +9,15 @@ import 'package:optialeader/feature/notification/logic/app_notification_state.da
 
 class NotificationCubit extends Cubit<NotificationState> with WidgetsBindingObserver {
   final NotificationRepo notificationRepo;
-  
   String userId; 
   StreamSubscription? _notificationSubscription; 
 
-  NotificationCubit({required this.notificationRepo, required this.userId}) : super(NotificationInitial()) {
+  // ✅ 2. عدّل الـ Constructor ليقبل ID اختياري، ويعطيه قيمة فارغة لو ممررش حاجة
+  NotificationCubit({required this.notificationRepo, String? userId}) 
+      : userId = userId ?? '', 
+        super(NotificationInitial()) {
     WidgetsBinding.instance.addObserver(this);
-    
-    if (userId.isNotEmpty) {
-      fetchNotifications();
-    }
+    // ✅ 3. احذف استدعاء fetchNotifications() من هنا تماماً، مش نحتاجها تاني هنا
   }
 
   @override
@@ -36,7 +36,17 @@ class NotificationCubit extends Cubit<NotificationState> with WidgetsBindingObse
     }
   }
 
+  // ✅ 4. عدّل الدالة دي عشان تجيب الـ ID ديناميكياً وقت ما تتنادى
   void fetchNotifications() {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+    
+    if (currentUid.isEmpty) {
+      emit(NotificationError("المستخدم غير مسجل الدخول"));
+      return;
+    }
+
+    userId = currentUid; // نحدث الـ ID في الكلاس
+
     emit(NotificationLoading());
     _notificationSubscription?.cancel(); 
     
@@ -52,6 +62,14 @@ class NotificationCubit extends Cubit<NotificationState> with WidgetsBindingObse
         },
       );
   }
+
+
+  @override
+  
+
+ 
+
+ 
 
   Future<void> sendNotificationSmartly(AppNotificationModel notification) async {
     if (notification.target == NotificationTarget.specificUser && notification.receiverId.isNotEmpty) {

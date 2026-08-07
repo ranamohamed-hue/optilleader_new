@@ -10,7 +10,8 @@ class AuthCubit extends Cubit<AuthState> {
     checkAuthStatus();
   }
 
-    void checkAuthStatus() {
+    void checkAuthStatus() {print(">>> checkAuthStatus");
+      print("cached = ${authRepo.getCachedUser()}");
     try {
       final cachedUser = authRepo.getCachedUser(); 
 

@@ -28,6 +28,7 @@ class _SignInViewState extends State<SignInView> {
 
   @override
   Widget build(BuildContext context) {
+    print(">>> SignInView build");
     final theme = Theme.of(context);
 
     return Scaffold(

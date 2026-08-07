@@ -19,7 +19,6 @@ class FolderJsonLoader extends AssetLoader {
     'dashboard_user',
     'database_admin_dashboard',
     'digital_archieve',
-    'employee_review_screen',
     'evaluation',
     'order',
     'report',
@@ -34,7 +33,6 @@ class FolderJsonLoader extends AssetLoader {
     'admin_request',
     'employee_dashboard',
     'add_employee',
-    'nomination_request_details',
     'achievements_new',
     'system_scores',
     'employee_courses',
@@ -42,28 +40,34 @@ class FolderJsonLoader extends AssetLoader {
     'pending_details',
     'evaluator_review', 
     'employee_review_scren'
-
-      ];
+  ];
 
   @override
   Future<Map<String, dynamic>> load(String path, Locale locale) async {
     final localeCode = locale.languageCode;
-    final Map<String, dynamic> mergedTranslations = {};
-
-    for (final fileName in fileNames) {
+    
+    // ✅ السحر هنا: نطلب من التطبيق تحميل كل الملفات في نفس الوقت (بالتوازي)
+    final futures = fileNames.map((fileName) async {
       final filePath = '$path/$localeCode/$fileName.json';
-      
       try {
         final jsonString = await rootBundle.loadString(filePath);
-        final Map<String, dynamic> translations = json.decode(jsonString);
-        _deepMerge(mergedTranslations, translations);
+        return json.decode(jsonString) as Map<String, dynamic>;
       } catch (e) {
-        // لو في ملف مش موجود في لغة معينة، هيطبع التحذير ده ومش هيقف التطبيق
-        print(' Loader: Could not load $filePath. Error: $e');
+        // لو في ملف مش موجود، نرجع ماب فاضية عشان ما توقفش الباقي
+        return <String, dynamic>{};
       }
+    });
+
+    // ننتظرهم كلهم يخلصوا مع بعض في نفس اللحظة
+    final List<Map<String, dynamic>> results = await Future.wait(futures);
+
+    // بعد ما كلهم وصلوا، ندمجهم بسرعة
+    final Map<String, dynamic> mergedTranslations = {};
+    for (var translations in results) {
+      _deepMerge(mergedTranslations, translations);
     }
 
-    print(' Loader: Merged Translations Keys: ${mergedTranslations.keys.toList()}');
+    print(' Loader: Merged ${fileNames.length} files successfully.');
     return mergedTranslations;
   }
 
