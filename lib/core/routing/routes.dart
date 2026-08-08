@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Routes {
   static const login = '/login';
   static const register = '/register';
@@ -51,4 +53,5 @@ static const editAnnountmentPage = '/admin/edit-announcement';
   static const addResearch = '/user/addResearch';
   static const addActivity = '/user/addActivity';
   static const notification = '/notification';
+static const doctorRequestsStatus = '/user/doctorRequestsStatus';
 }

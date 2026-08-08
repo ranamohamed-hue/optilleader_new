@@ -30,6 +30,8 @@ class _SignInViewState extends State<SignInView> {
   Widget build(BuildContext context) {
     print(">>> SignInView build");
     final theme = Theme.of(context);
+    // ✅ ألوان ديناميكية بتتغير حسب الوضع (ليلي/نهاري)
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -68,22 +70,22 @@ class _SignInViewState extends State<SignInView> {
 
                   SizedBox(height: 24.h),
 
-                  /// App Name - بني غامق
+                  /// App Name - ✅ لون ديناميكي
                   Text(
                     "OptiLeader",
                     style: theme.textTheme.displayLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: const Color(0xFF3E2723), // ← بني غامق فخم
+                      color: colorScheme.onSurface, // يتكيف مع الثيم
                     ),
                   ),
 
                   SizedBox(height: 8.h),
 
-                  /// Subtitle - بني فاتح شوية
+                  /// Subtitle - ✅ لون ديناميكي شفاف
                   Text(
                     "login.subtitle".tr(),
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: const Color(0xFF3E2723).withOpacity(0.7), // ← بني غامق أخف للعنوان الفرعي
+                      color: colorScheme.onSurfaceVariant, // لون ثانوي يليق بالليلي والنهاري
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -161,9 +163,10 @@ class _SignInViewState extends State<SignInView> {
                           }
                         },
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color.fromARGB(255, 48, 33, 20),      // ← زر أسود يليق مع البني
-                          foregroundColor: Colors.white,      // ← نص أبيض
-                          elevation: 5,                       // ← ظل بارز
+                          // ✅ لون الزر الأساسي من الثيم (بيتغير لوحده في الوضع الليلي)
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          elevation: 5,
                           minimumSize: Size(double.infinity, 52.h),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12.r),

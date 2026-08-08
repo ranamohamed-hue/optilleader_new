@@ -35,13 +35,18 @@
       "head_dept": "Head of Department",
       "other": "Other",
       "quality_manager": "Quality Manager",  
-      "admin_manager": "Admin Manager"
+      "admin_manager": "Admin Manager",
+      "university_president": "University President",
+"vice_university_president": "Vice University President",
+ "error_message": "An error occurred while loading data",
+  "retry": "Retry"
     }
   },
   "judge_orders": {
     "title": "Assigned Requests",
     "no_requests": "No requests to evaluate currently",
     "evaluate": "Evaluate",
-    "role_label": "Running for role:"
+    "role_label": "Running for role:",
+      "view": "View"
   }
 }

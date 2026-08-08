@@ -43,7 +43,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
       if (uid != null) {
         context.read<AdminDataCubit>().getAdminProfile(uid);
         context.read<NotificationCubit>().updateUserIdAndFetch(uid);
-        // ✅ جلب كل الطلبات عشان نعدّها في الداشبورد
         context.read<NominationRequestCubit>().fetchAdminRequests(
           status: NominationRequestModel.statusPendingAdmin,
         );
@@ -162,6 +161,11 @@ class _HomeTab extends StatelessWidget {
             fullDisplayName = FirebaseAuth.instance.currentUser?.displayName ?? 'dashboard.admin_role'.tr();
           }
 
+          // ✅ جلب الوظيفة
+          String jobTitle = isArabic 
+              ? (admin.jopAr ?? '').trim() 
+              : (admin.jopEn ?? '').trim();
+
           return SafeArea(
             child: Column(
               children: [
@@ -182,13 +186,31 @@ class _HomeTab extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('dashboard.greeting'.tr(), style: TextStyle(color: colorScheme.onPrimary.withOpacity(0.85), fontSize: 16.sp)),
-                            SizedBox(height: 4.h),
+                            // ✅ الاسم في الأول (بدون مرحباً)
                             Text(
                               fullDisplayName,
-                              style: TextStyle(color: colorScheme.onPrimary, fontWeight: FontWeight.bold, fontSize: 22.sp),
-                              overflow: TextOverflow.ellipsis, maxLines: 1,
+                              style: TextStyle(
+                                color: colorScheme.onPrimary, 
+                                fontWeight: FontWeight.bold, 
+                                fontSize: 22.sp
+                              ),
+                              overflow: TextOverflow.ellipsis, 
+                              maxLines: 1,
                             ),
+                            // ✅ الوظيفة تحته لو موجودة
+                            if (jobTitle.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Text(
+                                  jobTitle,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    color: colorScheme.onPrimary.withOpacity(0.85), 
+                                    fontSize: 14.sp,
+                                  ),
+                                ),
+                              ),
                           ],
                         ),
                       ),
@@ -203,7 +225,10 @@ class _HomeTab extends StatelessWidget {
                           child: ClipOval(
                             child: admin.profileImage.isNotEmpty
                                 ? CachedNetworkImage(
-                                    imageUrl: admin.profileImage, width: 60.r, height: 60.r, fit: BoxFit.cover,
+                                    imageUrl: admin.profileImage, 
+                                    width: 60.r, 
+                                    height: 60.r, 
+                                    fit: BoxFit.cover,
                                     placeholder: (_, _) => const CircularProgressIndicator(),
                                     errorWidget: (_, _, _) => const Icon(Icons.person),
                                   )
@@ -327,14 +352,12 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
-  // ✅✅✅ هنا الـ BlocBuilder الجديد اللي بعدّ الطلبات الحقيقية
   Widget _buildCardsList(BuildContext context, AdminLoaded state) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
     return BlocBuilder<NominationRequestCubit, NominationRequestState>(
       builder: (context, reqState) {
-        // ✅ عدّ الطلبات بالستاتوسس الصحيحة
         int newRequestsCount = 0;
         int underReviewCount = 0;
 

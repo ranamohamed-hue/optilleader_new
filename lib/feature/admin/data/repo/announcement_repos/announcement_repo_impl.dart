@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'dart:isolate';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
 import 'package:optialeader/feature/admin/data/repo/announcement_repos/announcement_repo.dart';
-
+import 'package:firebase_auth/firebase_auth.dart';
 class AnnouncementRepositoryImpl implements IAnnouncementRepository {
   final FirebaseFirestore _firestore;
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -28,20 +26,50 @@ class AnnouncementRepositoryImpl implements IAnnouncementRepository {
     }
   }
 
-  @override
-  Stream<List<AnnouncementModel>> getAnnouncements() {
-    return _collection.orderBy('createdAt', descending: true).snapshots().map((
-      snapshot,
-    ) {
-      return snapshot.docs.map((doc) {
-        return AnnouncementModel.fromMap(
-          doc.data() as Map<String, dynamic>,
-          doc.id,
-        );
-      }).toList();
-    });
-  }
+  
+ @override
+Stream<List<AnnouncementModel>> getAnnouncements() {
+  print('🔥 GET ANNOUNCEMENTS CALLED');
+  print('👤 Firebase User: ${_firestore.app.options.projectId}');
+  print('🔐 Authenticated: ${FirebaseAuth.instance.currentUser != null}');
+  print('🆔 UID: ${FirebaseAuth.instance.currentUser?.uid}');
 
+  return _collection.snapshots().map((snapshot) {
+    print(
+      '🔥 FIRESTORE SNAPSHOT: ${snapshot.docs.length} documents',
+    );
+
+    final announcements = <AnnouncementModel>[];
+
+    for (final doc in snapshot.docs) {
+      try {
+        final data =
+            Map<String, dynamic>.from(doc.data() as Map);
+
+        print('📄 ANNOUNCEMENT ${doc.id}: $data');
+
+        final announcement =
+            AnnouncementModel.fromMap(data, doc.id);
+
+        announcements.add(announcement);
+      } catch (e, stack) {
+        print('❌ ERROR PARSING ${doc.id}');
+        print(e);
+        print(stack);
+      }
+    }
+
+    announcements.sort(
+      (a, b) => b.createdAt.compareTo(a.createdAt),
+    );
+
+    print(
+      '✅ FINAL ANNOUNCEMENTS: ${announcements.length}',
+    );
+
+    return announcements;
+  });
+}
   @override
   Future<Either<String, Unit>> updateAnnouncement(
     AnnouncementModel announcement,
@@ -84,57 +112,65 @@ class AnnouncementRepositoryImpl implements IAnnouncementRepository {
   }
 
   // ✅✅✅ الحل: قراءة الملف سريعاً، ثم ضغطه في Isolate منفصل عشان متجمدش الشاشة ✅✅✅
-  @override
-  Future<Either<String, String>> uploadAnnouncementImage(
-    String filePath,
-  ) async {
-    try {
-      // 1. قراءة الملف كـ bytes (دي عملية I/O عادية وسريعة)
-      final File imageFile = File(filePath);
-      final Uint8List originalBytes = await imageFile.readAsBytes();
+ @override
+Future<Either<String, String>> uploadAnnouncementImage(
+  String filePath,
+) async {
+  try {
+    print('📸 [UPLOAD] START');
+    print('📸 [UPLOAD] filePath: $filePath');
 
-      // 2. ضغط الصورة في Isolate منفصل (الواجهة هتستمر في الشغل بشكل طبيعي)
-      final Uint8List? compressedBytes = await Isolate.run(() => _compressImageInIsolate(originalBytes));
-      
-      if (compressedBytes == null) {
-        return const Left("ERROR_IMAGE_COMPRESS_FAILED");
-      }
+    final file = File(filePath);
 
-      // 3. رفع الصورة المضغوطة على Supabase
-      final storagePath = 'announcements/${DateTime.now().millisecondsSinceEpoch}.jpg';
-      await _supabase.storage
-          .from('images')
-          .uploadBinary(
-            storagePath,
-            compressedBytes,
-            fileOptions: const FileOptions(
-              upsert: true,
-              contentType: 'image/jpeg',
-            ),
-          );
-      
-      final imageUrl = _supabase.storage.from('images').getPublicUrl(storagePath);
-      return Right(imageUrl);
-    } catch (e) {
-      return Left("ERROR_IMAGE_UPLOAD_SUPABASE: ${e.toString()}");
+    if (!await file.exists()) {
+      print('❌ [UPLOAD] الملف غير موجود');
+      return const Left('ERROR_IMAGE_FILE_NOT_FOUND');
     }
-  }
 
-  // ✅ دالة منفصلة تتعامل مع الـ Isolate بشكل آمن
-  static Future<Uint8List?> _compressImageInIsolate(Uint8List bytes) async {
-    try {
-      final result = await FlutterImageCompress.compressWithList(
-        bytes,
-        minHeight: 800,
-        minWidth: 800,
-        quality: 85,
-      );
-      return result;
-    } catch (e) {
-      return null;
+    final Uint8List bytes = await file.readAsBytes();
+
+    print('📸 [UPLOAD] حجم الصورة: ${bytes.length} bytes');
+
+    if (bytes.isEmpty) {
+      return const Left('ERROR_IMAGE_EMPTY');
     }
-  }
 
+    final storagePath =
+        'announcements/${DateTime.now().millisecondsSinceEpoch}.jpg';
+
+    print('📤 [UPLOAD] جاري الرفع إلى Supabase...');
+    print('📤 [UPLOAD] path: $storagePath');
+
+    await _supabase.storage
+        .from('images')
+        .uploadBinary(
+          storagePath,
+          bytes,
+          fileOptions: const FileOptions(
+            upsert: true,
+            contentType: 'image/jpeg',
+          ),
+        );
+
+    print('✅ [UPLOAD] تم رفع الصورة');
+
+    final imageUrl = _supabase.storage
+        .from('images')
+        .getPublicUrl(storagePath);
+
+    print('🔗 [UPLOAD] URL: $imageUrl');
+
+    return Right(imageUrl);
+  } catch (e, stackTrace) {
+    print('❌ [UPLOAD] ERROR: $e');
+    print('❌ [UPLOAD] STACK: $stackTrace');
+
+    return Left(
+      'ERROR_IMAGE_UPLOAD_SUPABASE: $e',
+    );
+  }
+}
+ 
   @override
   Future<void> deleteAnnouncementImage(String imageUrl) async {
     if (imageUrl.contains('supabase.co')) {

@@ -87,23 +87,11 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
                   .toList();
             }
 
+            // ✅ تم حذف شرط (other) نهائياً وبقي الفلتر مباشر للوظيفة
             if (widget.filterRole != null) {
-              if (widget.filterRole == 'other') {
-                final knownKeys = [
-                  'dean',
-                  'vice_dean',
-                  'head_dept',
-                  'quality_manager',
-                  'admin_manager',
-                ];
-                requests = requests
-                    .where((r) => !knownKeys.contains(r.targetRole))
-                    .toList();
-              } else {
-                requests = requests
-                    .where((r) => r.targetRole == widget.filterRole)
-                    .toList();
-              }
+              requests = requests
+                  .where((r) => r.targetRole == widget.filterRole)
+                  .toList();
             }
 
             if (requests.isEmpty) {
@@ -130,11 +118,7 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
               itemCount: requests.length,
               itemBuilder: (context, index) {
-                final request = requests[index];
-                return _buildRequestCard(
-                  context,
-                  request,
-                );
+                return _buildRequestCard(context, requests[index]);
               },
             );
           }
@@ -148,6 +132,11 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
     BuildContext context,
     NominationRequestModel request,
   ) {
+    final bool isEvaluated =
+        request.status == NominationRequestModel.statusEvaluated ||
+        request.status == NominationRequestModel.statusFinalApproved ||
+        request.status == NominationRequestModel.statusFinalRejected;
+
     return Container(
       margin: EdgeInsets.only(bottom: 20.h),
       padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
@@ -174,7 +163,8 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
               border: Border.all(color: _goldAccent.withOpacity(0.3), width: 2),
             ),
             child: ClipOval(
-              child: request.doctorImageUrl != null &&
+              child:
+                  request.doctorImageUrl != null &&
                       request.doctorImageUrl!.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: request.doctorImageUrl!,
@@ -198,7 +188,6 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
             ),
           ),
           SizedBox(width: 15.w),
-
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -215,54 +204,68 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
                   overflow: TextOverflow.ellipsis,
                 ),
                 SizedBox(height: 6.h),
-                Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 8.w,
-                        vertical: 4.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _goldAccent.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8.r),
-                      ),
-                      child: Text(
-                        request.targetRole.tr(),
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          color: _primaryNavy,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                  decoration: BoxDecoration(
+                    color: _goldAccent.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Text(
+                    request.targetRole.tr(),
+                    style: TextStyle(
+                      fontSize: 11.sp,
+                      color: _primaryNavy,
+                      fontWeight: FontWeight.w600,
                     ),
-                  ],
+                  ),
                 ),
               ],
             ),
           ),
-
           SizedBox(width: 10.w),
-          ElevatedButton.icon(
-            onPressed: () => context.push(
-              Routes.judgeEvaluation,
-              extra: request,
-            ),
-            icon: Icon(
-              Icons.edit_note_rounded,
-              size: 18.sp,
-              color: Colors.white,
-            ),
-            label: Text('judge_orders.evaluate'.tr()),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _goldAccent,
-              foregroundColor: Colors.white,
-              padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12.r),
+
+          // ✅ الأزرار تنقل مباشرة لصفقة الطلبات حسب الحالة
+          if (isEvaluated)
+            ElevatedButton.icon(
+              onPressed: () {
+                // ✅ استخدام الراوتر لضمان إخفاء بيانات الأدمن (isJudgeView: true)
+                context.push('/judge/evaluationScreen', extra: request);
+              },
+              icon: Icon(Icons.visibility, size: 18.sp, color: Colors.white),
+              label: Text('عرض', style: TextStyle(fontSize: 12.sp)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.grey.shade600,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                elevation: 0,
               ),
-              elevation: 0,
+            )
+          else
+            ElevatedButton.icon(
+              onPressed: () =>
+                  context.push(Routes.judgeEvaluation, extra: request),
+              icon: Icon(
+                Icons.edit_note_rounded,
+                size: 18.sp,
+                color: Colors.white,
+              ),
+              label: Text(
+                'judge_orders.evaluate'.tr(),
+                style: TextStyle(fontSize: 12.sp),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _goldAccent,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+                elevation: 0,
+              ),
             ),
-          ),
         ],
       ),
     );

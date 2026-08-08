@@ -23,6 +23,19 @@
       "notifications": "التنبيهات",
       "files": "الملفات",
       "home": "الرئيسية"
-    }
+    },
+    "status": {
+  "paper": "بحث علمي",
+  "conference": "مؤتمر",
+  "exhibition": "معرض",
+  "course": "دورة تدريبية",
+  "pending_tab": "معلق",
+  "approved_tab": "مقبول",
+  "rejected_tab": "مرفوض",
+  "no_items": "لا توجد عناصر لعرضها",
+  "pending_msg": "لا توجد طلبات معلقة حالياً",
+"approved_msg": "لا توجد طلبات مقبولة حتى الآن",
+"rejected_msg": "لا توجد طلبات مرفوضة"
+}
   }
 }

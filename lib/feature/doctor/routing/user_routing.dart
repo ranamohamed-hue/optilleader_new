@@ -10,6 +10,11 @@ import 'package:optialeader/feature/doctor/ui/screens/doctor_nomination_page.dar
 import 'package:optialeader/feature/doctor/ui/screens/uploadfiles.dart';
 import 'package:optialeader/feature/doctor/ui/screens/add_research_paper_page.dart';
 import 'package:optialeader/feature/doctor/ui/screens/add_activity_page.dart';
+import 'package:optialeader/feature/admin/ui/admin_pending_requests_page.dart';
+import 'package:optialeader/feature/doctor/ui/screens/doctor_requests_status_screen.dart';
+import 'package:optialeader/feature/database_admin/data/models/doctor_profile_model.dart';
+
+
 
 final List<RouteBase> userSubRoutes = [
   GoRoute(
@@ -88,6 +93,30 @@ final List<RouteBase> userSubRoutes = [
         announcementId: args?['announcementId'] ?? '',
         currentDoctorId: args?['currentDoctorId'],
       );
+    },
+  ),
+   GoRoute(
+    path: 'competition-results-view',
+    builder: (context, state) {
+      final args = state.extra as Map<String, dynamic>?;
+      return CompetitionResultsViewPage(
+        announcementId: args?['announcementId'] ?? '',
+        currentDoctorId: args?['currentDoctorId'],
+      );
+    },
+  ),
+  GoRoute(
+    path: 'pendingRequests',
+    builder: (context, state) {
+      return const AdminPendingRequestsPage();
+    },
+  ),
+  // ✅ مسار حالة طلبات الدكتور (بدون / في البداية)
+  GoRoute(
+    path: 'doctorRequestsStatus',
+    builder: (context, state) {
+      final doctor = state.extra as DoctorProfileModel;
+      return DoctorRequestsStatusScreen(doctor: doctor);
     },
   ),
 ];

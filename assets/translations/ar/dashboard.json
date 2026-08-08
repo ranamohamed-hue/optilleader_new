@@ -33,15 +33,23 @@
       "dean": "عميد الكلية",
       "vice_dean": "وكيل الكلية",
       "head_dept": "رئيس القسم",
+
       "other": "أخرى",
       "quality_manager": "مدير الجودة",
-      "admin_manager": "مدير الإدارة"
+      "admin_manager": "مدير الإدارة",
+      "university_president": "رئيس الجامعة",
+"vice_university_president": "نائب رئيس الجامعة",
+"error_message": "حدث خطأ في تحميل البيانات",
+  "retry": "إعادة المحاولة"
+
     }
   },
   "judge_orders": {
     "title": "الطلبات المحولة",
     "no_requests": "لا توجد طلبات لتقييمها حالياً",
     "evaluate": "تقييم",
-    "role_label": "ترشح لدور:"
+    "role_label": "ترشح لدور:",
+      "view": "عرض"
+
   }
 }

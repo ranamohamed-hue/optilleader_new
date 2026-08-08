@@ -76,69 +76,95 @@ class AnnouncementsPage extends StatelessWidget {
       ),
     ];
   }
-
   Widget _buildHeader(
     BuildContext context,
     ColorScheme colorScheme,
     ThemeData theme,
   ) {
+    // تحديد الاتجاه عشان المحاذاة
+    final isArabic = context.locale.languageCode == 'ar';
+
     return SliverAppBar(
-      expandedHeight: 130.0,
+      expandedHeight: 140.0,
       pinned: true,
       automaticallyImplyLeading: false,
+      elevation: 0,
       backgroundColor: colorScheme.primary,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(bottom: Radius.circular(35)),
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(30)),
+      ),
+      // ✅ زر الرجوع في الـ Leading عشان يتعامل مع شريط الهاتف صح
+      leading: Padding(
+        padding: EdgeInsets.only(
+          top: 8.0, 
+          left: isArabic ? 8.0 : 0,
+          right: isArabic ? 0 : 8.0,
+        ),
+        child: IconButton(
+          icon: const Icon(
+            Icons.arrow_back_ios_new,
+            color: Colors.white,
+            size: 22,
+          ),
+          onPressed: () => onBack != null ? onBack!() : context.pop(),
+        ),
       ),
       flexibleSpace: FlexibleSpaceBar(
         background: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [colorScheme.primary, colorScheme.primaryContainer],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
             ),
+            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(30)),
           ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 50, 20, 0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.arrow_back_ios_new,
-                    color: Colors.white,
-                    size: 20,
+          // ✅ محاذاة النص لأسفل الشريط عشان شكله يكون أنيق
+          child: Align(
+            alignment: isArabic ? Alignment.bottomRight : Alignment.bottomLeft,
+            child: Padding(
+              // نترك مسافة من اليسار/اليمين عشان ماتتغطيش على زر الرجوع
+              padding: EdgeInsets.fromLTRB(
+                isArabic ? 70 : 20, 
+                0, 
+                isArabic ? 20 : 70, 
+                28
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "announce.title".tr(),
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
                   ),
-                  onPressed: () => onBack != null ? onBack!() : context.pop(),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        "announce.title".tr(),
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                      Icon(Icons.campaign_outlined, color: colorScheme.secondary, size: 16),
+                      const SizedBox(width: 6),
                       Text(
                         "announce.subtitle".tr(),
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.secondary.withOpacity(0.9),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
       ),
     );
   }
-
   Widget _buildAnnouncementsList(List<AnnouncementModel> announcements) {
     return SliverPadding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 25),

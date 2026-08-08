@@ -7,6 +7,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:optialeader/core/routing/routes.dart';
 import 'package:optialeader/core/theming/app_color.dart';
+// ✅ استيراد ملف الشيت والـ Cubit
+import 'package:optialeader/feature/admin/ui/announces/competition_results_sheet.dart';
+import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomination_request_cubit.dart';
 import 'package:optialeader/feature/notification/data/model/app_notification_model.dart';
 import 'package:optialeader/feature/notification/logic/app_notification_cubit.dart';
 import 'package:optialeader/feature/notification/logic/app_notification_state.dart';
@@ -116,7 +119,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       direction: DismissDirection.endToStart,
       background: Container(
         color: Colors.red,
-        // ✅ تعديل: استخدام centerEnd بدل centerRight عشان يدعم الاتجاهين (عربي/إنجليزي)
         alignment: AlignmentDirectional.centerEnd,
         padding: EdgeInsets.only(right: 20.w, left: 20.w),
         child: const Icon(Icons.delete, color: Colors.white),
@@ -162,25 +164,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             style: theme.textTheme.labelSmall?.copyWith(color: Colors.grey),
           ),
           onTap: () {
+            // 1. تعليم الإشعار كمقروء
             if (!notification.isRead) {
               mainContext.read<NotificationCubit>().markAsRead(notification.id);
             }
 
-            // ✅ تعديل: استخدام push بدل go عشان لما يعمل back يرجع لصفحة الإشعارات
-            // ✅ إضافة: توجيه المحكم لصفحة الطلبات لما يضغط على الإشعار
-            if (notification.type == NotificationType.newArbitrationRequest) {
-              mainContext.push(Routes.ordersList);
-            } else if (notification.type ==
-                    NotificationType.newResearchSubmitted ||
-                notification.type == NotificationType.newActivitySubmitted) {
-              mainContext.push('/admin/pending-requests');
-            } else if (notification.type ==
-                NotificationType.announcementCreated) {
-              mainContext.push(
-                '${Routes.announcementsDetailsDoctor}?id=${notification.relatedId}',
+            // ✅✅✅ 2. إشعار "اكتملت تقييمات المسابقة" (للأدمن) -> يفتح الشيت مباشرة
+            if (notification.type == NotificationType.judgeRequestCompleted && 
+                notification.relatedId != null && 
+                notification.relatedId!.isNotEmpty) {
+              
+              showModalBottomSheet(
+                context: mainContext,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+                ),
+                builder: (context) => CompetitionResultsSheet(
+                  announcementId: notification.relatedId!,
+                  announcementTitle: notification.message, 
+                  onConfirmAnnounce: () {
+                     Navigator.pop(context); // يقفل الشيت
+                     mainContext.read<NominationRequestCubit>().announceCompetitionResults(
+                       announcementId: notification.relatedId!,
+                       announcementTitle: notification.message,
+                     );
+                  },
+                ),
               );
-            } else if (notification.type ==
-                NotificationType.competitionResult) {
+            } 
+            // 3. إشعار "نتيجة المسابقة" (للدكتور) -> يفتح صفحة عرض النتائج
+            else if (notification.type == NotificationType.competitionResult) {
               final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
               mainContext.push(
                 Routes.competitionResultsView,
@@ -188,6 +203,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   'announcementId': notification.relatedId,
                   'currentDoctorId': uid,
                 },
+              );
+            }
+            // 4. باقي الإشعارات (المحكم / الأبحاث / الإعلانات)
+            else if (notification.type == NotificationType.newArbitrationRequest) {
+              mainContext.push(Routes.ordersList);
+            } else if (notification.type == NotificationType.newResearchSubmitted ||
+                notification.type == NotificationType.newActivitySubmitted) {
+              mainContext.push('/admin/pending-requests');
+            } else if (notification.type == NotificationType.announcementCreated) {
+              mainContext.push(
+                '${Routes.announcementsDetailsDoctor}?id=${notification.relatedId}',
               );
             }
           },
@@ -235,7 +261,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case NotificationType.researchStatusUpdated:
         return Icons.fact_check;
       case NotificationType.activityStatusUpdated:
-        return Icons.fact_check;
+        return Icons.fact_check_outlined; // غيرتها شوية عشان تختلف عن الأبحاث
       case NotificationType.general:
         return Icons.info_outline;
     }
@@ -280,7 +306,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case NotificationType.researchStatusUpdated:
         return Colors.orange;
       case NotificationType.activityStatusUpdated:
-        return Colors.orange;
+        return Colors.amber; // غيرتها للأمبر عشان تختلف عن الأبحاث
       case NotificationType.general:
         return Colors.grey;
     }

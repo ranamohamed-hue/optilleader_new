@@ -61,12 +61,14 @@ class NominationRequestRepositoryImpl
         .where('status', isEqualTo: status)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) =>
-                  NominationRequestModel.fromMap(doc.data(), doc.id))
-              .toList(),
-        );
+        .map((snapshot) => snapshot.docs.map((doc) {
+              try {
+                return NominationRequestModel.fromMap(doc.data(), doc.id);
+              } catch (e) {
+                print("⚠️ خطأ في قراءة طلب إدمن (تم تخطيه): ${doc.id} - $e");
+                return null;
+              }
+            }).whereType<NominationRequestModel>().toList());
   }
 
   @override
@@ -78,14 +80,15 @@ class NominationRequestRepositoryImpl
         .where('evaluatorId', isEqualTo: evaluatorId)
         .orderBy('createdAt', descending: true)
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs
-              .map((doc) =>
-                  NominationRequestModel.fromMap(doc.data(), doc.id))
-              .toList(),
-        );
+        .map((snapshot) => snapshot.docs.map((doc) {
+              try {
+                return NominationRequestModel.fromMap(doc.data(), doc.id);
+              } catch (e) {
+                print("⚠️ خطأ في قراءة طلب محكم (تم تخطيه): ${doc.id} - $e");
+                return null;
+              }
+            }).whereType<NominationRequestModel>().toList());
   }
-
   @override
   Future<Either<String, Unit>> updateRequest(
     NominationRequestModel request,
@@ -101,36 +104,31 @@ class NominationRequestRepositoryImpl
     }
   }
 
-  @override
+    @override
   Future<Either<String, List<Map<String, dynamic>>>> getEvaluators() async {
     try {
       final snapshot = await _firestore.collection('users').get();
-
-      print("🔵 عدد كل المستخدمين في الداتابيز: ${snapshot.docs.length}");
-
       final evaluators = <Map<String, dynamic>>[];
 
       for (var doc in snapshot.docs) {
         final data = doc.data();
-
-        print(
-            "🔵 User ID: ${doc.id} | Role: ${data['role']} | Type: ${data['type']}");
-
         final role = data['role']?.toString().toLowerCase() ?? '';
 
-        if (role == 'evaluator' ||
-            role == 'judge' ||
-            role == 'محكم') {
+        if (role == 'evaluator' || role == 'judge' || role == 'محكم') {
+          // ✅ سحب الاسم من مكانه الصحيح
+          final profile = data['profile'] as Map<String, dynamic>?;
+          final displayName = profile?['display_name'] as Map<String, dynamic>?;
+          final nameAr = displayName?['ar'] ?? 'بدون اسم';
+
           data['id'] = doc.id;
+          data['nameAr'] = nameAr; // ✅ ضيفناها هنا عشان الديالوج يلاقيها
+          
           evaluators.add(data);
         }
       }
 
-      print("🟢 عدد المحكمين اللي اتفلترا: ${evaluators.length}");
-
       return Right(evaluators);
     } catch (e) {
-      print("🔴 FIRESTORE GET EVALUATORS ERROR: $e");
       return Left(e.toString());
     }
   }

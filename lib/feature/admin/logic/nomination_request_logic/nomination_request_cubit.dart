@@ -218,10 +218,13 @@ class NominationRequestCubit extends Cubit<NominationRequestState> {
 
       result.fold(
         (error) => emit(NominationRequestError('error_evaluation_submit')),
-        (_) {
+        (_) async { // ✅ مهم جداً نضيف async هنا
           emit(NominationRequestActionSuccess('success_evaluation_submitted'));
           if (!evaluationModel.isDraft) {
             _sendEvaluationDoneToAdmin(updatedRequest);
+            
+            // ✅✅✅ هنا الاستدعاء اللي كان ناقص
+            await _checkAndNotifyIfAllEvaluated(updatedRequest);
           }
         },
       );
@@ -229,7 +232,6 @@ class NominationRequestCubit extends Cubit<NominationRequestState> {
       emit(NominationRequestError(e.toString()));
     }
   }
-
   // ================================================================
   // 🏆 دالة إعلان النتيجة النهائية
   // ================================================================
@@ -436,29 +438,37 @@ class NominationRequestCubit extends Cubit<NominationRequestState> {
   }
 
   // ====== الإشعارات ======
-
-  Future<void> _sendNewRequestNotification(
+  Future _sendNewRequestNotification(
     NominationRequestModel request,
     String announcementTitle,
   ) async {
+    print("🔴🔴🔥 1. جاري إرسال إشعار طلب ترشح جديد للأدمن");
     try {
       final notification = AppNotificationModel(
         id: '',
         title: 'طلب ترشح جديد',
-        message:
-            'قدم د/ ${request.doctorName} على مسابقة "$announcementTitle"',
+        message: 'قدم د/ ${request.doctorName} على مسابقة "$announcementTitle"',
         type: NotificationType.newDoctorRequest,
         target: NotificationTarget.adminOnly,
         timestamp: Timestamp.now(),
         receiverId: '',
         relatedId: request.id,
       );
-      await _notificationRepo.sendRoleBasedNotification(notification);
-    } catch (e) {
-      print("فشل إرسال إشعار للإدمن: $e");
+      
+      print("🔴🔴🔥 2. بيانات الإشعار: ${notification.toMap()}");
+      final result = await _notificationRepo.sendRoleBasedNotification(notification);
+      
+      // ✅ طباعة نتيجة الـ Either عشان نشوف لو فيه خطأ مخفي
+      result.fold(
+        (error) => print("🔴🔴🔥 3. فشل إرسال الإشعار للأدمن: $error"),
+        (_) => print("🔴🔴🔥 3. تم إرسال الإشعار للأدمن بنجاح"),
+      );
+      
+    } catch (e, stack) {
+      print("🔴🔴🔥 ERROR في دالة الإشعار: $e");
+      print("🔴🔴🔥 STACK: $stack");
     }
   }
-
   Future<void> _sendToEvaluatorNotification(
       NominationRequestModel request) async {
     try {
@@ -543,4 +553,46 @@ class NominationRequestCubit extends Cubit<NominationRequestState> {
       print("فشل إرسال إشعار الموعد: $e");
     }
   }
+
+  // ✅ دالة فحص اكتمال تقييمات المسابقة وإرسال إشعار للأدمن
+  Future<void> _checkAndNotifyIfAllEvaluated(NominationRequestModel evaluatedRequest) async {
+    try {
+      // 1. نبحث هل في طلبات تابعة لنفس المسابقة لسه حالةين Pending (معلقة)
+      final snapshot = await FirebaseFirestore.instance
+          .collection('nomination_requests')
+          .where('announcementId', isEqualTo: evaluatedRequest.announcementId)
+          .where('status', isEqualTo: NominationRequestModel.statusPendingEvaluator)
+          .limit(1)
+          .get();
+
+      // 2. لو مفيش نتائج، يبقى الكل اتقيم
+      if (snapshot.docs.isEmpty) {
+        // نجيب عنوان المسابقة عشان نعرضه في الإشعار
+        final announcementDoc = await FirebaseFirestore.instance
+            .collection('announcements')
+            .doc(evaluatedRequest.announcementId)
+            .get();
+        
+        final announcementTitle = announcementDoc.exists ? (announcementDoc.data()?['title'] ?? '') : '';
+        
+        final notification = AppNotificationModel(
+          id: '',
+          title: '🏆 اكتملت تقييمات المسابقة',
+          message: 'تم تقييم جميع المرشحين في مسابقة "$announcementTitle". يرجى مراجعة النتائج والإعلان عنها.',
+          type: NotificationType.judgeRequestCompleted,
+          target: NotificationTarget.adminOnly,
+          timestamp: Timestamp.now(),
+          receiverId: '',
+          // ✅ هنا بنحط ID المسابقة عشان نستخدمه في الواجهة لما ندوس على الإشعار
+          relatedId: evaluatedRequest.announcementId, 
+        );
+        
+        await _notificationRepo.sendRoleBasedNotification(notification);
+        print("✅ تم إرسال إشعار اكتمال تقييمات المسابقة للأدمن");
+      }
+    } catch (e) {
+      print("⚠️ خطأ في فحص اكتمال التقييمات: $e");
+    }
+  }
+
 }

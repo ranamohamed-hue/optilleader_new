@@ -21,16 +21,23 @@ class NotificationRepoImpl extends NotificationRepo {
     }
   }
 
+
+
   @override
   Future<Either<String, Unit>> sendRoleBasedNotification(AppNotificationModel notification) async {
     try {
+      // ✅ أضف السطر ده
+      print("🔵🔵🔵 الريبو: بدء إرسال إشعار جماعي للـ Role: ${notification.target.name}");
+      
       final List<String> roles = _getRolesForTarget(notification.target);
-            if (roles.isEmpty) return right(unit);
+      if (roles.isEmpty) return right(unit);
 
       final usersQuery = await firebaseFirestore
           .collection('users')
           .where('role', whereIn: roles)
           .get();
+
+      print("🔵🔵_blue عدد الأدمن اللي لقاهم: ${usersQuery.docs.length}"); 
 
       if (usersQuery.docs.isEmpty) return right(unit);
 
@@ -59,29 +66,29 @@ class NotificationRepoImpl extends NotificationRepo {
     }
   }
 
+
+
   // ✅ أضفنا distinct() لمنع التكرار نهائياً
   @override
   Stream<List<AppNotificationModel>> getNotifications(String receiverId) {
-    return firebaseFirestore
+    final query = firebaseFirestore
         .collection('users')
         .doc(receiverId)
         .collection('notifications')
-        .where('is_read', isEqualTo: false) 
-        .orderBy('timestamp', descending: true)
-        .snapshots()
-        .map((snapshot) {
-          return snapshot.docs.map((doc) {
-            return AppNotificationModel.fromFirestore(doc.data(), doc.id);
-          }).toList();
-        })
-        .distinct((prevList, nextList) {
-          if (prevList.length != nextList.length) return false;
-          final prevIds = prevList.map((e) => e.id).toSet();
-          final nextIds = nextList.map((e) => e.id).toSet();
-          return prevIds.containsAll(nextIds) && nextIds.containsAll(prevIds);
-        });
-  }
+        .where('is_read', isEqualTo: false);
 
+    return query.snapshots().map((snapshot) {
+      // ✅ أضفنا الحماية دي عشان لو في إشعار فاسد متقفلش الباقي
+      return snapshot.docs.map((doc) {
+        try {
+          return AppNotificationModel.fromFirestore(doc.data(), doc.id);
+        } catch (e) {
+          print("⚠️ خطأ في قراءة إشعار (تم تخطيه): ${doc.id} - $e");
+          return null;
+        }
+      }).whereType<AppNotificationModel>().toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    });
+  }
   @override
   Future<Either<String, Unit>> markAsRead(String receiverId, String notificationId) async {
     try {

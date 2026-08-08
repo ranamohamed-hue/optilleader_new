@@ -160,6 +160,7 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                         colorGold,
                         displayName,
                         judge.profileImage,
+                        judge.jopAr, // ✅ تمرير الوظيفة
                       ),
                     ),
                   ),
@@ -184,44 +185,26 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                           style: TextStyle(
                             fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
-                            color: colorPrimary,
+                            color: Colors.white,
                           ),
                         ),
                         SizedBox(height: 20.h),
 
-                        BlocBuilder<
-                          NominationRequestCubit,
-                          NominationRequestState
-                        >(
+                        BlocBuilder<NominationRequestCubit, NominationRequestState>(
                           builder: (context, reqState) {
                             int newCount = 0;
                             int reviewingCount = 0;
                             int completedCount = 0;
 
                             if (reqState is NominationRequestLoaded) {
-                              // ✅ تم الرجوع للحالات الصحيحة الموجودة في الموديل
                               newCount = reqState.requests
-                                  .where(
-                                    (r) =>
-                                        r.status ==
-                                        NominationRequestModel
-                                            .statusPendingEvaluator,
-                                  )
+                                  .where((r) => r.status == NominationRequestModel.statusPendingEvaluator)
                                   .length;
                               reviewingCount = reqState.requests
-                                  .where(
-                                    (r) =>
-                                        r.status ==
-                                        NominationRequestModel.statusEvaluated,
-                                  )
+                                  .where((r) => r.status == NominationRequestModel.statusEvaluated)
                                   .length;
                               completedCount = reqState.requests
-                                  .where(
-                                    (r) =>
-                                        r.status ==
-                                        NominationRequestModel
-                                            .statusFinalApproved,
-                                  )
+                                  .where((r) => r.status == NominationRequestModel.statusFinalApproved)
                                   .length;
                             }
 
@@ -260,10 +243,7 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
 
                         SizedBox(height: 30.h),
 
-                        BlocBuilder<
-                          NominationRequestCubit,
-                          NominationRequestState
-                        >(
+                        BlocBuilder<NominationRequestCubit, NominationRequestState>(
                           builder: (context, reqState) {
                             if (reqState is NominationRequestLoaded &&
                                 reqState.requests.isNotEmpty) {
@@ -305,6 +285,10 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     final navy = theme.primaryColor;
 
     List<NominationRequestModel> recentList = List.from(allRequests);
+    
+    // ✅ إزالة الطلبات اللي تم تحديد موعد مقابلة لها من القائمة
+    recentList.removeWhere((request) => request.interviewDate != null);
+    
     recentList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     recentList = recentList.take(3).toList();
 
@@ -314,11 +298,7 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle(
-              gold,
-              navy,
-              'dashboardJudge.recent_requests_title'.tr(),
-            ),
+            _buildSectionTitle(gold, navy, 'dashboardJudge.recent_requests_title'.tr()),
             TextButton(
               onPressed: () async {
                 await context.push('/judge/orders-list', extra: {});
@@ -507,27 +487,46 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     );
   }
 
-  // ✅ تحسين: مسح زر الرجوع لأن ده الصفحة الرئيسية
   Widget _buildHeaderRow(
     BuildContext context,
     Color gold,
     String name,
     String? imageUrl,
+    String? jobTitle, 
   ) {
     final isArabic = context.locale.languageCode == 'ar';
     return Row(
       textDirection: isArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
       children: [
         Expanded(
-          child: Text(
-            'dashboardJudge.welcome'.tr(args: [name]),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16.sp,
-              fontWeight: FontWeight.bold,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // ✅ تغيير المحاذاة لليسار
+            children: [
+              Text(
+                name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18.sp, // ✅ تكبير الخط
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              // ✅ عرض الوظيفة لو موجودة
+              if (jobTitle != null && jobTitle!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 4.0),
+                  child: Text(
+                    jobTitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.85),
+                      fontSize: 13.sp,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
         SizedBox(width: 15.w),
@@ -576,14 +575,13 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
-            color: navy,
+            color: Colors.white,
           ),
         ),
       ],
     );
   }
 
-  // ✅ تحسين: تصحيح أسماء شريط التنقل
   Widget _buildBottomNav(Color navy, Color gold, String uid, String role) {
     return BottomNavigationBar(
       selectedItemColor: gold,

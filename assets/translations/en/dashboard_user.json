@@ -23,6 +23,19 @@
       "notifications": "Notifications",
       "files": "Files",
       "home": "Home"
-    }
+    },
+    "status": {
+  "paper": "Research Paper",
+  "conference": "Conference",
+  "exhibition": "Exhibition",
+  "course": "Training Course",
+  "pending_tab": "Pending ",
+  "approved_tab": "Approved ",
+  "rejected_tab": "Rejected ",
+  "no_items": "No items to display",
+  "pending_msg": "No pending requests right now",
+"approved_msg": "No approved requests yet",
+"rejected_msg": "No rejected requests"
+}
   }
 }

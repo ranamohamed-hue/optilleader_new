@@ -234,13 +234,18 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
                           onTap: () =>
                               context.push('${Routes.acadiminData}?uid=$uid'),
                         ),
-                        _buildStatusCard(
+                                                                     _buildStatusCard(
                           'dashboard_user.requests_status'.tr(),
                           '${doctor?.totalPendingAchievements ?? 0}',
                           'dashboard_user.pending'.tr(),
                           Colors.red.shade50,
                           Colors.red.shade900,
-                          onTap: () => context.push(Routes.notification),
+                          onTap: () {
+                            if (doctor != null) {
+                              // ✅ استخدام الثابت اللي عرفناه في Routes
+                              context.push(Routes.doctorRequestsStatus, extra: doctor);
+                            }
+                          },
                         ),
                         _buildProgressCard(
                           'dashboard_user.career_path'.tr(),

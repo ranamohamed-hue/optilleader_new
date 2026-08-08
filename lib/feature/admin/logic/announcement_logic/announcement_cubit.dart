@@ -5,33 +5,60 @@ import 'package:optialeader/feature/admin/data/repo/announcement_repos/announcem
 import 'package:optialeader/feature/notification/data/model/app_notification_model.dart';
 import 'package:optialeader/feature/notification/data/repo/notification_repo.dart';
 import 'announcement_state.dart';
-
+import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 class AnnouncementCubit extends Cubit<AnnouncementState> {
   final IAnnouncementRepository _repository;
   final NotificationRepo _notificationRepo;
+StreamSubscription? _announcementSubscription;
 
-  AnnouncementCubit(this._repository, this._notificationRepo)
-      : super(AnnouncementInitial());
+  AnnouncementCubit(
+    this._repository,
+    this._notificationRepo,
+  ) : super(AnnouncementInitial()) {
+    fetchAnnouncements();
+  }
+void fetchAnnouncements() {
+  print('🚀 FETCH ANNOUNCEMENTS CALLED');
 
-  void fetchAnnouncements() {
-    emit(AnnouncementLoading());
-    _repository.getAnnouncements().listen((data) {
+  emit(AnnouncementLoading());
+
+  _announcementSubscription?.cancel();
+
+  _announcementSubscription =
+      _repository.getAnnouncements().listen(
+    (data) {
+      print('📥 ANNOUNCEMENTS RECEIVED: ${data.length}');
+
       final now = DateTime.now();
+
       final correctedData = data.map((a) {
-        if (a.status == 'Active' && a.deadline.isBefore(now)) {
+        if (a.status == 'Active' &&
+            a.deadline.isBefore(now)) {
           return a.copyWith(status: 'Closed');
         }
+
         return a;
       }).toList();
 
       _autoCloseExpired(data);
 
-      emit(AnnouncementLoaded(correctedData));
+      emit(
+        AnnouncementLoaded(correctedData),
+      );
     },
-        onError: (error) =>
-            emit(AnnouncementError("ERROR_FETCH_ANNOUNCEMENT")));
-  }
+    onError: (error, stackTrace) {
+      print('❌ ANNOUNCEMENT STREAM ERROR: $error');
+      print(stackTrace);
 
+      emit(
+        AnnouncementError(
+          "ERROR_FETCH_ANNOUNCEMENT",
+        ),
+      );
+    },
+  );
+}
   Future<void> _autoCloseExpired(
       List<AnnouncementModel> announcements) async {
     final now = DateTime.now();
@@ -44,33 +71,110 @@ class AnnouncementCubit extends Cubit<AnnouncementState> {
   }
 
    Future<void> addAnnouncement(
-    AnnouncementModel announcement, {
-    String? imagePath,
-  }) async {
+  AnnouncementModel announcement, {
+  String? imagePath,
+}) async {
+  try {
     emit(AnnouncementLoading());
-    if (imagePath != null) {
+
+    print('====================================');
+    print('📢 ADD ANNOUNCEMENT START');
+    print('📢 title: ${announcement.title}');
+    print('📢 imagePath: $imagePath');
+
+    // ==========================================
+    // 1. رفع الصورة
+    // ==========================================
+
+    if (imagePath != null && imagePath.isNotEmpty) {
+      print('📸 جاري رفع الصورة...');
+
       final uploadResult =
           await _repository.uploadAnnouncementImage(imagePath);
+
       if (uploadResult.isLeft()) {
-        uploadResult.fold(
-          (error) => emit(AnnouncementError(error)),
-          (_) => null,
+        final error = uploadResult.fold(
+          (error) => error,
+          (_) => '',
         );
+
+        print('❌ فشل رفع الصورة: $error');
+
+        emit(AnnouncementError(error));
         return;
       }
+
       final imageUrl = uploadResult.getOrElse(() => '');
-      announcement = announcement.copyWith(imageUrl: imageUrl);
-    }
-    final result = await _repository.addAnnouncement(announcement);
-    
-    result.fold((error) => emit(AnnouncementError(error)), (generatedId) async {
-      emit(AnnouncementActionSuccess("SUCCESS_ADD_ANNOUNCEMENT"));
-      
-      await _broadcastAnnouncementNotification(
-        announcement.copyWith(id: generatedId),
+
+      print('✅ imageUrl: $imageUrl');
+
+      announcement = announcement.copyWith(
+        imageUrl: imageUrl,
       );
-    });
+    }
+
+    // ==========================================
+    // 2. حفظ الإعلان في Firestore
+    // ==========================================
+
+    print('🔥 جاري حفظ الإعلان في Firestore...');
+
+    final result = await _repository.addAnnouncement(
+      announcement,
+    );
+
+    if (result.isLeft()) {
+      final error = result.fold(
+        (error) => error,
+        (_) => '',
+      );
+
+      print('❌ فشل حفظ الإعلان: $error');
+
+      emit(AnnouncementError(error));
+      return;
+    }
+
+    final generatedId = result.getOrElse(() => '');
+
+    print('✅ تم حفظ الإعلان في Firestore');
+    print('🆔 ID: $generatedId');
+
+    // ==========================================
+    // 3. إرسال الإشعار
+    // ==========================================
+
+    print('🔔 جاري إرسال الإشعار...');
+
+    await _broadcastAnnouncementNotification(
+      announcement.copyWith(
+        id: generatedId,
+      ),
+    );
+
+    print('✅ تم الانتهاء من إرسال الإشعار');
+
+    emit(
+      AnnouncementActionSuccess(
+        "SUCCESS_ADD_ANNOUNCEMENT",
+      ),
+    );
+
+    print('📢 ADD ANNOUNCEMENT FINISHED');
+    print('====================================');
+  } catch (e, stackTrace) {
+    print('🚨 ADD ANNOUNCEMENT ERROR: $e');
+    print(stackTrace);
+
+    emit(
+      AnnouncementError(
+        e.toString(),
+      ),
+    );
   }
+}
+   
+   
     Future<void> _broadcastAnnouncementNotification(
     AnnouncementModel announcement,
   ) async {
@@ -104,9 +208,9 @@ class AnnouncementCubit extends Cubit<AnnouncementState> {
         }
 
         final snapshot = await query.get();
-        print("🟢 [دكاترة] تم إيجاد ${snapshot.docs.length} دكتور");
+        print(" [دكاترة] تم إيجاد ${snapshot.docs.length} دكتور");
 
-        // ✅ استخدام الـ Batch عشان السرعة
+        //  استخدام الـ Batch عشان السرعة
         if (snapshot.docs.isNotEmpty) {
           WriteBatch batch = FirebaseFirestore.instance.batch();
           for (var doc in snapshot.docs) {
@@ -243,4 +347,6 @@ class AnnouncementCubit extends Cubit<AnnouncementState> {
           AnnouncementActionSuccess("SUCCESS_DELETE_ANNOUNCEMENT")),
     );
   }
+
+
 }

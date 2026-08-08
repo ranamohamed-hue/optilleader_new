@@ -36,34 +36,47 @@ class NotificationCubit extends Cubit<NotificationState> with WidgetsBindingObse
     }
   }
 
-  // ✅ 4. عدّل الدالة دي عشان تجيب الـ ID ديناميكياً وقت ما تتنادى
-  void fetchNotifications() {
-    final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-    
-    if (currentUid.isEmpty) {
-      emit(NotificationError("المستخدم غير مسجل الدخول"));
-      return;
-    }
+ void fetchNotifications() {
+  final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
 
-    userId = currentUid; // نحدث الـ ID في الكلاس
+  print('🔥 FETCH NOTIFICATIONS');
+  print('🔥 Firebase UID = $currentUid');
 
-    emit(NotificationLoading());
-    _notificationSubscription?.cancel(); 
-    
-    _notificationSubscription = notificationRepo.getNotifications(userId)
-      .debounceTime(const Duration(milliseconds: 300)) 
-      .listen(
-        (notifications) {
-          emit(NotificationLoaded(notifications));
-        }, 
-        onError: (error) {
-          print("خطأ لايف في الـ Stream للإشعارات: $error");
-          emit(NotificationError("فشل جلب الإشعارات"));
-        },
-      );
+  if (currentUid.isEmpty) {
+    print('❌ NO CURRENT USER');
+    emit(NotificationError("المستخدم غير مسجل الدخول"));
+    return;
   }
 
+  userId = currentUid;
 
+  emit(NotificationLoading());
+
+  _notificationSubscription?.cancel();
+
+  _notificationSubscription = notificationRepo
+      .getNotifications(currentUid)
+      .listen(
+        (notifications) {
+          print(
+            '✅ NOTIFICATIONS RECEIVED = ${notifications.length}',
+          );
+
+          emit(NotificationLoaded(notifications));
+        },
+        onError: (error, stackTrace) {
+          print('🚨 NOTIFICATION STREAM ERROR');
+          print(error);
+          print(stackTrace);
+
+          emit(
+            NotificationError(
+              "فشل جلب الإشعارات: $error",
+            ),
+          );
+        },
+      );
+}
   @override
   
 
