@@ -25,8 +25,7 @@ class DoctorProfileModel {
   final DateTime? birthDate;
   final String profileImage;
 
-  final String collageAr;
-  final String collageEn;
+  
 
   // البيانات الأكاديمية والوظيفية
   final String universityAr;
@@ -116,8 +115,7 @@ class DoctorProfileModel {
     this.facultyEn = '',
     this.departmentAr = '',
     this.departmentEn = '',
-    this.collageAr = '',
-    this.collageEn = '',
+  
     this.hiringDate,
     this.activeDutySinceDate,
     this.professorRankDate,
@@ -300,8 +298,7 @@ class DoctorProfileModel {
           profile['department_en'] ??
           json['academic_profile']?['department_en'] ??
           '',
-      collageAr: profile['collage_ar'] ?? '',
-      collageEn: profile['collage_en'] ?? '',
+    
 
       // ✅ استخدام الدالة الموحدة هنا
       hiringDate: normalizeDate(
@@ -414,8 +411,7 @@ class DoctorProfileModel {
         'faculty_en': facultyEn,
         'department_ar': departmentAr,
         'department_en': departmentEn,
-        'collage_ar': collageAr,
-        'collage_en': collageEn,
+        
         'hiring_date': hiringDate != null
             ? Timestamp.fromDate(hiringDate!)
             : null,
@@ -554,8 +550,7 @@ class DoctorProfileModel {
       facultyEn: facultyEn ?? this.facultyEn,
       departmentAr: departmentAr ?? this.departmentAr,
       departmentEn: departmentEn ?? this.departmentEn,
-      collageAr: collageAr ?? this.collageAr,
-      collageEn: collageEn ?? this.collageEn,
+      
       hiringDate: hiringDate ?? this.hiringDate,
       activeDutySinceDate: activeDutySinceDate ?? this.activeDutySinceDate,
       professorRankDate: professorRankDate ?? this.professorRankDate,

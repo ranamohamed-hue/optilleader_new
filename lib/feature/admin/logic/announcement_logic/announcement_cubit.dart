@@ -43,7 +43,7 @@ class AnnouncementCubit extends Cubit<AnnouncementState> {
     }
   }
 
-  Future<void> addAnnouncement(
+   Future<void> addAnnouncement(
     AnnouncementModel announcement, {
     String? imagePath,
   }) async {
@@ -62,63 +62,132 @@ class AnnouncementCubit extends Cubit<AnnouncementState> {
       announcement = announcement.copyWith(imageUrl: imageUrl);
     }
     final result = await _repository.addAnnouncement(announcement);
-    result.fold((error) => emit(AnnouncementError(error)), (generatedId) {
+    
+    result.fold((error) => emit(AnnouncementError(error)), (generatedId) async {
       emit(AnnouncementActionSuccess("SUCCESS_ADD_ANNOUNCEMENT"));
-      _broadcastAnnouncementNotification(
+      
+      await _broadcastAnnouncementNotification(
         announcement.copyWith(id: generatedId),
       );
     });
   }
-
     Future<void> _broadcastAnnouncementNotification(
     AnnouncementModel announcement,
   ) async {
+    print("🔥 بداية إرسال الإشعار لـ: ${announcement.title}");
+    print("🔥 الكلية: ${announcement.collegeName}");
+    print("🔥 القطاع: ${announcement.adminSectorId}");
+    print("🔥 الإدارة الفرعية: ${announcement.adminSubDeptId}");
+
     try {
       final String title = 'إعلان جديد: ${announcement.title}';
       final String body =
           announcement.description ?? 'تم نشر إشعار جديد يرجى المتابعة';
 
-      // ✅ 1. إعلانات موجهة لهيئة تدريس (الفلترة بالاسم العربي اللي في بيانات الدكاترة)
+      // =================================================================
+      // 1. إعلان موجه لدكاترة (كلية معينة + قسم اختياري)
+      // =================================================================
       if (announcement.collegeName != null &&
           announcement.collegeName!.isNotEmpty) {
         
-        print("🟢 جاري البحث عن دكاترة الكلية: ${announcement.collegeName}");
+        print("🟢 [دكاترة] جاري البحث عن دكاترة الكلية: ${announcement.collegeName}");
         
         Query query = FirebaseFirestore.instance
             .collection('users')
-            .where('role', isEqualTo: 'doctor');
+            .where('role', isEqualTo: 'doctor')
+            .where('profile.faculty_ar', isEqualTo: announcement.collegeName);
 
         if (announcement.departmentName != null &&
             announcement.departmentName!.isNotEmpty) {
-          // لو فيه قسم محدد، نفلتر عليه
+          print("🟢 [دكاترة] فلترة على قسم: ${announcement.departmentName}");
           query = query.where('profile.department_ar', isEqualTo: announcement.departmentName);
-        } else {
-          // لو مفيش قسم، نفلتر على اسم الكلية
-          query = query.where('profile.faculty_ar', isEqualTo: announcement.collegeName);
         }
 
         final snapshot = await query.get();
-        print("🟢 عدد الدكاترة اللي لقاهم: ${snapshot.docs.length}");
+        print("🟢 [دكاترة] تم إيجاد ${snapshot.docs.length} دكتور");
 
-        for (var doc in snapshot.docs) {
-          print("🟢 بعت إشعار لـ: ${doc.id}");
-          final notification = AppNotificationModel(
-            id: '',
-            title: title,
-            message: body,
-            type: NotificationType.announcementCreated, // ✅ الإسم الصحيح
-            target: NotificationTarget.specificUser,
-            timestamp: Timestamp.now(),
-            receiverId: doc.id,
-            relatedId: announcement.id,
-          );
-          await _notificationRepo.sendNotification(notification);
+        // ✅ استخدام الـ Batch عشان السرعة
+        if (snapshot.docs.isNotEmpty) {
+          WriteBatch batch = FirebaseFirestore.instance.batch();
+          for (var doc in snapshot.docs) {
+            final notifRef = FirebaseFirestore.instance
+                .collection('users')
+                .doc(doc.id)
+                .collection('notifications')
+                .doc(); // إنشاء ID تلقائي
+            
+            final notificationMap = AppNotificationModel(
+              id: notifRef.id,
+              title: title,
+              message: body,
+              type: NotificationType.announcementCreated,
+              target: NotificationTarget.specificUser,
+              timestamp: Timestamp.now(),
+              receiverId: doc.id,
+              relatedId: announcement.id,
+            ).toMap();
+            
+            batch.set(notifRef, notificationMap);
+          }
+          await batch.commit(); // ✅ إرسال كل الإشعارات في ثانية واحدة!
         }
-        return;
+        return; 
       }
 
-      // ✅ 2. إعلانات عامة (لأن مفيش حقول قطاعات في كولكشن users للموظفين)
-      print("🟢 إعلان عام - بعت لكل المستخدمين");
+      // =================================================================
+      // 2. إعلان موجه لموظفين/إداريين (قطاع معين + إدارة فرعية اختيارية)
+      // =================================================================
+      if (announcement.adminSectorId != null &&
+          announcement.adminSectorId!.isNotEmpty) {
+        
+        print("🟢 [موظفين] جاري البحث عن موظفي القطاع: ${announcement.adminSectorId}");
+        
+        Query query = FirebaseFirestore.instance
+            .collection('users')
+            .where('role', isEqualTo: 'admin_manager')
+            .where('admin_data.sector_id', isEqualTo: announcement.adminSectorId);
+
+        if (announcement.adminSubDeptId != null &&
+            announcement.adminSubDeptId!.isNotEmpty) {
+          print("🟢 [موظفين] فلترة على إدارة فرعية: ${announcement.adminSubDeptId}");
+          query = query.where('admin_data.sub_dept_id', isEqualTo: announcement.adminSubDeptId);
+        }
+
+        final snapshot = await query.get();
+        print("🟢 [موظفين] تم إيجاد ${snapshot.docs.length} موظف");
+
+        // ✅ استخدام الـ Batch عشان السرعة
+        if (snapshot.docs.isNotEmpty) {
+          WriteBatch batch = FirebaseFirestore.instance.batch();
+          for (var doc in snapshot.docs) {
+            final notifRef = FirebaseFirestore.instance
+                .collection('users')
+                .doc(doc.id)
+                .collection('notifications')
+                .doc();
+            
+            final notificationMap = AppNotificationModel(
+              id: notifRef.id,
+              title: title,
+              message: body,
+              type: NotificationType.announcementCreated,
+              target: NotificationTarget.specificUser,
+              timestamp: Timestamp.now(),
+              receiverId: doc.id,
+              relatedId: announcement.id,
+            ).toMap();
+            
+            batch.set(notifRef, notificationMap);
+          }
+          await batch.commit(); // ✅ إرسال كل الإشعارات في ثانية واحدة!
+        }
+        return; 
+      }
+
+      // =================================================================
+      // 3. إعلان عام (مفيش كلية ولا قطاع)
+      // =================================================================
+      print("🟢 [عام] إعلان عام - بعت لكل المستخدمين");
       final notification = AppNotificationModel(
         id: '',
         title: title,
@@ -130,6 +199,7 @@ class AnnouncementCubit extends Cubit<AnnouncementState> {
         relatedId: announcement.id,
       );
       await _notificationRepo.sendRoleBasedNotification(notification);
+      
     } catch (e) {
       print("🚨 فشل إرسال الإشعار: $e");
     }

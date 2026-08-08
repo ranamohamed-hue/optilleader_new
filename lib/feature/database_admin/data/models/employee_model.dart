@@ -46,7 +46,13 @@ class EmployeeModel {
   final bool? hasICDL;
   final bool? hasHealthCertificate;
 
-  // 7. توقيتات النظام
+  // 7. بيانات القطاع والإدارة الفرعية
+  final String? adminSectorId;
+  final String? adminSectorName;
+  final String? adminSubDeptId;
+  final String? adminSubDeptName;
+
+  // 8. توقيتات النظام
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -83,6 +89,10 @@ class EmployeeModel {
     this.isActive = true,
     this.hasICDL,
     this.hasHealthCertificate,
+    this.adminSectorId,
+    this.adminSectorName,
+    this.adminSubDeptId,
+    this.adminSubDeptName,
     required this.createdAt,
     this.updatedAt,
   });
@@ -96,6 +106,7 @@ class EmployeeModel {
 
     final profile = json['profile'] as Map<String, dynamic>? ?? {};
     final adminProofs = json['admin_proofs'] as Map<String, dynamic>? ?? {};
+    final adminData = json['admin_data'] as Map<String, dynamic>? ?? {};
 
     return EmployeeModel(
       uid: id,
@@ -117,9 +128,9 @@ class EmployeeModel {
       facultyEn: profile['faculty_en'] ?? '',
       hasAdminExperience: adminProofs['has_admin_experience'],
       hasAdminTraining: adminProofs['has_admin_training'],
-      degree: json['admin_data']?['degree'] ?? '',
-      graduationYear: json['admin_data']?['graduation_year'] ?? '',
-      yearsOfAdminExperience: json['admin_data']?['years_of_experience'] ?? 0,
+      degree: adminData['degree'] ?? '',
+      graduationYear: adminData['graduation_year'] ?? '',
+      yearsOfAdminExperience: adminData['years_of_experience'] ?? 0,
       email: json['university_email'] ?? '',
       phone: profile['phone']?['phone1'] ?? '',
       hasCriminalRecord: json['security_data']?['has_criminal_record'] ?? false,
@@ -130,6 +141,10 @@ class EmployeeModel {
       isActive: json['is_active'] ?? true,
       hasICDL: adminProofs['has_icdl'],
       hasHealthCertificate: adminProofs['has_health_certificate'],
+      adminSectorId: adminData['sector_id'],
+      adminSectorName: adminData['sector_name'],
+      adminSubDeptId: adminData['sub_dept_id'],
+      adminSubDeptName: adminData['sub_dept_name'],
       createdAt: parseDate(json['created_at']) ?? DateTime.now(),
       updatedAt: parseDate(json['updated_at']),
     );
@@ -162,6 +177,10 @@ class EmployeeModel {
         'degree': degree,
         'graduation_year': graduationYear,
         'years_of_experience': yearsOfAdminExperience,
+        'sector_id': adminSectorId,
+        'sector_name': adminSectorName,
+        'sub_dept_id': adminSubDeptId,
+        'sub_dept_name': adminSubDeptName,
       },
       'eligibility_data': {
         'disciplinary_clearance': disciplinaryClearance,
@@ -176,7 +195,6 @@ class EmployeeModel {
       'admin_proofs': {
         'has_icdl': hasICDL,
         'has_health_certificate': hasHealthCertificate,
-        // ✅ تم نقلهم هنا ليطابق fromJson
         'has_admin_experience': hasAdminExperience,
         'has_admin_training': hasAdminTraining,
       },
@@ -218,6 +236,10 @@ class EmployeeModel {
     bool? isActive,
     bool? hasICDL,
     bool? hasHealthCertificate,
+    String? adminSectorId,
+    String? adminSectorName,
+    String? adminSubDeptId,
+    String? adminSubDeptName,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -254,6 +276,10 @@ class EmployeeModel {
       isActive: isActive ?? this.isActive,
       hasICDL: hasICDL ?? this.hasICDL,
       hasHealthCertificate: hasHealthCertificate ?? this.hasHealthCertificate,
+      adminSectorId: adminSectorId ?? this.adminSectorId,
+      adminSectorName: adminSectorName ?? this.adminSectorName,
+      adminSubDeptId: adminSubDeptId ?? this.adminSubDeptId,
+      adminSubDeptName: adminSubDeptName ?? this.adminSubDeptName,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

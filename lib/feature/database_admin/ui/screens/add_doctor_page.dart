@@ -16,7 +16,6 @@ import 'package:optialeader/feature/database_admin/data/models/doctor_profile_mo
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_state.dart';
 
-// ✅ غير المسار ده حسب مكان الملف عندك
 import 'package:optialeader/feature/admin/ui/announces/mansoura_universities_data.dart';
 
 class AcademicControllers {

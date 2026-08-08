@@ -33,6 +33,12 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
   final _gradYearController = TextEditingController();
   final _experienceController = TextEditingController(text: '10');
 
+  // ✅ كونترولرز القطاع والإدارة الفرعية
+  final _sectorIdController = TextEditingController();
+  final _sectorNameController = TextEditingController();
+  final _subDeptIdController = TextEditingController();
+  final _subDeptNameController = TextEditingController();
+
   File? _profileImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -74,10 +80,22 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
       holdsPartyPosition: _holdsPartyPosition,
       disciplinaryClearance: _disciplinaryClearance,
       hasExcellentPerformanceReports: _hasExcellentReports,
+      // ✅ تمرير بيانات القطاع والإدارة الفرعية
+      adminSectorId: _sectorIdController.text.trim().isEmpty
+          ? null
+          : _sectorIdController.text.trim(),
+      adminSectorName: _sectorNameController.text.trim().isEmpty
+          ? null
+          : _sectorNameController.text.trim(),
+      adminSubDeptId: _subDeptIdController.text.trim().isEmpty
+          ? null
+          : _subDeptIdController.text.trim(),
+      adminSubDeptName: _subDeptNameController.text.trim().isEmpty
+          ? null
+          : _subDeptNameController.text.trim(),
       createdAt: DateTime.now(),
     );
 
-    // ✅ تمرير الصورة هنا
     context.read<EmployeeDataCubit>().createNewEmployee(
       employee,
       profileImageFile: _profileImage,
@@ -96,6 +114,11 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
     _jobEnController.dispose();
     _gradYearController.dispose();
     _experienceController.dispose();
+    // ✅ dispose الكونترولرز الجديدة
+    _sectorIdController.dispose();
+    _sectorNameController.dispose();
+    _subDeptIdController.dispose();
+    _subDeptNameController.dispose();
     super.dispose();
   }
 
@@ -121,33 +144,38 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
       builder: (context, state) {
         bool isLoading = state is EmployeeLoading;
         return Scaffold(
-          // ✅ إضافة .tr()
           appBar: AppBar(title: Text('add_employee.title'.tr())),
           body: SingleChildScrollView(
             padding: EdgeInsets.all(16.w),
             child: Form(
               key: _formKey,
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    onTap: _pickImage,
-                    child: CircleAvatar(
-                      radius: 50.r,
-                      backgroundColor: theme.primaryColor.withOpacity(0.1),
-                      backgroundImage: _profileImage != null
-                          ? FileImage(_profileImage!)
-                          : null,
-                      child: _profileImage == null
-                          ? Icon(
-                              Icons.add_a_photo,
-                              size: 30.sp,
-                              color: theme.primaryColor,
-                            )
-                          : null,
+                  // ─── الصورة الشخصية ───
+                  Center(
+                    child: GestureDetector(
+                      onTap: _pickImage,
+                      child: CircleAvatar(
+                        radius: 50.r,
+                        backgroundColor: theme.primaryColor.withOpacity(0.1),
+                        backgroundImage: _profileImage != null
+                            ? FileImage(_profileImage!)
+                            : null,
+                        child: _profileImage == null
+                            ? Icon(
+                                Icons.add_a_photo,
+                                size: 30.sp,
+                                color: theme.primaryColor,
+                              )
+                            : null,
+                      ),
                     ),
                   ),
-                  SizedBox(height: 20.h),
+                  SizedBox(height: 24.h),
 
+                  // ─── Section 1: بيانات الهوية ───
+                  _buildSectionHeader('add_employee.sections.identity'.tr()),
                   _buildTextField(
                     _nameArController,
                     'add_employee.fields.name_ar'.tr(),
@@ -169,6 +197,10 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                     'add_employee.fields.employee_id'.tr(),
                     isRequired: true,
                   ),
+                  SizedBox(height: 16.h),
+
+                  // ─── Section 2: بيانات التواصل ───
+                  _buildSectionHeader('add_employee.sections.contact'.tr()),
                   _buildTextField(
                     _emailController,
                     'add_employee.fields.email'.tr(),
@@ -181,6 +213,10 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                     isRequired: true,
                     keyboardType: TextInputType.phone,
                   ),
+                  SizedBox(height: 16.h),
+
+                  // ─── Section 3: البيانات الوظيفية ───
+                  _buildSectionHeader('add_employee.sections.job'.tr()),
                   _buildTextField(
                     _jobArController,
                     'add_employee.fields.job_ar'.tr(),
@@ -190,6 +226,34 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                     _jobEnController,
                     'add_employee.fields.job_en'.tr(),
                   ),
+
+                  // ✅ القطاع والإدارة الفرعية
+                  SizedBox(height: 16.h),
+                  _buildSectionHeader('add_employee.sections.sector'.tr()),
+                  _buildTextField(
+                    _sectorIdController,
+                    'add_employee.fields.sector_id'.tr(),
+                    keyboardType: TextInputType.text,
+                  ),
+                  _buildTextField(
+                    _sectorNameController,
+                    'add_employee.fields.sector_name'.tr(),
+                    isRequired: true,
+                  ),
+                  _buildTextField(
+                    _subDeptIdController,
+                    'add_employee.fields.sub_dept_id'.tr(),
+                    keyboardType: TextInputType.text,
+                  ),
+                  _buildTextField(
+                    _subDeptNameController,
+                    'add_employee.fields.sub_dept_name'.tr(),
+                    isRequired: true,
+                  ),
+                  SizedBox(height: 16.h),
+
+                  // ─── Section 4: المؤهلات ───
+                  _buildSectionHeader('add_employee.sections.qualification'.tr()),
                   _buildTextField(
                     _degreeController,
                     'add_employee.fields.degree'.tr(),
@@ -207,25 +271,27 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                     isRequired: true,
                     keyboardType: TextInputType.number,
                   ),
+                  SizedBox(height: 16.h),
 
-                  SizedBox(height: 10.h),
+                  // ─── Section 5: الأهلية والسلوك ───
+                  _buildSectionHeader('add_employee.sections.eligibility'.tr()),
                   _buildSwitchTile(
-                    'add_employee.fields.criminal_record'.tr(),
+                    'add_employee.switches.criminal_record'.tr(),
                     _hasCriminalRecord,
                     (val) => setState(() => _hasCriminalRecord = val),
                   ),
                   _buildSwitchTile(
-                    'add_employee.fields.party_position'.tr(),
+                    'add_employee.switches.party_position'.tr(),
                     _holdsPartyPosition,
                     (val) => setState(() => _holdsPartyPosition = val),
                   ),
                   _buildSwitchTile(
-                    'add_employee.fields.disciplinary_clearance'.tr(),
+                    'add_employee.switches.disciplinary_clearance'.tr(),
                     !_disciplinaryClearance,
                     (val) => setState(() => _disciplinaryClearance = !val),
                   ),
                   _buildSwitchTile(
-                    'add_employee.fields.excellent_reports'.tr(),
+                    'add_employee.switches.excellent_reports'.tr(),
                     _hasExcellentReports,
                     (val) => setState(() => _hasExcellentReports = val),
                   ),
@@ -242,7 +308,7 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                       child: isLoading
                           ? const CircularProgressIndicator(color: Colors.white)
                           : Text(
-                              'add_employee.save_data'.tr(), // ✅ إضافة .tr()
+                              'add_employee.save_data'.tr(),
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 16.sp,
@@ -251,12 +317,27 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
                             ),
                     ),
                   ),
+                  SizedBox(height: 20.h),
                 ],
               ),
             ),
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: 10.h),
+      child: Text(
+        title,
+        style: TextStyle(
+          fontSize: 15.sp,
+          fontWeight: FontWeight.bold,
+          color: Theme.of(context).primaryColor,
+        ),
+      ),
     );
   }
 
@@ -276,9 +357,8 @@ class _AddEmployeePageState extends State<AddEmployeePage> {
           border: const OutlineInputBorder(),
         ),
         validator: (value) {
-          // ✅ تعديل مسار الترجمة
           if (isRequired && (value == null || value.trim().isEmpty)) {
-            return 'add_employee.fields.required'.tr();
+            return 'validation.required'.tr();
           }
           return null;
         },

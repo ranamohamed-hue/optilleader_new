@@ -11,7 +11,6 @@ class AnnouncementModel {
   String targetRole;
   DateTime createdAt;
 
-  // ✅ حقل القطاع الجديد (لنائب الرئيس ووكيل الكلية)
   String? targetSector;
 
   bool? isResultAnnounced;
@@ -57,7 +56,7 @@ class AnnouncementModel {
     this.imageUrl,
     required this.targetRole,
     required this.createdAt,
-    this.targetSector, // ✅ إضافة الحقل للكنستركتور
+    this.targetSector, 
     this.isResultAnnounced,
     this.collegeId,
     this.collegeName,
@@ -69,6 +68,15 @@ class AnnouncementModel {
     this.adminSubDeptName,
   });
 
+  // ✅✅✅ دالة أمان لتحويل أي نوع تاريخ لـ DateTime (مهمة جداً لتجنب Crash) ✅✅✅
+  static DateTime _safeParseDate(dynamic dateField) {
+    if (dateField == null) return DateTime.now();
+    if (dateField is Timestamp) return dateField.toDate();
+    if (dateField is String) return DateTime.tryParse(dateField) ?? DateTime.now();
+    if (dateField is DateTime) return dateField;
+    return DateTime.now(); // في حالة أي خطأ غير متوقع، نرجع تاريخ الآن عشان التطبيق ما يقعش
+  }
+
   factory AnnouncementModel.fromMap(
     Map<String, dynamic> map,
     String documentId,
@@ -78,16 +86,14 @@ class AnnouncementModel {
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       status: map['status'] ?? 'Active',
-      deadline: (map['deadline'] != null)
-          ? (map['deadline'] as dynamic).toDate()
-          : DateTime.now(),
+      // ✅ استخدام الدالة الآمنة بدل as dynamic).toDate()
+      deadline: _safeParseDate(map['deadline']),
       applicants: map['applicants'] ?? 0,
       imageUrl: map['imageUrl'],
       targetRole: map['targetRole'] ?? 'general',
-      createdAt: (map['createdAt'] != null)
-          ? (map['createdAt'] as dynamic).toDate()
-          : DateTime.now(),
-      targetSector: map['targetSector'], // ✅ قراءة القطاع
+      // ✅ استخدام الدالة الآمنة هنا كمان
+      createdAt: _safeParseDate(map['createdAt']),
+      targetSector: map['targetSector'], 
       isResultAnnounced: map['isResultAnnounced'] ?? false,
       collegeId: map['collegeId'],
       collegeName: map['collegeName'],
@@ -110,7 +116,7 @@ class AnnouncementModel {
       'imageUrl': imageUrl,
       'targetRole': targetRole,
       'createdAt': Timestamp.fromDate(createdAt),
-      'targetSector': targetSector, // ✅ حفظ القطاع
+      'targetSector': targetSector, 
       'isResultAnnounced': isResultAnnounced ?? false,
       'collegeId': collegeId, 'collegeName': collegeName,
       'departmentId': departmentId, 'departmentName': departmentName,
@@ -129,7 +135,7 @@ class AnnouncementModel {
     String? imageUrl,
     String? targetRole,
     DateTime? createdAt,
-    String? targetSector, // ✅ إضافة القطاع للنسخ
+    String? targetSector, 
     bool? isResultAnnounced,
     String? collegeId,
     String? collegeName,
