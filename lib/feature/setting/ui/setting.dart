@@ -83,7 +83,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       case 'judge':
         return Routes.judge;
       case 'employee': 
-        return Routes.employee;
+        return Routes.adminManager;
       default:
         return Routes.user;
     }
@@ -182,11 +182,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           );
         }
       },
-      child: PopScope(
-        canPop: widget.onBack == null,
+                child: PopScope(
+        // ✅ لو مفيش onBack مخصص، وهناك شاشات في الـ Stack، يسمح للنظام بالرجوع تلقائي
+        canPop: widget.onBack == null && context.canPop(),
         onPopInvokedWithResult: (didPop, result) {
+          // لو النظام قدر يرجع فعلاً، مكملش الكود ده
           if (didPop) return;
-          widget.onBack?.call();
+          
+          if (widget.onBack != null) {
+            // لو الشاشة جوه BottomNav أو فيه action مخصص
+            widget.onBack!();
+          } else if (!context.mounted) {
+            return;
+          } else {
+            // لو مفيش شاشات قبل كده (جينا عن طريق go)، روح للصفحة الرئيسية
+            context.go(_getHomeRoute());
+          }
         },
         child: Scaffold(
           appBar: AppBar(
@@ -195,13 +206,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {
                 if (widget.onBack != null) {
                   widget.onBack!();
+                } else if (!context.mounted) {
+                  return;
+                } else if (context.canPop()) {
+                  // لو جينا عن طريق push، ارجع خطوة واحدة للوراء
+                  context.pop();
                 } else {
-                  if (!context.mounted) return;
-                  if (context.canPop()) {
-                    context.pop();
-                  } else {
-                    context.go(_getHomeRoute());
-                  }
+                  // لو جينا عن طريق go والـ Stack فاضي، روح للهوم
+                  context.go(_getHomeRoute());
                 }
               },
             ),
@@ -209,7 +221,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             centerTitle: true,
           ),
           body: BlocBuilder<SettingCubit, SettingState>(
-            builder: (context, state) {
+                        builder: (context, state) {
               final UserSettingsModel? user;
               final bool isUploading;
 

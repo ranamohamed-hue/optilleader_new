@@ -1,38 +1,11 @@
 {
-  "notifications": {
-    "title": "الإشعارات",
-    "empty_state": "لا توجد إشعارات",
-    "clear_read": "مسح المقروء",
-    "time": {
-      "today": "اليوم {}",
-      "yesterday": "أمس"
+    "notification":{
+        "title":"الإشعارات",
+        "empty_state":"لا توجد اشعارات",
+        "clear_read":"مسح المقروء",
+        "time":{
+            "today":"اليوم",
+            "yesterday":"أمس"
+        }
     }
-  },
-  "nomination": {
-    "app_bar_title": "التقدّم للإعلان",
-    "role_label": "المسمى الوظيفي:",
-    "scores_title": "درجات التقييم التلقائي",
-    "points_unit": "نقاط",
-    "total_label": "المجموع",
-    "declarations_title": "ملف التصريحات",
-    "declarations_instructions": "يرجى رفع ملف التصريحات الموقّع (PDF, DOCX, JPG, ZIP)",
-    "pick_file": "اختيار ملف",
-    "error_no_file": "يرجى اختيار ملف التصريحات أولاً",
-    "button_submitting": "جارٍ الإرسال...",
-    "button_submit": "إرسال الطلب",
-    "mandatory_criteria": "المعايير الإلزامية",
-    "no_criteria": "لا توجد معايير إلزامية لهذا المسمى",
-    "course_points": "نقاط الدورات التدريبية"
-  },
-  "error_fetch_requests": "فشل في جلب الطلبات",
-  "error_fetch_evaluator_requests": "فشل في جلب طلبات التقييم",
-  "error_upload_declaration": "فشل في رفع ملف التصريحات",
-  "error_submit_request": "فشل في إرسال الطلب",
-  "error_update_request": "فشل في تحديث حالة الطلب",
-  "error_evaluation_submit": "فشل في إرسال التقييم",
-  "error_unexpected": "حدث خطأ غير متوقع",
-  "success_submit_request": "تم إرسال طلب الترشيح بنجاح",
-  "success_action_taken": "تم تنفيذ الإجراء بنجاح",
-  "success_evaluation_submitted": "تم إرسال التقييم بنجاح",
-  "error_duplicate_request": "لديك طلب معلّق لهذا المسمى مسبقاً"
 }

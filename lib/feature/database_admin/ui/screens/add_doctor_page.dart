@@ -103,7 +103,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   String? selectedStatusAr;
   String? selectedStatusEn;
 
-  // ✅ مفاتيح الترجمة للدرجات
   final List<String> degreeLevelKeys = [
     'add_doctor.degree_bachelor',
     'add_doctor.degree_diploma',
@@ -111,7 +110,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     'add_doctor.degree_phd',
   ];
 
-  // ✅ القيم الفعلية اللي بتتتحفظ في الداتا بيز
   final List<String> degreeLevelValues = [
     'بكالوريوس',
     'دبلومة',
@@ -148,12 +146,14 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 
   void _showDeleteConfirmationDialog() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.r),
         ),
+        backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
         title: Row(
           children: [
             Icon(
@@ -162,19 +162,27 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
               size: 28.sp,
             ),
             SizedBox(width: 10.w),
-            Text('add_doctor.delete_confirm_title'.tr()),
+            Text(
+              'add_doctor.delete_confirm_title'.tr(),
+              style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark),
+            ),
           ],
         ),
         content: Text(
           'add_doctor.delete_confirm_body'.tr(),
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white70 : AppColors.navyDark,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               "common.cancel".tr(),
-              style: TextStyle(color: AppColors.navyLight),
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.navyLight,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           ElevatedButton(
@@ -395,7 +403,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         workPlanStatus: _existingDoctor?.workPlanStatus,
       );
 
-      // ✅ Try-Catch عشان لو في مشكلة في الـ Cubit
       try {
         if (isEditing) {
           final updatedDoctor = doctorModel.copyWith(uid: widget.existingUid!);
@@ -405,9 +412,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
               ? File(_pickedImageFile!.path)
               : null;
           context.read<DoctorDataCubit>().createNewDoctor(
-            doctorModel,
-            profileImageFile: imageFile,
-          );
+                doctorModel,
+                profileImageFile: imageFile,
+              );
         }
       } catch (e) {
         if (!mounted) return;
@@ -457,7 +464,6 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           _addressAr.text = doc.addressAr;
           _addressEn.text = doc.addressEn;
 
-          // ✅✅✅ استخدام الدالة الموحدة من الموديل ✅✅✅
           birthDate = DoctorProfileModel.normalizeDate(doc.birthDate);
           professorRankDate = DoctorProfileModel.normalizeDate(
             doc.professorRankDate,
@@ -491,10 +497,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             final ctrl = AcademicControllers();
             ctrl.degree.text = item['degree'] ?? '';
             ctrl.major.text = item['major'] ?? '';
-
-            // ✅✅✅ استخدام الدالة الموحدة من الموديل ✅✅✅
             ctrl.date = DoctorProfileModel.normalizeDate(item['date']);
-
             ctrl.place.text = item['place'] ?? '';
             ctrl.type = item['type'] ?? 'بكالوريوس';
             academicControllersList.add(ctrl);
@@ -536,8 +539,8 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             _isReadOnly
                 ? "add_doctor.view_profile".tr()
                 : (isEditing
-                      ? "add_doctor.edit_title".tr()
-                      : "add_doctor.title".tr()),
+                    ? "add_doctor.edit_title".tr()
+                    : "add_doctor.title".tr()),
             style: theme.appBarTheme.titleTextStyle,
           ),
           actions: [
@@ -710,9 +713,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                       Icons.school,
                       [
                         ...academicControllersList.asMap().entries.map(
-                          (entry) =>
-                              _buildAcademicEntry(entry.key, entry.value),
-                        ),
+                              (entry) =>
+                                  _buildAcademicEntry(entry.key, entry.value),
+                            ),
                         if (!_isReadOnly)
                           Center(
                             child: TextButton.icon(
@@ -830,8 +833,8 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     );
   }
 
-  // ✅ Dropdowns للكلية والقسم
   Widget _buildFacultyDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final faculties = MansouraUniversitiesData.faculties;
     final currentVal = isArabic ? _facultyAr.text : _facultyEn.text;
     final isValid = faculties.any(
@@ -840,8 +843,13 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
       decoration: BoxDecoration(
-        color: _isReadOnly ? Colors.grey.shade200 : Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
+        color: _isReadOnly
+        /////////////////////////////
+        //////////////
+        //////////
+            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: DropdownButtonHideUnderline(
@@ -851,11 +859,14 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           hint: Text(
             "الكلية",
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.navyLight,
+              color: isDark ? Colors.white54 : AppColors.navyLight,
             ),
           ),
-          icon: Icon(Icons.arrow_drop_down, color: AppColors.navyDark),
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
+          icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white70 : AppColors.navyDark),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white : AppColors.navyDark,
+          ),
+          dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
           items: faculties.map((f) {
             final name = isArabic ? f.nameAr : f.nameEn;
             return DropdownMenuItem(
@@ -863,7 +874,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
               child: Text(
                 name,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMedium,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: isDark ? Colors.white : AppColors.navyDark,
+                ),
               ),
             );
           }).toList(),
@@ -888,6 +901,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 
   Widget _buildDepartmentDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final currentFacVal = isArabic ? _facultyAr.text : _facultyEn.text;
     FacultyData selectedFaculty = MansouraUniversitiesData.faculties.firstWhere(
       (f) => (isArabic ? f.nameAr : f.nameEn) == currentFacVal,
@@ -898,11 +912,16 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     final isValid = departments.any(
       (d) => (isArabic ? d.nameAr : d.nameEn) == currentDepVal,
     );
+    //////////////////////////////////////////
+    //////////////////////////
+    ///////////////
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
       decoration: BoxDecoration(
-        color: _isReadOnly ? Colors.grey.shade200 : Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
+        color: _isReadOnly
+            ? (isDark ?  Colors.grey.shade800: Colors.grey.shade200)
+            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
         borderRadius: BorderRadius.circular(12.r),
       ),
       child: DropdownButtonHideUnderline(
@@ -912,11 +931,14 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           hint: Text(
             "القسم",
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.navyLight,
+              color: isDark ? Colors.white54 : AppColors.navyLight,
             ),
           ),
-          icon: Icon(Icons.arrow_drop_down, color: AppColors.navyDark),
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
+          icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white70 : AppColors.navyDark),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white : AppColors.navyDark,
+          ),
+          dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
           items: departments.map((d) {
             final name = isArabic ? d.nameAr : d.nameEn;
             return DropdownMenuItem(
@@ -924,7 +946,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
               child: Text(
                 name,
                 overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMedium,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: isDark ? Colors.white : AppColors.navyDark,
+                ),
               ),
             );
           }).toList(),
@@ -947,6 +971,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 
   Widget _buildInternalCommitteesSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return _buildSectionCard(
       "add_doctor.internal_committees".tr(),
       Icons.groups_rounded,
@@ -956,7 +981,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             padding: EdgeInsets.symmetric(vertical: 10.h),
             child: Text(
               "add_doctor.no_committees".tr(),
-              style: TextStyle(color: Colors.grey, fontSize: 13.sp),
+              style: TextStyle(color: isDark ? Colors.white54 : Colors.grey, fontSize: 13.sp),
             ),
           ),
         ..._internalCommittees.asMap().entries.map((entry) {
@@ -966,9 +991,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             margin: EdgeInsets.only(bottom: 8.h),
             padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
             decoration: BoxDecoration(
-              color: AppColors.navyLight.withOpacity(0.05),
+              color: isDark ? Colors.white10 : AppColors.navyLight.withOpacity(0.05),
               borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: Colors.grey.shade300),
+              border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
             ),
             child: Row(
               children: [
@@ -982,7 +1007,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                   child: Text(
                     name,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.navyDark,
+                      color: isDark ? Colors.white : AppColors.navyDark,
                     ),
                   ),
                 ),
@@ -1010,27 +1035,27 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                   controller: _committeeNameController,
                   enabled: !_isReadOnly,
                   style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.navyDark,
+                    color: isDark ? Colors.white : AppColors.navyDark,
                   ),
                   textAlign: isArabic ? TextAlign.right : TextAlign.left,
                   decoration: InputDecoration(
                     hintText: "add_doctor.committee_name_hint".tr(),
                     hintStyle: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.navyLight,
+                      color: isDark ? Colors.white54 : AppColors.navyLight,
                     ),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.white,
                     contentPadding: EdgeInsets.symmetric(
                       horizontal: 12.w,
                       vertical: 10.h,
                     ),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.r),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(10.r),
-                      borderSide: BorderSide(color: Colors.grey.shade300),
+                      borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
                     ),
                   ),
                   onFieldSubmitted: (_) => _addCommittee(),
@@ -1055,6 +1080,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 
   Widget _buildDigitalArchiveSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return _buildSectionCard(
       "add_doctor.digital_archive".tr(),
       Icons.folder_open,
@@ -1064,20 +1090,20 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             padding: EdgeInsets.symmetric(vertical: 10.h),
             child: Text(
               "add_doctor.no_archive".tr(),
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(color: isDark ? Colors.white54 : Colors.grey),
             ),
           ),
         ..._digitalArchive.asMap().entries.map((entry) {
           final item = entry.value;
           return ListTile(
-            leading: Icon(Icons.insert_drive_file, color: AppColors.navyLight),
+            leading: Icon(Icons.insert_drive_file, color: isDark ? Colors.white70 : AppColors.navyLight),
             title: Text(
               item['title'] ?? 'Untitled',
-              style: AppTextStyles.bodyMedium,
+              style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white : AppColors.navyDark),
             ),
             subtitle: Text(
               item['uploaded_at'] ?? '',
-              style: AppTextStyles.bodySmall,
+              style: AppTextStyles.bodySmall.copyWith(color: isDark ? Colors.white54 : AppColors.navyLight),
             ),
             trailing: IconButton(
               icon: Icon(Icons.open_in_new, color: AppColors.darkGold),
@@ -1089,11 +1115,11 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           Center(
             child: OutlinedButton.icon(
               onPressed: _pickAndUploadArchiveFile,
-              icon: Icon(Icons.upload_file, color: AppColors.navyDark),
-              label: Text("add_doctor.upload_file".tr()),
+              icon: Icon(Icons.upload_file, color: isDark ? Colors.white : AppColors.navyDark),
+              label: Text("add_doctor.upload_file".tr(), style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark)),
               style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.navyDark,
-                side: BorderSide(color: AppColors.navyDark),
+                foregroundColor: isDark ? Colors.white : AppColors.navyDark,
+                side: BorderSide(color: isDark ? Colors.white54 : AppColors.navyDark),
               ),
             ),
           ),
@@ -1111,8 +1137,8 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             backgroundImage: _pickedImageFile != null
                 ? FileImage(File(_pickedImageFile!.path)) as ImageProvider
                 : (_currentImageUrl.isNotEmpty
-                      ? CachedNetworkImageProvider(_currentImageUrl)
-                      : null),
+                    ? CachedNetworkImageProvider(_currentImageUrl)
+                    : null),
             child: (_pickedImageFile == null && _currentImageUrl.isEmpty)
                 ? Icon(Icons.person, size: 50.sp, color: AppColors.navyLight)
                 : null,
@@ -1136,8 +1162,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 
   Widget _buildSectionCard(String title, IconData icon, List<Widget> children) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Card(
-      color: Colors.white,
+      color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
       elevation: 0.5,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
       margin: EdgeInsets.only(bottom: 20.h),
@@ -1153,12 +1180,12 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
                 Text(
                   title,
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.navyDark,
+                    color: isDark ? Colors.white : AppColors.navyDark,
                   ),
                 ),
               ],
             ),
-            const Divider(height: 30),
+            Divider(height: 30, color: isDark ? Colors.white24 : Colors.grey.shade300),
             ...children,
           ],
         ),
@@ -1173,6 +1200,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     bool isEn = false,
     TextInputType? keyboardType,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: ctrl,
       keyboardType: keyboardType,
@@ -1184,18 +1212,32 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           ? null
           : (v) => v!.isEmpty ? "add_doctor.required".tr() : null,
       style: AppTextStyles.bodyMedium.copyWith(
-        color: _isReadOnly ? Colors.grey : AppColors.navyDark,
+        color: _isReadOnly
+            ? (isDark ? Colors.white54 : Colors.grey)
+            : (isDark ? Colors.white : AppColors.navyDark),
       ),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: icon != null
-            ? Icon(icon, color: AppColors.navyLight)
+            ? Icon(icon, color: isDark ? Colors.white70 : AppColors.navyLight)
             : null,
         labelStyle: AppTextStyles.bodySmall.copyWith(
-          color: AppColors.navyLight,
+          color: isDark ? Colors.white70 : AppColors.navyLight,
         ),
         filled: _isReadOnly,
-        fillColor: _isReadOnly ? Colors.grey.shade200 : Colors.white,
+        fillColor: _isReadOnly
+            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white24 : Colors.grey.shade300,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+        ),
       ),
     );
   }
@@ -1256,6 +1298,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     Function(String?) onChanged, {
     bool isEn = false,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return DropdownButtonFormField<String>(
       value: value,
       items: items
@@ -1265,189 +1308,162 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
               child: Text(
                 s,
                 style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.navyDark,
+                  color: isDark ? Colors.white : AppColors.navyDark,
                 ),
               ),
             ),
           )
           .toList(),
       onChanged: _isReadOnly ? null : onChanged,
-      dropdownColor: Colors.white,
+      dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+      icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white70 : AppColors.navyDark),
+      style: AppTextStyles.bodySmall.copyWith(
+        color: isDark ? Colors.white : AppColors.navyDark,
+      ),
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: isEn
             ? null
-            : const Icon(Icons.info_outline, color: AppColors.navyLight),
+            : Icon(Icons.info_outline, color: isDark ? Colors.white70 : AppColors.navyLight),
         labelStyle: AppTextStyles.bodySmall.copyWith(
-          color: AppColors.navyLight,
+          color: isDark ? Colors.white70 : AppColors.navyLight,
         ),
         filled: _isReadOnly,
-        fillColor: _isReadOnly ? Colors.grey.shade200 : Colors.white,
-      ),
-    );
-  }
-
-  // ✅ ويدجت السجل الأكاديمي (ماجستير ودكتوراه بالأسود العريض)
-  Widget _buildAcademicEntry(int index, AcademicControllers controllers) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: AppColors.navyLight.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "${"add_doctor.entry".tr()} ${index + 1}",
-                style: AppTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.navyDark,
-                ),
-              ),
-              if (!_isReadOnly)
-                IconButton(
-                  onPressed: () =>
-                      setState(() => academicControllersList.removeAt(index)),
-                  icon: const Icon(
-                    Icons.delete_forever,
-                    color: AppColors.error,
-                  ),
-                ),
-            ],
+        fillColor: _isReadOnly
+            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white24 : Colors.grey.shade300,
           ),
-          SizedBox(height: 10.h),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(8.r),
-            ),
-            child: DropdownButton<String>(
-              value: degreeLevelValues.contains(controllers.type)
-                  ? controllers.type
-                  : null,
-              isExpanded: true,
-              underline: const SizedBox.shrink(),
-              icon: Icon(
-                Icons.arrow_drop_down,
-                size: 20.sp,
-                color: AppColors.navyDark,
-              ),
-              style: AppTextStyles.bodySmall,
-              items: List.generate(degreeLevelKeys.length, (index) {
-                final key = degreeLevelKeys[index];
-                final val = degreeLevelValues[index];
-                final isHigherDegree = (val == 'ماجستير' || val == 'دكتوراه');
-                return DropdownMenuItem(
-                  value: val,
-                  child: Text(
-                    key.tr(),
-                    style: isHigherDegree
-                        ? AppTextStyles.bodySmall.copyWith(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
-                          )
-                        : AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.navyLight,
-                          ),
-                  ),
-                );
-              }),
-              onChanged: _isReadOnly
-                  ? null
-                  : (String? newValue) {
-                      if (newValue != null)
-                        setState(() {
-                          controllers.type = newValue;
-                        });
-                    },
-            ),
-          ),
-          SizedBox(height: 10.h),
-          _buildSmallInput(
-            "اسم المؤهل (مثال: بكالوريوس هندسة البرمجيات)",
-            controllers.degree,
-          ),
-          SizedBox(height: 8.h),
-          _buildSmallInput("التخصص", controllers.major),
-          SizedBox(height: 8.h),
-          _buildSmallInput("الجهة المانحة", controllers.place),
-          SizedBox(height: 8.h),
-          _buildDatePicker(
-            "تاريخ الحصول",
-            controllers.date,
-            (date) => setState(() => controllers.date = date),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSmallInput(String hint, TextEditingController ctrl) {
-    return TextFormField(
-      controller: ctrl,
-      enabled: !_isReadOnly,
-      style: AppTextStyles.bodySmall.copyWith(
-        color: _isReadOnly ? Colors.grey : AppColors.navyDark,
-      ),
-      textAlign: isArabic ? TextAlign.right : TextAlign.left,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: AppTextStyles.bodySmall.copyWith(color: AppColors.navyLight),
-        filled: true,
-        fillColor: _isReadOnly ? Colors.grey.shade200 : Colors.white,
-        contentPadding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 8.h),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+        ),
       ),
     );
   }
 
   Widget _buildDatePicker(
     String label,
-    DateTime? date,
-    Function(DateTime) onPick,
+    DateTime? currentDate,
+    Function(DateTime) onDateSelected,
   ) {
-    return IgnorePointer(
-      ignoring: _isReadOnly,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 8.h),
       child: InkWell(
-        onTap: () async {
-          DateTime? picked = await showDatePicker(
-            context: context,
-            initialDate: date ?? DateTime(1990),
-            firstDate: DateTime(1950),
-            lastDate: DateTime.now(),
-          );
-          if (picked != null) onPick(picked);
-        },
-        child: Container(
-          padding: EdgeInsets.all(15.w),
-          decoration: BoxDecoration(
-            color: _isReadOnly ? Colors.grey.shade200 : Colors.white,
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(12.r),
+        onTap: _isReadOnly
+            ? null
+            : () async {
+                DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: currentDate ?? DateTime.now(),
+                  firstDate: DateTime(1940),
+                  lastDate: DateTime(2100),
+                  builder: (context, child) {
+                    return Theme(
+                      data: Theme.of(context).copyWith(
+                        colorScheme: isDark
+                            ? ColorScheme.dark(
+                                primary: AppColors.darkGold,
+                                onPrimary: Colors.white,
+                                surface: const Color(0xFF1E1E2E),
+                                onSurface: Colors.white,
+                                onSurfaceVariant: Colors.white70,
+                                error: AppColors.error,
+                                onError: Colors.white,
+                              )
+                            : const ColorScheme.light(
+                                primary: AppColors.navyDark,
+                                onPrimary: Colors.white,
+                                surface: Colors.white,
+                                onSurface: AppColors.navyDark,
+                                onSurfaceVariant: AppColors.navyLight,
+                              ),
+                        dialogBackgroundColor:
+                            isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                        textButtonTheme: TextButtonThemeData(
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            textStyle: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                        datePickerTheme: DatePickerThemeData(
+                          backgroundColor:
+                              isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                          headerBackgroundColor: isDark
+                              ? const Color(0xFF2A2A3E)
+                              : AppColors.navyDark,
+                          headerForegroundColor: Colors.white,
+                          dayForegroundColor:
+                              WidgetStatePropertyAll(isDark ? Colors.white : AppColors.navyDark),
+                          dayOverlayColor:
+                              WidgetStatePropertyAll(AppColors.darkGold.withOpacity(0.3)),
+                          todayForegroundColor:
+                              WidgetStatePropertyAll(AppColors.darkGold),
+                          yearForegroundColor:
+                              WidgetStatePropertyAll(isDark ? Colors.white : AppColors.navyDark),
+                          yearOverlayColor:
+                              WidgetStatePropertyAll(AppColors.darkGold.withOpacity(0.3)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16.r),
+                          ),
+                          elevation: 8,
+                        ),
+                      ),
+                      child: child!,
+                    );
+                  },
+                );
+                if (picked != null) onDateSelected(picked);
+              },
+        borderRadius: BorderRadius.circular(12.r),
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            prefixIcon: Icon(
+              Icons.calendar_today,
+              color: isDark ? Colors.white70 : AppColors.navyLight,
+              size: 20.sp,
+            ),
+            labelStyle: AppTextStyles.bodySmall.copyWith(
+              color: isDark ? Colors.white70 : AppColors.navyLight,
+            ),
+            filled: _isReadOnly,
+            fillColor: _isReadOnly
+                ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+                : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(
+                color: isDark ? Colors.white24 : Colors.grey.shade300,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+            ),
+            suffixIcon: Icon(
+              Icons.arrow_drop_down,
+              color: isDark ? Colors.white70 : AppColors.navyDark,
+            ),
           ),
-          child: Row(
-            children: [
-              Icon(
-                Icons.calendar_today,
-                color: AppColors.navyLight,
-                size: 20.sp,
-              ),
-              SizedBox(width: 10.w),
-              Text(
-                date != null ? DateFormat('yyyy-MM-dd').format(date) : label,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: date != null
-                      ? AppColors.navyDark
-                      : AppColors.navyLight,
-                ),
-              ),
-            ],
+          child: Text(
+            currentDate != null
+                ? DateFormat('yyyy-MM-dd').format(currentDate)
+                : "add_doctor.select_date".tr(),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: currentDate != null
+                  ? (isDark ? Colors.white : AppColors.navyDark)
+                  : (isDark ? Colors.white54 : AppColors.navyLight),
+            ),
           ),
         ),
       ),
@@ -1455,15 +1471,18 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   }
 
   Widget _buildSwitch(String label, bool value, Function(bool) onChanged) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SwitchListTile(
       title: Text(
         label,
-        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
+        style: AppTextStyles.bodyMedium.copyWith(
+          color: isDark ? Colors.white : AppColors.navyDark,
+        ),
       ),
       value: value,
       activeColor: AppColors.darkGold,
+      onChanged: _isReadOnly ? null : onChanged,
       contentPadding: EdgeInsets.zero,
-      onChanged: _isReadOnly ? null : (v) => onChanged(v),
     );
   }
 
@@ -1483,14 +1502,246 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
           isEditing
               ? "add_doctor.save_changes".tr()
               : "add_doctor.save_button".tr(),
-          style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 16,
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildSmallInput(String label, TextEditingController ctrl) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return TextFormField(
+      controller: ctrl,
+      enabled: !_isReadOnly,
+      style: AppTextStyles.bodySmall.copyWith(
+        color: isDark ? Colors.white : AppColors.navyDark,
+      ),
+      textAlign: isArabic ? TextAlign.right : TextAlign.left,
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: AppTextStyles.bodySmall.copyWith(
+          color: isDark ? Colors.white70 : AppColors.navyLight,
+        ),
+        filled: true,
+        fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.white,
+        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.r),
+          borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.r),
+          borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8.r),
+          borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSmallDatePicker(
+    String label,
+    DateTime? currentDate,
+    Function(DateTime) onDateSelected,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return InkWell(
+      onTap: _isReadOnly
+          ? null
+          : () async {
+              DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: currentDate ?? DateTime.now(),
+                firstDate: DateTime(1940),
+                lastDate: DateTime(2100),
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: isDark
+                          ? ColorScheme.dark(
+                              primary: AppColors.darkGold,
+                              onPrimary: Colors.white,
+                              surface: const Color(0xFF1E1E2E),
+                              onSurface: Colors.white,
+                              onSurfaceVariant: Colors.white70,
+                            )
+                          : const ColorScheme.light(
+                              primary: AppColors.navyDark,
+                              onPrimary: Colors.white,
+                              surface: Colors.white,
+                              onSurface: AppColors.navyDark,
+                            ),
+                      dialogBackgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                      textButtonTheme: TextButtonThemeData(
+                        style: TextButton.styleFrom(foregroundColor: Colors.white),
+                      ),
+                      datePickerTheme: DatePickerThemeData(
+                        backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                        headerBackgroundColor: isDark ? const Color(0xFF2A2A3E) : AppColors.navyDark,
+                        headerForegroundColor: Colors.white,
+                        dayForegroundColor: WidgetStatePropertyAll(isDark ? Colors.white : AppColors.navyDark),
+                        dayOverlayColor: WidgetStatePropertyAll(AppColors.darkGold.withOpacity(0.3)),
+                        todayForegroundColor: WidgetStatePropertyAll(AppColors.darkGold),
+                        yearForegroundColor: WidgetStatePropertyAll(isDark ? Colors.white : AppColors.navyDark),
+                        yearOverlayColor: WidgetStatePropertyAll(AppColors.darkGold.withOpacity(0.3)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
+                      ),
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (picked != null) onDateSelected(picked);
+            },
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: AppTextStyles.bodySmall.copyWith(
+            color: isDark ? Colors.white70 : AppColors.navyLight,
+          ),
+          filled: true,
+          fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.grey.shade50,
+          contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.r),
+            borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.r),
+            borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8.r),
+            borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+          ),
+          suffixIcon: Icon(Icons.calendar_today, size: 18.sp, color: isDark ? Colors.white70 : AppColors.navyLight),
+        ),
+        child: Text(
+          currentDate != null
+              ? DateFormat('yyyy-MM-dd').format(currentDate)
+              : "add_doctor.select_date".tr(),
+          style: AppTextStyles.bodySmall.copyWith(
+            color: currentDate != null
+                ? (isDark ? Colors.white : AppColors.navyDark)
+                : (isDark ? Colors.white54 : AppColors.navyLight),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAcademicEntry(int index, AcademicControllers controllers) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.h),
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF2A2A3E).withOpacity(0.5) : AppColors.navyLight.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "${"add_doctor.entry".tr()} ${index + 1}",
+                style: AppTextStyles.bodySmall.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : AppColors.navyDark,
+                ),
+              ),
+              if (!_isReadOnly)
+                IconButton(
+                  onPressed: () =>
+                      setState(() => academicControllersList.removeAt(index)),
+                  icon: const Icon(
+                    Icons.delete_forever,
+                    color: AppColors.error,
+                  ),
+                ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF2A2A3E) : Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(8.r),
+              border: Border.all(color: isDark ? Colors.white24 : Colors.transparent),
+            ),
+            child: DropdownButton<String>(
+              value: degreeLevelValues.contains(controllers.type)
+                  ? controllers.type
+                  : null,
+              isExpanded: true,
+              underline: const SizedBox.shrink(),
+              icon: Icon(
+                Icons.arrow_drop_down,
+                size: 20.sp,
+                color: isDark ? Colors.white70 : AppColors.navyDark,
+              ),
+              dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+              style: AppTextStyles.bodySmall.copyWith(
+                color: isDark ? Colors.white : AppColors.navyDark,
+              ),
+              items: List.generate(degreeLevelKeys.length, (index) {
+                final key = degreeLevelKeys[index];
+                final val = degreeLevelValues[index];
+                final isHigherDegree = (val == 'ماجستير' || val == 'دكتوراه');
+                return DropdownMenuItem(
+                  value: val,
+                  child: Text(
+                    key.tr(),
+                    style: isHigherDegree
+                        ? AppTextStyles.bodySmall.copyWith(
+                            color: isDark ? Colors.white : Colors.black,
+                            fontWeight: FontWeight.bold,
+                          )
+                        : AppTextStyles.bodySmall.copyWith(
+                            color: isDark ? Colors.white70 : AppColors.navyLight,
+                          ),
+                  ),
+                );
+              }),
+              onChanged: _isReadOnly
+                  ? null
+                  : (String? newValue) {
+                      if (newValue != null)
+                        setState(() {
+                          controllers.type = newValue;
+                        });
+                    },
+            ),
+          ),
+          SizedBox(height: 10.h),
+          _buildSmallInput("add_doctor.degree_hint".tr(), controllers.degree),
+          SizedBox(height: 8.h),
+          _buildSmallInput("add_doctor.major_hint".tr(), controllers.major),
+          SizedBox(height: 8.h),
+          _buildSmallInput("add_doctor.place_hint".tr(), controllers.place),
+          SizedBox(height: 8.h),
+          _buildSmallDatePicker(
+            "add_doctor.date_granted".tr(),
+            controllers.date,
+            (date) => setState(() => controllers.date = date),
+          ),
+        ],
       ),
     );
   }
 }
 
-// ✅ دايلوج الأرشيف
+// ✅ دالة حوار رفع الأرشيف (افتراضية عشان الكود يشتغل)
 class _ArchiveFileDialog extends StatefulWidget {
   final File file;
   final String uid;
@@ -1513,37 +1764,51 @@ class _ArchiveFileDialogState extends State<_ArchiveFileDialog> {
   Future<void> _upload() async {
     if (_titleController.text.trim().isEmpty) return;
     setState(() => _isUploading = true);
-    // TODO: استدعاء كود الرفع هنا
+    
+    // قم بوضع كود رفع الملف هنا باستخدام Cubit
+    
     setState(() => _isUploading = false);
     if (mounted) Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AlertDialog(
+      backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
-      title: Text("add_doctor.archive_details".tr()),
+      title: Text(
+        "add_doctor.archive_details".tr(),
+        style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark),
+      ),
       content: TextFormField(
         controller: _titleController,
+        style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark),
         decoration: InputDecoration(
-          hintText: "add_doctor.file_title".tr(),
-          border: const OutlineInputBorder(),
+          labelText: "add_doctor.file_title".tr(),
+          labelStyle: TextStyle(color: isDark ? Colors.white70 : AppColors.navyLight),
+          filled: true,
+          fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10.r),
+            borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
+          ),
         ),
       ),
       actions: [
         TextButton(
-          onPressed: _isUploading ? null : () => Navigator.pop(context),
-          child: Text("common.cancel".tr()),
+          onPressed: () => Navigator.pop(context),
+          child: Text("common.cancel".tr(), style: TextStyle(color: isDark ? Colors.white : AppColors.navyLight)),
         ),
         ElevatedButton(
           onPressed: _isUploading ? null : _upload,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.darkGold,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+          ),
           child: _isUploading
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(color: Colors.white),
-                )
-              : Text("common.save".tr()),
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white))
+              : Text("common.save".tr(), style: const TextStyle(color: Colors.white)),
         ),
       ],
     );

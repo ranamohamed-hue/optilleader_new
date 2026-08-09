@@ -5,7 +5,7 @@ import 'package:optialeader/feature/database_admin/ui/screens/add_judge_page.dar
 import 'package:optialeader/feature/database_admin/ui/screens/empolyee_search_page.dart';
 import 'package:optialeader/feature/setting/ui/setting.dart';
 import 'package:optialeader/feature/database_admin/ui/screens/users_list_page.dart';
-
+import 'package:optialeader/feature/database_admin/ui/screens/add_employee_page.dart';
 final List<RouteBase> databaseAdminSubRoutes = [
   GoRoute(
     path: 'searchPage',
@@ -35,7 +35,16 @@ final List<RouteBase> databaseAdminSubRoutes = [
       ); 
     },
   ),
-  
+   GoRoute(
+  path: 'addEmployeePage',
+  builder: (context, state) {
+    final extra = state.extra as Map<String, dynamic>? ?? {};
+    return AddEmployeePage(
+      existingUid: extra['existingUid'] as String?,
+      isViewMode: extra['isViewMode'] as bool? ?? false,
+    );
+  },
+),
   // ✅ تعديل استقبال البيانات كـ Map
   GoRoute(
     path: 'addJudgePage',

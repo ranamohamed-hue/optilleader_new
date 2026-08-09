@@ -89,6 +89,14 @@
     "degree_bachelor": "بكالوريوس",
     "degree_diploma": "دبلومة",
     "degree_master": "ماجستير",
-    "degree_phd": "دكتوراه"
+    "degree_phd": "دكتوراه",
+    
+    "degree_name_ar": "اسم المؤهل (عربي)",
+    "degree_name_en": "اسم المؤهل (إنجليزي)",
+    "major_ar": "التخصص (عربي)",
+    "major_en": "التخصص (إنجليزي)",
+    "place_ar": "الجهة المانحة (عربي)",
+    "place_en": "الجهة المانحة (إنجليزي)",
+    "date_granted": "تاريخ الحصول"
   }
 }

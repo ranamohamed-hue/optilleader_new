@@ -10,12 +10,14 @@ import 'package:optialeader/feature/database_admin/logic/admin_data/admin_data_c
 import 'package:optialeader/feature/database_admin/logic/admin_data/admin_data_state.dart';
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_state.dart';
+import 'package:optialeader/feature/database_admin/logic/employee_logic/employee_cubit.dart';
+// ⚠️ تأكد من استيراد ملف الـ State الخاص بالموظفين بشكل صحيح
+import 'package:optialeader/feature/database_admin/logic/employee_logic/employee_state.dart'; 
 import 'package:optialeader/feature/database_admin/logic/judge_data/judge_data_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/judge_data/judge_data_state.dart';
 
-// ✅ تحويل لـ StatefulWidget
 class UsersListPage extends StatefulWidget {
-  final String role; // 'doctor', 'judge', 'admin'
+  final String role;
 
   const UsersListPage({super.key, required this.role});
 
@@ -26,14 +28,16 @@ class UsersListPage extends StatefulWidget {
 class _UsersListPageState extends State<UsersListPage> {
   @override
   void initState() {
+      debugPrint('🔥 UsersListPage role = ${widget.role}');
     super.initState();
-    // ✅ استدعاء البيانات مرة واحدة فقط هنا بدل الـ build
     if (widget.role == 'doctor') {
       context.read<DoctorDataCubit>().watchAllDoctors();
     } else if (widget.role == 'judge') {
       context.read<JudgeDataCubit>().watchAllJudges();
     } else if (widget.role == 'admin') {
       context.read<AdminDataCubit>().watchAllAdmins();
+    } else if (widget.role == 'admin_manager') { // ✅ تم توحيد الاسم
+      context.read<EmployeeDataCubit>().watchAllEmployees();
     }
   }
 
@@ -49,6 +53,9 @@ class _UsersListPageState extends State<UsersListPage> {
         break;
       case 'admin':
         title = 'users_list_admins'.tr();
+        break;
+      case 'admin_manager': 
+        title = 'users_list_admins_manager'.tr();
         break;
     }
 
@@ -149,6 +156,42 @@ class _UsersListPageState extends State<UsersListPage> {
       );
     }
 
+    // ✅ إضافة كود عرض الموظفين الذي كان مفقوداً
+    if (widget.role == 'admin_manager') {
+      return BlocBuilder<EmployeeDataCubit, EmployeeDataState>( // ⚠️ تأكد أن اسم الـ State هو EmployeeState
+        builder: (context, state) {
+          // ⚠️ تأكد أن اسم حالة التحميل هو EmployeeLoading
+          if (state is EmployeeLoading) { 
+            return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
+          }
+          // ⚠️ تأكد أن اسم حالة النجاح هي AllEmployeesLoaded
+          if (state is AllEmployeesLoaded) { 
+            return _buildUsersList(
+              context,
+              // ⚠️ تأكد أن اسم الـ List داخل الـ State هو employees
+              state.employees 
+                  .map((e) => _UserInfo(
+                        uid: e.uid!,
+                        nameAr: e.nameAr,
+                        nameEn: e.nameEn,
+                        // ⚠️ تأكد من أسماء حقول الوظيفة في موديل الموظف (هل هي jopAr أم jobAr؟)
+                        jobAr: e.currentJobAr ?? '', 
+                        jobEn: e.currentJobEn ?? '',
+                        image: e.profileImage,
+                        role: 'admin_manager',
+                      ))
+                  .toList(),
+            );
+          }
+          // ⚠️ تأكد أن اسم حالة الخطأ هو EmployeeError
+          if (state is EmployeeError) { 
+            return Center(child: Text(state.error ?? 'unknown_error'.tr()));
+          }
+          return const SizedBox();
+        },
+      );
+    }
+
     return Center(child: Text('invalid_role'.tr()));
   }
 
@@ -173,6 +216,8 @@ class _UsersListPageState extends State<UsersListPage> {
               route = Routes.addJudgePage;
             } else if (user.role == 'admin') {
               route = Routes.addAdminPage;
+            } else if (user.role == 'admin_manager') {
+              route = Routes.addEmployeePage; // ✅ توجيه لصفحة تفاصيل/تعديل الموظف
             }
 
             if (route.isNotEmpty) {

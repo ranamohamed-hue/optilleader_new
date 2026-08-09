@@ -1,7 +1,7 @@
 {
   "notifications": {
     "title": "Notifications",
-    "empty_state": "No notifications",
+    "empty_state": "No notifications found",
     "clear_read": "Clear read",
     "time": {
       "today": "Today {}",
@@ -10,8 +10,8 @@
   },
   "nomination": {
     "app_bar_title": "Apply for Announcement",
-    "role_label": "Job Role:",
-    "scores_title": "Automated Evaluation Scores",
+    "role_label": "Job Title:",
+    "scores_title": "Auto-Evaluation Scores",
     "points_unit": "Points",
     "total_label": "Total",
     "declarations_title": "Declarations File",
@@ -21,18 +21,18 @@
     "button_submitting": "Submitting...",
     "button_submit": "Submit Request",
     "mandatory_criteria": "Mandatory Criteria",
-    "no_criteria": "No mandatory criteria for this role",
-    "course_points": "Training Courses Points"
+    "no_criteria": "No mandatory criteria for this title",
+    "course_points": "Training Course Points"
   },
   "error_fetch_requests": "Failed to fetch requests",
-  "error_fetch_evaluator_requests": "Failed to fetch evaluation requests",
+  "error_fetch_evaluator_requests": "Failed to fetch evaluator requests",
   "error_upload_declaration": "Failed to upload declarations file",
   "error_submit_request": "Failed to submit request",
   "error_update_request": "Failed to update request status",
   "error_evaluation_submit": "Failed to submit evaluation",
   "error_unexpected": "An unexpected error occurred",
   "success_submit_request": "Nomination request submitted successfully",
-  "success_action_taken": "Action taken successfully",
+  "success_action_taken": "Action executed successfully",
   "success_evaluation_submitted": "Evaluation submitted successfully",
-  "error_duplicate_request": "You already have a pending request for this position"
+  "error_duplicate_request": "You already have a pending request for this title"
 }

@@ -4,5 +4,6 @@
   "users_list_admins": "قائمة الإداريين",
   "unknown_error": "خطأ غير معروف",
   "invalid_role": "دور غير صالح",
-  "no_users_found": "لا يوجد مستخدمين حالياً"
+  "no_users_found": "لا يوجد مستخدمين حالياً",
+  "users_list_admins_manager":"قائمة الموظفين"
 }

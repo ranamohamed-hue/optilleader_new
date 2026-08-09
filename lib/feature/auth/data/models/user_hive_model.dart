@@ -81,7 +81,7 @@ class UserHiveModel {
       case 'judge':
         return UserRole.judge;
         case 'employee':
-        return UserRole.employee;
+        return UserRole.admin_manager;
       default:
         return UserRole.user;
     }

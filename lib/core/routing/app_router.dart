@@ -25,9 +25,16 @@ import 'routes.dart';
 import 'package:provider/provider.dart';
 import 'package:optialeader/feature/admin/logic/admin_providers.dart';
 import 'package:optialeader/feature/judge/data/judge_providers.dart';
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 GoRouter createRouter(AuthCubit authCubit) {
+  
+  // دالة مساعدة لاختصار حالات تسجيل الدخول
+  bool isAuthenticated(AuthState state) {
+    return state is AuthenticatedState || state is LoginSuccessState;
+  }
+
   String getHomeByRole(UserRole role) {
     switch (role) {
       case UserRole.database_admin:
@@ -38,52 +45,58 @@ GoRouter createRouter(AuthCubit authCubit) {
         return Routes.judge;
       case UserRole.user:
         return Routes.user;
-      case UserRole.employee:
-        return Routes.employee;
+      case UserRole.admin_manager:
+        return Routes.adminManager;
     }
+  }
+
+  String getInitialRoute() {
+    final state = authCubit.state;
+    if (state is AuthenticatedState) {
+      return getHomeByRole(state.userModel.role);
+    }
+    if (state is LoginSuccessState) {
+      return getHomeByRole(state.userModel.role);
+    }
+    if (state is NewUserFirstLoginState) {
+      return Routes.changePassword;
+    }
+    return Routes.login;
   }
 
   return GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: Routes.login,
+    initialLocation: getInitialRoute(), 
     refreshListenable: RouterRefreshNotifier(authCubit),
-    redirect: (context, state) {  print("========== REDIRECT ==========");
-  print(authCubit.state);
-  print(state.matchedLocation);
+    
+    redirect: (context, state) {
       final authState = authCubit.state;
-      final isLogin = state.matchedLocation == Routes.login;
-      final isChangePass = state.matchedLocation == Routes.changePassword;
+      final String location = state.matchedLocation;
+      
+      final bool isLogged = isAuthenticated(authState);
 
-      // 1. إجبار تغيير كلمة السر للمستخدمين الجدد فقط
+      // الحالة الأولى: لو المستخدم مسجل وواقف بالغلط في اللوجين، وديه على صفحته
+      if (isLogged) {
+        if (location == Routes.login) {
+          final userModel = (authState is AuthenticatedState) 
+              ? authState.userModel 
+              : (authState as LoginSuccessState).userModel;
+          return getHomeByRole(userModel.role);
+        }
+        return null; 
+      }
+
       if (authState is NewUserFirstLoginState) {
-        return isChangePass ? null : Routes.changePassword;
+        return location == Routes.changePassword ? null : Routes.changePassword;
       }
 
-      // ✅ 2. حالة المستخدم المسجل دخله بشكل مستقر (بدون dynamic)
-      if (authState is AuthenticatedState) {
-        if (isLogin) {
-          return getHomeByRole(authState.userModel.role);
-        }
-        return null;
-      }
-
-      // ✅ 3. أول ما ينجح في تسجيل الدخول (بدون dynamic)
-      if (authState is LoginSuccessState) {
-        if (isLogin) {
-          return getHomeByRole(authState.userModel.role);
-        }
-        return null;
-      }
-
-      // 4. أي حالة تانية (Initial, Error, Logout) - وجهه للوجين
-      if (!isLogin && !isChangePass) {
-        return Routes.login;
-      }
-
-      return null;
+      return location == Routes.login ? null : Routes.login;
     },
+   
     routes: [
       /// --- AUTH ROUTES ---
+      /// 
+      
       GoRoute(
         path: Routes.login,
         builder: (context, state) => const SignInView(),
@@ -99,22 +112,16 @@ GoRouter createRouter(AuthCubit authCubit) {
         builder: (context, state) => const DatabaseAdminDashboard(),
         routes: databaseAdminSubRoutes,
       ),
-             /// --- ADMIN ROUTE ---
+      /// --- ADMIN ROUTE ---
       GoRoute(
         path: Routes.admin,
-        builder: (context, state) => const AdminWrapper(), // ✅ بدل DashboardScreen
+        builder: (context, state) => const AdminWrapper(),
         routes: adminSubRoutes,
       ),
-      
       /// --- JUDGE ROUTE ---
       GoRoute(
         path: Routes.judge,
-        builder: (context, state) => const JudgeWrapper(), // ✅ بدل MohakemDashboardHome
-        routes: judgeSubRoutes,
-      ),
-        GoRoute(
-        path: Routes.judge,
-        builder: (context, state) => const JudgeWrapper(), // ✅ بدل MohakemDashboardHome
+        builder: (context, state) => const JudgeWrapper(),
         routes: judgeSubRoutes,
       ),
       GoRoute(
@@ -123,7 +130,7 @@ GoRouter createRouter(AuthCubit authCubit) {
         routes: userSubRoutes,
       ),
       GoRoute(
-        path: Routes.employee,
+        path: Routes.adminManager,
         builder: (context, state) => const EmployeeDashboardScreen(),
       ),
 
@@ -172,8 +179,6 @@ class AdminWrapper extends StatelessWidget {
   }
 }
 
-
-// ✅ غلاف المحكم
 class JudgeWrapper extends StatelessWidget {
   const JudgeWrapper({super.key});
 

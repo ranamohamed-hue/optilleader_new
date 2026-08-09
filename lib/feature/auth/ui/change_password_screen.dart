@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // لسه محتاجينه عشان الـ LengthLimiting
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -68,7 +69,6 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
             if (state is UpdatePasswordErrorState) {
               _showErrorSnackBar(state.error);
             } else if (state is UpdatePasswordSuccessState) {
-              //  بنعرض رسالة النجاح بس، والـ Router هينقله للداشبورد لوحده
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text("change_password.success_msg".tr()),
@@ -107,7 +107,6 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
 
                     SizedBox(height: 12.h),
 
-                    //  ممكن تضيف نص هنا يوضح للمستخدم إن الباسورد القديم كان الرقم القومي
                     Text(
                       "change_password.subtitle".tr(),
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -177,6 +176,12 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
     return TextFormField(
       controller: controller,
       obscureText: isObscure,
+      // keyboardType رجعناها للوضع العادي عشان يقبل حروف وأرقام
+      keyboardType: TextInputType.text, 
+      inputFormatters: [
+        // شلنا digitsOnly عشان يقبل حروف
+        LengthLimitingTextInputFormatter(14), // وبقينا بس على الحد الأقصى 14
+      ],
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF000080)),
@@ -188,7 +193,8 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
       ),
       validator: (v) {
         if (v == null || v.isEmpty) return "validation.required".tr();
-        if (v.length < 8) return "validation.password_short".tr();
+        if (v.length > 14) return "الحد الأقصى لكلمة المرور 14 حرف"; 
+        if (v.length < 6) return "validation.password_short".tr();
         return null;
       },
     );

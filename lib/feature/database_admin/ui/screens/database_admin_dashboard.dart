@@ -114,7 +114,7 @@ class _DatabaseAdminDashboardState extends State<DatabaseAdminDashboard> {
 
   @override
   Widget build(BuildContext context) {
-      print("DatabaseAdminDashboard build");
+    print("DatabaseAdminDashboard build");
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: _tabs),
       bottomNavigationBar: BottomNavigationBar(
@@ -155,14 +155,39 @@ class _HomeTab extends StatelessWidget {
     return BlocBuilder<DatabseAdminCubit, DatabaseAdminState>(
       builder: (context, state) {
         if (state is DatabaseAdminLoading) {
-          return Scaffold(body: Center(child: CircularProgressIndicator(color: colorScheme.secondary)));
+          return Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: colorScheme.secondary),
+            ),
+          );
         }
 
         if (state is DatabaseAdminError) {
-          return Scaffold(body: Center(child: Padding(padding: EdgeInsets.all(20.w), child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.error_outline, color: colorScheme.error, size: 60.sp), SizedBox(height: 10.h),
-            Text("${"dashboard.error".tr()}: ${state.message}", textAlign: TextAlign.center, style: textTheme.bodyLarge?.copyWith(color: colorScheme.error)),
-          ]))));
+          return Scaffold(
+            body: Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.w),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.error_outline,
+                      color: colorScheme.error,
+                      size: 60.sp,
+                    ),
+                    SizedBox(height: 10.h),
+                    Text(
+                      "${"dashboard.error".tr()}: ${state.message}",
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodyLarge?.copyWith(
+                        color: colorScheme.error,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
         }
 
         if (state is DatabaseAdminSuccess) {
@@ -172,7 +197,7 @@ class _HomeTab extends StatelessWidget {
 
           // ✅ جلب الاسم من الموديل
           String displayName = isArabic ? adminModel.nameAr : adminModel.nameEn;
-          
+
           if (displayName.trim().isEmpty) {
             displayName = isArabic ? 'أدمن قاعدة البيانات' : 'Database Admin';
           }
@@ -184,10 +209,19 @@ class _HomeTab extends StatelessWidget {
                   /// --- الهيدر العلوي ---
                   Container(
                     width: double.infinity,
-                    padding: EdgeInsets.symmetric(horizontal: 25.w, vertical: 20.h),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 25.w,
+                      vertical: 20.h,
+                    ),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: [AppColors.navyDark, AppColors.navyLight]),
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(30.r)),
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [AppColors.navyDark, AppColors.navyLight],
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(30.r),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -197,27 +231,59 @@ class _HomeTab extends StatelessWidget {
                             children: [
                               Text(
                                 displayName,
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18.sp),
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18.sp,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
                               ),
-                              SizedBox(height: 6,),
-                               Text(
-                                isArabic ? 'أدمن قاعدة بيانات' : 'Database Admin',
-                                style: TextStyle(color: AppColors.darkGold, fontSize: 12.sp, fontWeight: FontWeight.w500),
+                              SizedBox(height: 6),
+                              Text(
+                                isArabic
+                                    ? 'أدمن قاعدة بيانات'
+                                    : 'Database Admin',
+                                style: TextStyle(
+                                  color: AppColors.darkGold,
+                                  fontSize: 12.sp,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
                           ),
                         ),
                         Container(
-                          decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: AppColors.darkGold, width: 2)),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.darkGold,
+                              width: 2,
+                            ),
+                          ),
                           child: CircleAvatar(
                             radius: 30.r,
                             backgroundColor: AppColors.navyLight,
                             child: ClipOval(
                               child: adminModel.profileImage.isNotEmpty
-                                  ? CachedNetworkImage(imageUrl: adminModel.profileImage, width: 70.r, height: 70.r, fit: BoxFit.cover, placeholder: (_, _) => const CircularProgressIndicator(color: AppColors.darkGold), errorWidget: (_, _, _) => Icon(Icons.person, color: Colors.white.withOpacity(0.7)))
-                                  : Icon(Icons.person, color: Colors.white.withOpacity(0.7)),
+                                  ? CachedNetworkImage(
+                                      imageUrl: adminModel.profileImage,
+                                      width: 70.r,
+                                      height: 70.r,
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, _) =>
+                                          const CircularProgressIndicator(
+                                            color: AppColors.darkGold,
+                                          ),
+                                      errorWidget: (_, _, _) => Icon(
+                                        Icons.person,
+                                        color: Colors.white.withOpacity(0.7),
+                                      ),
+                                    )
+                                  : Icon(
+                                      Icons.person,
+                                      color: Colors.white.withOpacity(0.7),
+                                    ),
                             ),
                           ),
                         ),
@@ -229,29 +295,114 @@ class _HomeTab extends StatelessWidget {
                   Expanded(
                     child: RefreshIndicator(
                       color: colorScheme.secondary,
-                      onRefresh: () async => await context.read<DatabseAdminCubit>().getProfile(adminModel.uid),
+                      onRefresh: () async => await context
+                          .read<DatabseAdminCubit>()
+                          .getProfile(adminModel.uid),
                       child: SingleChildScrollView(
                         physics: const AlwaysScrollableScrollPhysics(),
-                        padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 20.w,
+                          vertical: 20.h,
+                        ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("dashboard.system_overview".tr(), style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            Text(
+                              "dashboard.system_overview".tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             SizedBox(height: 15.h),
                             Row(
                               children: [
-                                _buildStatCard(context, "dashboard.doctors".tr(), state.doctorsCount.toString(), Icons.school, Colors.blue, 'doctor'),
-                                _buildStatCard(context, "dashboard.judges".tr(), state.judgesCount.toString(), Icons.gavel, colorScheme.secondary, 'judge'),
-                                _buildStatCard(context, "dashboard.admins".tr(), state.adminsCount.toString(), Icons.admin_panel_settings, Colors.green, 'admin'),
+                                _buildStatCard(
+                                  context,
+                                  "dashboard.doctors".tr(),
+                                  state.doctorsCount.toString(),
+                                  Icons.school,
+                                  Colors.blue,
+                                  'doctor',
+                                ),
+                                SizedBox(width:50),
+                                _buildStatCard(
+                                  context,
+                                  "dashboard.judges".tr(),
+                                  state.judgesCount.toString(),
+                                  Icons.gavel,
+                                  colorScheme.secondary,
+                                  'judge',
+                                ),
+                               
                               ],
                             ),
-                            SizedBox(height: 35.h),
-                            Text("dashboard.manage_data".tr(), style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                            SizedBox(height: 10.h),
+                            // ✅ كارت عداد الموظفين
+                            Row(
+                              children: [
+                                _buildStatCard(
+                                  context,
+                                  "dashboard.admins".tr(),
+                                  state.adminsCount.toString(),
+                                  Icons.admin_panel_settings,
+                                  Colors.green,
+                                  'admin',
+                                ),
+                                SizedBox(width: 50,),
+                                _buildStatCard(
+                                  context,
+                                  "dashboard.employees".tr(),
+                                  state.employeesCount.toString(),
+                                  Icons.admin_panel_settings,
+                                  Colors.green,
+                                  'admin_manager',
+                                ),
+                              ],
+                            ),
+
+                            SizedBox(height: 20.h),
+                            Text(
+                              "dashboard.manage_data".tr(),
+                              style: textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             SizedBox(height: 15.h),
-                            _buildActionCard(context, "dashboard.search".tr(), Icons.person_search, Colors.teal, Routes.searchPage),
-                            _buildActionCard(context, "dashboard.add_doctor".tr(), Icons.person_add_alt_1, colorScheme.primary, Routes.addDoctorPage),
-                            _buildActionCard(context, "dashboard.add_admin".tr(), Icons.manage_accounts, colorScheme.primaryContainer, Routes.addAdminPage),
-                            _buildActionCard(context, "dashboard.add_judge".tr(), Icons.verified_user, const Color(0xFF1A1A3F), Routes.addJudgePage),
+                            _buildActionCard(
+                              context,
+                              "dashboard.search".tr(),
+                              Icons.person_search,
+                              Colors.teal,
+                              Routes.searchPage,
+                            ),
+                            _buildActionCard(
+                              context,
+                              "dashboard.add_doctor".tr(),
+                              Icons.person_add_alt_1,
+                              colorScheme.primary,
+                              Routes.addDoctorPage,
+                            ),
+                            _buildActionCard(
+                              context,
+                              "dashboard.add_admin".tr(),
+                              Icons.manage_accounts,
+                              colorScheme.primaryContainer,
+                              Routes.addAdminPage,
+                            ),
+                            _buildActionCard(
+                              context,
+                              "dashboard.add_judge".tr(),
+                              Icons.verified_user,
+                              const Color(0xFF1A1A3F),
+                              Routes.addJudgePage,
+                            ),
+                            _buildActionCard(
+                              context,
+                              "dashboard.add_employee".tr(),
+                              Icons.badge,
+                              Colors.orange,
+                              Routes.addEmployeePage, 
+                            ),
                           ],
                         ),
                       ),
@@ -263,41 +414,103 @@ class _HomeTab extends StatelessWidget {
           );
         }
 
-        return Scaffold(body: Center(child: CircularProgressIndicator(color: colorScheme.secondary)));
+        return Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(color: colorScheme.secondary),
+          ),
+        );
       },
     );
   }
 
-  Widget _buildStatCard(BuildContext context, String label, String value, IconData icon, Color iconColor, String role) {
+  Widget _buildStatCard(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+    Color iconColor,
+    String role,
+  ) {
     final theme = Theme.of(context);
     return Expanded(
       child: GestureDetector(
         onTap: () => context.push(Routes.usersListPage, extra: role),
-        child: Card(child: Padding(padding: EdgeInsets.symmetric(vertical: 15.h), child: Column(children: [
-          Icon(icon, color: iconColor, size: 24.sp), SizedBox(height: 5.h),
-          Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
-          Text(label, textAlign: TextAlign.center, style: theme.textTheme.bodySmall?.copyWith(color: Colors.grey)),
-        ]))),
+        child: Card(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 15.h),
+            child: Column(
+              children: [
+                Icon(icon, color: iconColor, size: 24.sp),
+                SizedBox(height: 5.h),
+                Text(
+                  value,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildActionCard(BuildContext context, String title, IconData icon, Color bgColor, String route) {
+  Widget _buildActionCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color bgColor,
+    String route,
+  ) {
     final theme = Theme.of(context);
     return GestureDetector(
       onTap: () => context.push(route),
       child: Container(
-        margin: EdgeInsets.only(bottom: 15.h), padding: EdgeInsets.all(18.w),
-        decoration: BoxDecoration(color: bgColor, borderRadius: BorderRadius.circular(15.r), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6, offset: Offset(0, 3))]),
-        child: Row(children: [
-          Icon(icon, color: theme.colorScheme.secondary, size: 26.sp), SizedBox(width: 15.w),
-          Text(title, style: theme.textTheme.bodyLarge?.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
-          const Spacer(), Icon(Icons.arrow_forward_ios, color: theme.colorScheme.secondary, size: 14.sp),
-        ]),
+        margin: EdgeInsets.only(bottom: 15.h),
+        padding: EdgeInsets.all(18.w),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(15.r),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              blurRadius: 6,
+              offset: Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: theme.colorScheme.secondary, size: 26.sp),
+            SizedBox(width: 15.w),
+            Text(
+              title,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const Spacer(),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: theme.colorScheme.secondary,
+              size: 14.sp,
+            ),
+          ],
+        ),
       ),
     );
   }
-}// تبويب التنبيهات
+} // تبويب التنبيهات
+
 class _NotificationsTab extends StatelessWidget {
   const _NotificationsTab();
   @override

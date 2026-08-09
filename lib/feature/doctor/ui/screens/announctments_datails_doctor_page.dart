@@ -395,7 +395,6 @@ class _AnnouncementDetailsDoctorPageState
       ),
     );
   }
-
   Widget _buildDetailCard(
     BuildContext context, {
     required AnnouncementModel announcement,
@@ -425,7 +424,7 @@ class _AnnouncementDetailsDoctorPageState
         borderRadius: BorderRadius.circular(28.r),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withOpacity(0.05),
+            color: colorScheme.shadow.withOpacity(0.05),
             blurRadius: 25,
             offset: const Offset(0, 12),
           ),
@@ -468,34 +467,36 @@ class _AnnouncementDetailsDoctorPageState
                 ),
                 SizedBox(height: 25.h),
 
+                // ✅ تعديل لون العنوان عشان يظهر في الدارك مود
                 Text(
                   title,
                   style: theme.textTheme.headlineSmall?.copyWith(
-                    color: colorScheme.primary,
+                    color: colorScheme.onSurface, // ✅ بدل colorScheme.primary
                     fontWeight: FontWeight.bold,
                     height: 1.3,
                   ),
                 ),
                 SizedBox(height: 18.h),
 
+                // ✅ تعديل لون الوصف (كان Colors.black87 فبختفي في الدارك مود)
                 Text(
                   description,
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.black87.withOpacity(0.7),
+                    color: colorScheme.onSurfaceVariant.withOpacity(0.8), // ✅ بدل Colors.black87
                     height: 1.7,
                     fontSize: 15.sp,
                   ),
                 ),
                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 30.h),
-                  child: Divider(thickness: 0.8),
+                  child: Divider(thickness: 0.8, color: colorScheme.outlineVariant),
                 ),
 
                 _buildInfoRow(
                   context,
                   Icons.military_tech,
                   "announce.details.target_role".tr(),
-                  announcement.targetRole.tr(), // ✅ هيترجم من ملف roles.json
+                  announcement.targetRole.tr(),
                   colorScheme.secondary,
                 ),
                 SizedBox(height: 20.h),
@@ -505,7 +506,7 @@ class _AnnouncementDetailsDoctorPageState
                     context,
                     Icons.account_tree_outlined,
                     "edit_announcement.field_sector".tr(),
-                    "sectors.${announcement.targetSector}".tr(), // ✅ هيترجم من ملف sectors.json
+                    "sectors.${announcement.targetSector}".tr(),
                     Colors.deepOrange,
                   ),
                   SizedBox(height: 20.h),
@@ -581,6 +582,7 @@ class _AnnouncementDetailsDoctorPageState
     );
   }
 
+  // ✅ تعديل الويدجت عشان تتأقلم مع الدارك مود
   Widget _buildInfoRow(
     BuildContext context,
     IconData icon,
@@ -588,6 +590,7 @@ class _AnnouncementDetailsDoctorPageState
     String value,
     Color color,
   ) {
+    final colorScheme = Theme.of(context).colorScheme; // ✅ إضافة colorScheme
     return Row(
       children: [
         Container(
@@ -603,16 +606,21 @@ class _AnnouncementDetailsDoctorPageState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // ✅ استخدام onSurfaceVariant بدل الرمادي الثابت
               Text(
                 label,
-                style: TextStyle(color: Colors.grey[500], fontSize: 12.sp),
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant, 
+                  fontSize: 12.sp,
+                ),
               ),
+              // ✅ استخدام onSurface بدل الأسود الثابت
               Text(
                 value,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 14.sp,
-                  color: Colors.black87,
+                  color: colorScheme.onSurface, 
                 ),
               ),
             ],
@@ -620,5 +628,4 @@ class _AnnouncementDetailsDoctorPageState
         ),
       ],
     );
-  }
-}
+  }}

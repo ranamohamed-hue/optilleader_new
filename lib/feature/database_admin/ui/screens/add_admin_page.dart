@@ -38,6 +38,7 @@ class _AddAdminPageState extends State<AddAdminPage> {
 
   bool get isArabic => context.locale.languageCode == 'ar';
   bool get isEditing => widget.existingUid != null;
+  bool get isDark => Theme.of(context).brightness == Brightness.dark;
 
   bool _isReadOnly = true;
   String _currentImageUrl = '';
@@ -52,31 +53,40 @@ class _AddAdminPageState extends State<AddAdminPage> {
     }
   }
 
-  // ✅ [إضافة] نافذة تأكيد الحذف
   void _showDeleteConfirmationDialog() {
-    final isArabic = context.locale.languageCode == 'ar';
-
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.r),
         ),
+        backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
         title: Row(
           children: [
-          Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28.sp),
-    SizedBox(width: 10.w),
-    Text("add_admin.confirm_delete_title".tr()),
+            Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28.sp),
+            SizedBox(width: 10.w),
+            Text(
+              "add_admin.confirm_delete_title".tr(),
+              style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark),
+            ),
           ],
         ),
         content: Text(
-  "add_admin.confirm_delete_msg".tr(),
-  style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
-),
+          "add_admin.confirm_delete_msg".tr(),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white70 : AppColors.navyDark,
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
-            child: Text("add_admin.cancel".tr(), style: TextStyle(color: AppColors.navyLight)),
+            child: Text(
+              "add_admin.cancel".tr(),
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.navyLight,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
@@ -86,12 +96,15 @@ class _AddAdminPageState extends State<AddAdminPage> {
               ),
             ),
             onPressed: () {
-              Navigator.pop(dialogContext); // إغلاق الديالوج
+              Navigator.pop(dialogContext);
               context.read<AdminDataCubit>().deleteAdmin(
                 widget.existingUid!,
-              ); // تنفيذ الحذف
+              );
             },
-           child: Text("add_admin.confirm".tr(), style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(
+              "add_admin.confirm".tr(),
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),
@@ -197,6 +210,7 @@ class _AddAdminPageState extends State<AddAdminPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocListener<AdminDataCubit, AdminDataState>(
       listenWhen: (previous, current) =>
           current is AdminSuccess ||
@@ -249,11 +263,11 @@ class _AddAdminPageState extends State<AddAdminPage> {
                 : (isEditing
                       ? "add_admin.edit_app_bar_title".tr()
                       : "add_admin.app_bar_title".tr()),
+            style: theme.appBarTheme.titleTextStyle,
           ),
           centerTitle: true,
           elevation: 0,
           actions: [
-            // ✅ [إضافة] زر حذف المستخدم
             if (isEditing)
               IconButton(
                 icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
@@ -272,7 +286,6 @@ class _AddAdminPageState extends State<AddAdminPage> {
         ),
         body: Stack(
           children: [
-            // محتوى الفورم الأساسي
             BlocBuilder<AdminDataCubit, AdminDataState>(
               builder: (context, state) {
                 if (isEditing &&
@@ -296,7 +309,7 @@ class _AddAdminPageState extends State<AddAdminPage> {
                         Text(
                           state.error,
                           style: AppTextStyles.bodyMedium.copyWith(
-                            color: AppColors.navyDark,
+                            color: isDark ? Colors.white : AppColors.navyDark,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -314,6 +327,7 @@ class _AddAdminPageState extends State<AddAdminPage> {
 
                 return SingleChildScrollView(
                   padding: EdgeInsets.all(20.w),
+                  physics: const BouncingScrollPhysics(),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -413,7 +427,7 @@ class _AddAdminPageState extends State<AddAdminPage> {
                         ),
                         SizedBox(height: 30.h),
                         if (!_isReadOnly) _buildSaveButton(state),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 40.h),
                       ],
                     ),
                   ),
@@ -421,7 +435,6 @@ class _AddAdminPageState extends State<AddAdminPage> {
               },
             ),
 
-            // ✅ [إضافة] طبقة التحميل أثناء الحذف
             BlocBuilder<AdminDataCubit, AdminDataState>(
               builder: (context, state) {
                 if (state is AdminDeleting) {
@@ -429,6 +442,7 @@ class _AddAdminPageState extends State<AddAdminPage> {
                     color: Colors.black.withOpacity(0.5),
                     child: Center(
                       child: Card(
+                        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.r),
                         ),
@@ -444,7 +458,7 @@ class _AddAdminPageState extends State<AddAdminPage> {
                               Text(
                                 "add_admin.deleting".tr(),
                                 style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.navyDark,
+                                  color: isDark ? Colors.white : AppColors.navyDark,
                                 ),
                               ),
                             ],
@@ -532,32 +546,28 @@ class _AddAdminPageState extends State<AddAdminPage> {
 
   Widget _buildSectionCard(String title, IconData icon, List<Widget> children) {
     return Card(
-      color: Colors.white,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.r),
-        side: BorderSide(color: AppColors.navyLight.withOpacity(0.1)),
-      ),
+      color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+      elevation: 0.5,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
       margin: EdgeInsets.only(bottom: 20.h),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(18.w),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Icon(icon, color: AppColors.darkGold, size: 22.sp),
-                SizedBox(width: 8.w),
+                SizedBox(width: 10.w),
                 Text(
                   title,
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.navyDark,
-                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : AppColors.navyDark,
                   ),
                 ),
               ],
             ),
-            const Divider(height: 25, thickness: 0.5),
+            Divider(height: 30, color: isDark ? Colors.white24 : Colors.grey.shade300),
             ...children,
           ],
         ),
@@ -589,18 +599,38 @@ class _AddAdminPageState extends State<AddAdminPage> {
             ? ui.TextDirection.ltr
             : (isArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr),
         style: AppTextStyles.bodyMedium.copyWith(
-          color: _isReadOnly ? Colors.grey : AppColors.navyDark,
+          color: _isReadOnly
+              ? (isDark ? Colors.white54 : Colors.grey)
+              : (isDark ? Colors.white : AppColors.navyDark),
         ),
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, size: 20.sp, color: AppColors.navyLight),
+          prefixIcon: Icon(icon, size: 20.sp, color: isDark ? Colors.white70 : AppColors.navyLight),
           labelStyle: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.navyLight,
+            color: isDark ? Colors.white70 : AppColors.navyLight,
           ),
           alignLabelWithHint: true,
           counterText: '',
           filled: _isReadOnly,
-          fillColor: _isReadOnly ? Colors.grey.shade200 : Colors.white,
+          fillColor: _isReadOnly
+              ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+              : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: BorderSide(
+              color: isDark ? Colors.white24 : Colors.grey.shade300,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: BorderSide(
+              color: isDark ? Colors.white24 : Colors.grey.shade300,
+            ),
+          ),
         ),
       ),
     );

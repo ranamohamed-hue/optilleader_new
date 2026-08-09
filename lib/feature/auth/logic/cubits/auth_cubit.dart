@@ -6,12 +6,12 @@ import 'package:optialeader/feature/auth/logic/cubits/auth_state.dart';
 class AuthCubit extends Cubit<AuthState> {
   final AuthRepo authRepo;
 
-  AuthCubit(this.authRepo) : super(AuthInitialState()) { 
-    checkAuthStatus();
-  }
+  // لسه مش عارف هو مفتوح ولا لسه، فقوله يبدأ بـ Loading
+  AuthCubit(this.authRepo) : super(AuthLoadingState()); 
 
-    void checkAuthStatus() {print(">>> checkAuthStatus");
-      print("cached = ${authRepo.getCachedUser()}");
+  void checkAuthStatus() {
+    print(">>> checkAuthStatus");
+    print("cached = ${authRepo.getCachedUser()}");
     try {
       final cachedUser = authRepo.getCachedUser(); 
 
@@ -25,11 +25,11 @@ class AuthCubit extends Cubit<AuthState> {
         emit(AuthInitialState());
       }
     } catch (e) {
-      // لو حصل أي خطأ (زي إن الهيف مفتحش)، خليه يروح للوجين عادي
       print('Error checking auth status: $e');
       emit(AuthInitialState());
     }
   }
+ 
   Future<void> login({required String email, required String password}) async {
     emit(LoginLoadingState());
     final result = await authRepo.login(email: email, password: password);
@@ -45,6 +45,7 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> completeFirstLogin({required String newPassword}) async {
     UserModel? currentUser;
+
     if (state is NewUserFirstLoginState) {
       currentUser = (state as NewUserFirstLoginState).userModel;
     } else if (state is LoginSuccessState) {
@@ -60,9 +61,12 @@ class AuthCubit extends Cubit<AuthState> {
 
       result.fold((error) => emit(UpdatePasswordErrorState(error)), (message) {
         final updatedUser = currentUser!.copyWith(isFirstLogin: false);
+        
         emit(UpdatePasswordSuccessState(message, updatedUser));
-        emit(AuthenticatedState(updatedUser));
-
+        
+        Future.delayed(const Duration(milliseconds: 500), () {
+          emit(AuthenticatedState(updatedUser));
+        });
       });
     }
   }

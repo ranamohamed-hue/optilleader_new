@@ -46,43 +46,38 @@ class _DoctorNominationPageState extends State<DoctorNominationPage> {
 
   Future<void> _initializeData() async {
     final cubit = context.read<DoctorDataCubit>();
-    
-    // لو الداتا مش loaded، نجيبها
-    if (cubit.state is! DoctorLoaded) {
-      final uid = widget.doctorId.isNotEmpty 
-          ? widget.doctorId 
+
+    if (cubit.state is DoctorLoaded) {
+      _applyDoctorData((cubit.state as DoctorLoaded).doctor);
+    } else {
+      final uid = widget.doctorId.isNotEmpty
+          ? widget.doctorId
           : FirebaseAuth.instance.currentUser?.uid ?? '';
-      
+
       if (uid.isNotEmpty) {
         await cubit.getDoctorProfile(uid);
+      } else {
+        setState(() => _isLoadingData = false);
       }
     }
-    
-    _checkEligibility();
   }
 
-  void _checkEligibility() {
-    final doctorState = context.read<DoctorDataCubit>().state;
-
-    if (doctorState is DoctorLoaded) {
-      final doctor = doctorState.doctor!;
-
-      setState(() {
-        _doctor = doctor;
-        doctorName = doctor.nameAr;
-        doctorImageUrl = doctor.profileImage;
-
-        // ✅ استخدام LeadershipCriteriaEngine
-        mandatoryCriteria = LeadershipCriteriaEngine.checkMandatoryCriteria(
-          doctor: doctor,
-          targetRole: widget.announcement.targetRole,
-        );
-
-        _isLoadingData = false;
-      });
-    } else {
+  void _applyDoctorData(DoctorProfileModel? doctor) {
+    if (doctor == null) {
       setState(() => _isLoadingData = false);
+      return;
     }
+
+    setState(() {
+      _doctor = doctor;
+      doctorName = doctor.nameAr;
+      doctorImageUrl = doctor.profileImage;
+      mandatoryCriteria = LeadershipCriteriaEngine.checkMandatoryCriteria(
+        doctor: doctor,
+        targetRole: widget.announcement.targetRole,
+      );
+      _isLoadingData = false;
+    });
   }
 
   Future<void> _pickDeclarationFile() async {
@@ -106,15 +101,16 @@ class _DoctorNominationPageState extends State<DoctorNominationPage> {
 
   void _handleSubmit() {
     if (_selectedFilePath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("nomination.error_no_file".tr())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("nomination.error_no_file".tr())));
       return;
     }
 
     if (_doctor == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-SnackBar(content: Text("nomination.error_unexpected".tr())),      );
+        SnackBar(content: Text("nomination.error_unexpected".tr())),
+      );
       return;
     }
 
@@ -130,274 +126,285 @@ SnackBar(content: Text("nomination.error_unexpected".tr())),      );
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      backgroundColor: colorScheme.surface,
-      appBar: AppBar(
-        title: Text(
-          "nomination.app_bar_title".tr(),
-          style: TextStyle(color: colorScheme.onPrimary, fontSize: 18.sp),
-        ),
-        backgroundColor: colorScheme.primary,
-        centerTitle: true,
-        leading: IconButton(
-          icon: Icon(
-            Icons.arrow_back_ios_new,
-            color: colorScheme.onPrimary,
-            size: 22.r,
+    // ✅ إضافة BlocListener هنا للاستماع لبيانات الدكتور وتحديث الواجهة تلقائياً
+    return BlocListener<DoctorDataCubit, DoctorDataState>(
+      listener: (context, state) {
+        if (state is DoctorLoaded) {
+          _applyDoctorData(state.doctor);
+        } else if (state is DoctorError) {
+          setState(() => _isLoadingData = false);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: colorScheme.surface,
+        appBar: AppBar(
+          title: Text(
+            "nomination.app_bar_title".tr(),
+            style: TextStyle(color: colorScheme.onPrimary, fontSize: 18.sp),
           ),
-          onPressed: () => context.pop(),
+          backgroundColor: colorScheme.primary,
+          centerTitle: true,
+          leading: IconButton(
+            icon: Icon(
+              Icons.arrow_back_ios_new,
+              color: colorScheme.onPrimary,
+              size: 22.r,
+            ),
+            onPressed: () => context.pop(),
+          ),
         ),
-      ),
-      body: BlocConsumer<NominationRequestCubit, NominationRequestState>(
-        listener: (context, state) {
-          if (state is NominationRequestActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message.tr()),
-                backgroundColor: Colors.green,
-              ),
-            );
-            context.pop();
-          } else if (state is NominationRequestError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message.tr()),
-                backgroundColor: colorScheme.error,
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          bool isSubmitting = state is NominationRequestLoading;
-          return SingleChildScrollView(
-            padding: EdgeInsets.all(20.r),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 1. ملخص الإعلان
-                _buildSectionCard(
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.campaign_rounded,
-                        color: colorScheme.primary,
-                        size: 30.r,
-                      ),
-                      SizedBox(width: 15.w),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+        body: BlocConsumer<NominationRequestCubit, NominationRequestState>(
+          listener: (context, state) {
+            if (state is NominationRequestActionSuccess) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message.tr()),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              context.pop();
+            } else if (state is NominationRequestError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message.tr()),
+                  backgroundColor: colorScheme.error,
+                ),
+              );
+            }
+          },
+          builder: (context, state) {
+            bool isSubmitting = state is NominationRequestLoading;
+            return SingleChildScrollView(
+              padding: EdgeInsets.all(20.r),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 1. ملخص الإعلان
+                  _buildSectionCard(
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.campaign_rounded,
+                          color: colorScheme.primary,
+                          size: 30.r,
+                        ),
+                        SizedBox(width: 15.w),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                widget.announcement.title,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  color: colorScheme.onSurface,
+                                ),
+                              ),
+                              Text(
+                                "${"nomination.role_label".tr()} ${widget.announcement.targetRole.tr()}",
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+
+                  // 2. عرض الشروط الإجبارية
+                  _buildSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
+                            Icon(
+                              Icons.fact_check_outlined,
+                              color: colorScheme.secondary,
+                              size: 24.r,
+                            ),
+                            SizedBox(width: 8.w),
                             Text(
-                              widget.announcement.title,
+                              "nomination.mandatory_criteria".tr(),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: colorScheme.onSurface,
-                              ),
-                            ),
-                            Text(
-                              "${"nomination.role_label".tr()} ${widget.announcement.targetRole.tr()}",
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
+                                color: colorScheme.primary,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20.h),
-
-                // 2. عرض الشروط الإجبارية
-                _buildSectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.fact_check_outlined,
-                            color: colorScheme.secondary,
-                            size: 24.r,
-                          ),
-                          SizedBox(width: 8.w),
-                          Text(
-                            "nomination.mandatory_criteria".tr(),
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
+                        SizedBox(height: 15.h),
+                        if (_isLoadingData)
+                          const Center(child: CircularProgressIndicator())
+                        else if (mandatoryCriteria.isEmpty)
+                          Text("nomination.no_criteria".tr())
+                        else
+                          ...mandatoryCriteria.map(
+                            (c) => Padding(
+                              padding: EdgeInsets.symmetric(vertical: 6.h),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    c.isMet ? Icons.check_circle : Icons.cancel,
+                                    color: c.isMet
+                                        ? Colors.green
+                                        : colorScheme.error,
+                                    size: 20.r,
+                                  ),
+                                  SizedBox(width: 10.w),
+                                  Expanded(
+                                    child: Text(
+                                      context.locale.languageCode == 'ar'
+                                          ? c.titleAr
+                                          : c.titleEn,
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: c.isMet
+                                                ? colorScheme.onSurface
+                                                : colorScheme.error,
+                                          ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ],
-                      ),
-                      SizedBox(height: 15.h),
-                      if (_isLoadingData)
-                        const Center(child: CircularProgressIndicator())
-                      else if (mandatoryCriteria.isEmpty)
-                        Text("nomination.no_criteria".tr())
-                      else
-                        ...mandatoryCriteria.map(
-                          (c) => Padding(
-                            padding: EdgeInsets.symmetric(vertical: 6.h),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20.h),
+
+                  // 3. رفع ملف الإقرارات
+                  _buildSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.upload_file,
+                              color: colorScheme.secondary,
+                              size: 24.r,
+                            ),
+                            SizedBox(width: 8.w),
+                            Text(
+                              "nomination.declarations_title".tr(),
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 10.h),
+                        Text(
+                          "nomination.declarations_instructions".tr(),
+                          style: theme.textTheme.bodySmall,
+                        ),
+                        SizedBox(height: 15.h),
+                        if (_selectedFileName != null)
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: 15.w,
+                              vertical: 12.h,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colorScheme.surfaceContainerHighest
+                                  .withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(12.r),
+                            ),
                             child: Row(
                               children: [
                                 Icon(
-                                  c.isMet ? Icons.check_circle : Icons.cancel,
-                                  color: c.isMet
-                                      ? Colors.green
-                                      : colorScheme.error,
-                                  size: 20.r,
+                                  Icons.description,
+                                  color: colorScheme.primary,
+                                  size: 24.r,
                                 ),
                                 SizedBox(width: 10.w),
                                 Expanded(
                                   child: Text(
-                                    context.locale.languageCode == 'ar'
-                                        ? c.titleAr
-                                        : c.titleEn,
+                                    _selectedFileName!,
                                     style: theme.textTheme.bodyMedium?.copyWith(
-                                      color: c.isMet
-                                          ? colorScheme.onSurface
-                                          : colorScheme.error,
+                                      fontWeight: FontWeight.w600,
                                     ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
+                                ),
+                                IconButton(
+                                  icon: Icon(
+                                    Icons.close,
+                                    size: 20.r,
+                                    color: colorScheme.error,
+                                  ),
+                                  onPressed: isSubmitting ? null : _removeFile,
                                 ),
                               ],
                             ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 20.h),
-
-                // 3. رفع ملف الإقرارات
-                _buildSectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.upload_file,
-                            color: colorScheme.secondary,
-                            size: 24.r,
-                          ),
-                          SizedBox(width: 8.w),
-                          Text(
-                            "nomination.declarations_title".tr(),
-                            style: theme.textTheme.titleMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 10.h),
-                      Text(
-                        "nomination.declarations_instructions".tr(),
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      SizedBox(height: 15.h),
-                      if (_selectedFileName != null)
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 15.w,
-                            vertical: 12.h,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colorScheme.surfaceContainerHighest
-                                .withOpacity(0.3),
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.description,
-                                color: colorScheme.primary,
-                                size: 24.r,
-                              ),
-                              SizedBox(width: 10.w),
-                              Expanded(
-                                child: Text(
-                                  _selectedFileName!,
-                                  style: theme.textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              IconButton(
-                                icon: Icon(
-                                  Icons.close,
-                                  size: 20.r,
-                                  color: colorScheme.error,
-                                ),
-                                onPressed: isSubmitting ? null : _removeFile,
-                              ),
-                            ],
-                          ),
-                        )
-                      else
-                        SizedBox(
-                          width: double.infinity,
-                          child: OutlinedButton.icon(
-                            onPressed: isSubmitting
-                                ? null
-                                : _pickDeclarationFile,
-                            icon: Icon(Icons.attach_file, size: 22.r),
-                            label: Text("nomination.pick_file".tr()),
-                            style: OutlinedButton.styleFrom(
-                              padding: EdgeInsets.all(15.r),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12.r),
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                SizedBox(height: 40.h),
-
-                // 4. زر الإرسال
-                SizedBox(
-                  width: double.infinity,
-                  height: 55.h,
-                  child: ElevatedButton.icon(
-                    onPressed: isSubmitting ? null : _handleSubmit,
-                    icon: isSubmitting
-                        ? SizedBox(
-                            width: 20.w,
-                            height: 20.h,
-                            child: CircularProgressIndicator(
-                              color: colorScheme.onPrimary,
-                              strokeWidth: 2,
-                            ),
                           )
-                        : Icon(Icons.send_rounded, size: 22.r),
-                    label: Text(
-                      isSubmitting
-                          ? "nomination.button_submitting".tr()
-                          : "nomination.button_submit".tr(),
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: colorScheme.onPrimary,
-                        fontWeight: FontWeight.bold,
-                      ),
+                        else
+                          SizedBox(
+                            width: double.infinity,
+                            child: OutlinedButton.icon(
+                              onPressed: isSubmitting
+                                  ? null
+                                  : _pickDeclarationFile,
+                              icon: Icon(Icons.attach_file, size: 22.r),
+                              label: Text("nomination.pick_file".tr()),
+                              style: OutlinedButton.styleFrom(
+                                padding: EdgeInsets.all(15.r),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12.r),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: colorScheme.primary,
-                      foregroundColor: colorScheme.onPrimary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(15.r),
+                  ),
+                  SizedBox(height: 40.h),
+
+                  // 4. زر الإرسال
+                  SizedBox(
+                    width: double.infinity,
+                    height: 55.h,
+                    child: ElevatedButton.icon(
+                      onPressed: isSubmitting ? null : _handleSubmit,
+                      icon: isSubmitting
+                          ? SizedBox(
+                              width: 20.w,
+                              height: 20.h,
+                              child: CircularProgressIndicator(
+                                color: colorScheme.onPrimary,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Icon(Icons.send_rounded, size: 22.r),
+                      label: Text(
+                        isSubmitting
+                            ? "nomination.button_submitting".tr()
+                            : "nomination.button_submit".tr(),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(15.r),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,6 +1,9 @@
 {
   "add_employee": {
     "title": "Add Administrative Employee",
+    "edit_title":"Edting Employee Data",
+   "view_title":"View Data ",
+   "update_data":"Update Data",
     "save_data": "Save Data",
     "success_message": "Employee added successfully",
     "sections": {
@@ -37,5 +40,7 @@
   },
   "validation": {
     "required": "This field is required"
+    
   }
+
 }

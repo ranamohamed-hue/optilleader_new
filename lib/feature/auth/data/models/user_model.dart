@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-enum UserRole { admin, user, judge, database_admin,employee }
+enum UserRole { admin, user, judge, database_admin,admin_manager }
 
 class UserModel extends Equatable {
   final String uid;
@@ -56,7 +56,7 @@ class UserModel extends Equatable {
       case 'judge':
         return UserRole.judge;
       case 'employee': 
-        return UserRole.employee;
+        return UserRole.admin_manager;
       default:
         return UserRole.user;
     }
@@ -73,7 +73,7 @@ class UserModel extends Equatable {
         return 'judge';
       case UserRole.user:
         return 'user';
-        case UserRole.employee:
+        case UserRole.admin_manager:
         return 'employee';
     }
   }

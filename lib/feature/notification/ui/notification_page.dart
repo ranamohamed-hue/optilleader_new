@@ -7,7 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:optialeader/core/routing/routes.dart';
 import 'package:optialeader/core/theming/app_color.dart';
-// ✅ استيراد ملف الشيت والـ Cubit
+
 import 'package:optialeader/feature/admin/ui/announces/competition_results_sheet.dart';
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomination_request_cubit.dart';
 import 'package:optialeader/feature/notification/data/model/app_notification_model.dart';
@@ -31,12 +31,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         toolbarHeight: 60,
-        title: Text('notifications.title'.tr()),
+        title: Text('notification.title'.tr()),
         centerTitle: true,
         actions: [
           IconButton(
             icon: const Icon(Icons.delete_sweep_outlined),
-            tooltip: 'notifications.clear_read'.tr(),
+            tooltip: 'notification.clear_read'.tr(),
             onPressed: () {
               context.read<NotificationCubit>().clearAllNotifications();
             },
@@ -79,7 +79,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ),
                     SizedBox(height: 16.h),
                     Text(
-                      'notifications.empty_state'.tr(),
+                      'notification.empty_state'.tr(),
                       style: theme.textTheme.bodyLarge?.copyWith(
                         color: Colors.grey.shade600,
                       ),

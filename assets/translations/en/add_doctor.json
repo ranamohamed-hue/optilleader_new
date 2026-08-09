@@ -89,6 +89,14 @@
     "degree_bachelor": "Bachelor",
     "degree_diploma": "Diploma",
     "degree_master": "Master",
-    "degree_phd": "PhD"
+    "degree_phd": "PhD",
+    
+    "degree_name_ar": "Degree Name (Arabic)",
+    "degree_name_en": "Degree Name (English)",
+    "major_ar": "Major (Arabic)",
+    "major_en": "Major (English)",
+    "place_ar": "Granting Institution (Arabic)",
+    "place_en": "Granting Institution (English)",
+    "date_granted": "Date Granted"
   }
 }

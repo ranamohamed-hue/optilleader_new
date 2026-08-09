@@ -4,5 +4,6 @@
   "users_list_admins": "Admins List",
   "unknown_error": "Unknown Error",
   "invalid_role": "Invalid Role",
-  "no_users_found": "No users found"
+  "no_users_found": "No users found",
+  "users_list_admins_manager":"Employees List"
 }

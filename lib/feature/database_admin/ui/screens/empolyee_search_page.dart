@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cached_network_image/cached_network_image.dart'; // ✅ إضافة الكاش
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:optialeader/core/routing/routes.dart';
 import 'package:optialeader/feature/database_admin/logic/search/search_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/search/search_state.dart';
@@ -43,7 +43,8 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('search.app_bar_title'.tr()),
+        // ✅ تصحيح المفتاح
+        title: Text('employee_search.title'.tr()),
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new, size: 20.sp),
           onPressed: () {
@@ -59,13 +60,11 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
         padding: EdgeInsets.all(16.w),
         child: Column(
           children: [
-            // ✅ استخدام الترجمة في الأزرار
             Row(
               children: [
                 ChoiceChip(
-                  label: Text(
-                    "search.by_name".tr(),
-                  ), // لو مضاف في الـ JSON، لو لأ استخدم "بحث بالاسم"
+                  // ✅ تصحيح المفتاح
+                  label: Text("employee_search.by_name".tr()),
                   selected: _currentSearchField == 'username',
                   selectedColor: colorScheme.secondary,
                   onSelected: (bool selected) {
@@ -77,9 +76,8 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                 ),
                 SizedBox(width: 10.w),
                 ChoiceChip(
-                  label: Text(
-                    "search.by_id".tr(),
-                  ), // لو مضاف في الـ JSON، لو لأ استخدم "بحث بالرقم الوظيفي"
+                  // ✅ تصحيح المفتاح
+                  label: Text("employee_search.by_id".tr()),
                   selected: _currentSearchField == 'employee_id',
                   selectedColor: colorScheme.secondary,
                   onSelected: (bool selected) {
@@ -93,11 +91,13 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
             ),
             SizedBox(height: 15.h),
 
-            // ✅ استخدام الترجمة في حقل البحث
             TextField(
               controller: _searchController,
+              // ✅ تصحيح المفتاح و جعله ديناميكيا حسب الاختيار
               decoration: InputDecoration(
-                hintText: 'search.hint'.tr(),
+                hintText: _currentSearchField == 'username' 
+                    ? 'employee_search.hint_name'.tr() 
+                    : 'employee_search.hint_id'.tr(),
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
@@ -126,12 +126,12 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
             ),
             SizedBox(height: 20.h),
 
-            // ✅ استخدام الترجمة في حالة عدم وجود نتائج
             Expanded(
               child: BlocBuilder<SearchCubit, SearchState>(
                 builder: (context, state) {
+                  // ✅ تحسين حالة التحميل باستخدام Indicato بدل النص
                   if (state is SearchLoading) {
-                    return Center(child: Text('search.loading'.tr()));
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (state is SearchSuccess) {
@@ -140,7 +140,8 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                     if (users.isEmpty) {
                       return Center(
                         child: Text(
-                          'search.no_users'.tr(),
+                          // ✅ تصحيح المفتاح
+                          'employee_search.no_users'.tr(),
                           style: TextStyle(color: Colors.grey[600]),
                         ),
                       );
@@ -156,13 +157,18 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
 
                   if (state is SearchError) {
                     return Center(
-                      child: Text('search.error_message'.tr(args: [''])),
+                      child: Text(
+                        // ✅ تصحيح المفتاح
+                        'employee_search.error'.tr(),
+                        style: TextStyle(color: Colors.red),
+                      ),
                     );
                   }
 
                   return Center(
                     child: Text(
-                      'search.hint'.tr(),
+                      // ✅ تصحيح المفتاح للحالة الابتدائية
+                      'employee_search.start_searching'.tr(),
                       style: TextStyle(color: Colors.grey[400]),
                     ),
                   );
@@ -231,9 +237,9 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
                       backgroundColor: colorScheme.primary,
                     ),
                     SizedBox(height: 5.h),
-                    // ✅ استخدام الترجمة للرقم الوظيفي
                     Text(
-                      'search.employee_id_label'.tr(args: [user.employeeId]),
+                      // ✅ تصحيح المفتاح
+                      'employee_search.employee_id_label'.tr(args: [user.employeeId]),
                       style: theme.textTheme.bodySmall?.copyWith(
                         fontSize: 11.sp,
                         color: Colors.grey,
@@ -254,7 +260,6 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     );
   }
 
-  // ✅ استخدام CachedNetworkImage بدل NetworkImage
   Widget _buildProfileImage(ColorScheme colorScheme, String imageUrl) {
     return Container(
       decoration: BoxDecoration(

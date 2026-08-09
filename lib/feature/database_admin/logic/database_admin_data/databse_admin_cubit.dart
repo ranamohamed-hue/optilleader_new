@@ -24,6 +24,7 @@ class DatabseAdminCubit extends Cubit<DatabaseAdminState> {
           doctorsCount: counts['doctors'] ?? 0,
           judgesCount: counts['judges'] ?? 0,
           adminsCount: counts['admins'] ?? 0,
+          employeesCount:counts['employees']??0,
         ));
       },
     );

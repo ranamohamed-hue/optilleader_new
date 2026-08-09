@@ -1,12 +1,14 @@
 import 'package:equatable/equatable.dart';
 import 'package:optialeader/feature/auth/data/models/user_model.dart';
 
-
 abstract class AuthState extends Equatable {
   const AuthState();
   @override
   List<Object?> get props => [];
 }
+
+// حالة التحميل الأولية (اللي بنستنى فيها الهيف يفتح) - تمت إضافتها
+class AuthLoadingState extends AuthState {}
 
 class AuthInitialState extends AuthState {}
 
@@ -39,10 +41,10 @@ class UpdatePasswordLoadingState extends AuthState {
 }
 class UpdatePasswordSuccessState extends AuthState {
   final String message;
-  final UserModel userModel; // أضيفي هذا السطر
-  const UpdatePasswordSuccessState(this.message,this.userModel);
+  final UserModel userModel; 
+  const UpdatePasswordSuccessState(this.message, this.userModel);
   @override
-  List<Object> get props => [message,userModel];
+  List<Object> get props => [message, userModel];
 }
 class UpdatePasswordErrorState extends AuthState {
   final String error;

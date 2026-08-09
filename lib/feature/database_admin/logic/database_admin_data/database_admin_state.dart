@@ -14,12 +14,15 @@ class DatabaseAdminSuccess extends DatabaseAdminState {
   final int doctorsCount;
   final int judgesCount;
   final int adminsCount;
+  final int employeesCount;
 
   DatabaseAdminSuccess(
     this.profile, {
     this.doctorsCount = 0, 
     this.judgesCount = 0,
     this.adminsCount = 0,
+    required this.employeesCount, 
+
   });
 }
 class DatabaseAdminError extends DatabaseAdminState {

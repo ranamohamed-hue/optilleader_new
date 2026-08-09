@@ -123,13 +123,18 @@ class DatabaseAdminRepoImpl implements DatabaseAdminRepo {
       final adminsSnapshot = await adminsQuery.count().get();
       final int adminsCount = adminsSnapshot.count ?? 0;
 
+      final employeesQuery = _firestore.collection('users').where('role', isEqualTo: 'admin_manager');
+      final employeesSnapshot = await employeesQuery.count().get();
+      final int employeesCount = employeesSnapshot.count ?? 0;
+
       return {
         'doctors': doctorsCount,
         'judges': judgesCount,
         'admins': adminsCount,
+        'employees': employeesCount, 
       };
     } catch (e) {
-      return {'doctors': 0, 'judges': 0, 'admins': 0};
+      return {'doctors': 0, 'judges': 0, 'admins': 0, 'employee': 0};
     }
   }
 }

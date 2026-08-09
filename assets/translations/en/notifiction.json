@@ -1,0 +1,11 @@
+{
+    "notification":{
+        "title":"Notifications",
+        "empty_state":"No notification found",
+        "clear_read":"Clear read",
+        "time":{
+            "today":"Today",
+            "yesterday":"Yesterday"
+        }
+    }
+}

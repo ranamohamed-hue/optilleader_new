@@ -263,10 +263,10 @@ class DoctorProfileModel {
       nameEn: profile['display_name']?['en'] ?? '',
       nationalityAr: profile['nationality_ar'] ?? '',
       nationalityEn: profile['nationality_en'] ?? '',
-      currentJobAr:
-          profile['current_job_ar'] ?? json['jop']?['title']?['ar'] ?? '',
-      currentJobEn:
-          profile['current_job_en'] ?? json['jop']?['title']?['en'] ?? '',
+     currentJobAr:
+    profile['current_job_ar'] ?? json['jop']?['title']?['ar'] ?? '',
+currentJobEn:
+    profile['current_job_en'] ?? json['jop']?['title']?['en'] ?? '',
       socialStatusAr: profile['social_status_ar'] ?? '',
       socialStatusEn: profile['social_status_en'] ?? '',
       nationalId: json['national_id'] ?? '',
@@ -683,18 +683,40 @@ class DoctorProfileModel {
         .replaceAll('ة', 'ه')
         .replaceAll('ى', 'ي');
   }
+static List<String> getTop3SeniorInDepartment({
+  required List<DoctorProfileModel> doctors,
+  required String departmentAr,
+}) {
+  final targetDept = departmentAr.trim();
 
-  static List<String> getTop3SeniorInDepartment({
-    required List<DoctorProfileModel> doctors,
-    required String departmentAr,
-  }) {
-    final filtered = doctors
-        .where((d) => d.departmentAr == departmentAr && d.hiringDate != null)
-        .toList();
-    filtered.sort((a, b) => a.hiringDate!.compareTo(b.hiringDate!));
-    return filtered.take(3).map((d) => d.uid!).toList();
-  }
+  final filtered = doctors.where((doctor) {
+    // 1. التحقق من تطابق القسم
+    final docDept = doctor.departmentAr.trim();
+    
+    // 2. التحقق من درجة الأستاذية
+    final isProfessor = doctor.academicHistory.any((h) {
+      final degree = (h['degree'] ?? '').toString().toLowerCase();
+      final normalized = _normalizeArabic(degree);
+      return normalized.contains('استاذ') || normalized.contains('professor');
+    });
 
+    // 3. التأكد من وجود تاريخ الحصول على اللقب (أو تاريخ التعيين كخيار ثاني)
+    return docDept == targetDept &&
+        doctor.uid != null &&
+        isProfessor;
+  }).toList();
+
+  // الترتيب: الأقدم في الحصول على درجة أستاذ (أولوية)
+  filtered.sort((a, b) {
+    final dateA = a.professorRankDate ?? a.hiringDate ?? DateTime(2050);
+    final dateB = b.professorRankDate ?? b.hiringDate ?? DateTime(2050);
+    return dateA.compareTo(dateB);
+  });
+
+  return filtered.take(3).map((d) => d.uid!).toList();
+} 
+  
+  
   static Map<String, bool> calculateTop3SeniorMap({
     required List<DoctorProfileModel> doctors,
     required String departmentAr,

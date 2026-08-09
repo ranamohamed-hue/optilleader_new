@@ -38,6 +38,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
 
   bool get isArabic => context.locale.languageCode == 'ar';
   bool get isEditing => widget.existingUid != null;
+  bool get isDark => Theme.of(context).brightness == Brightness.dark; // ✅ إضافة الدارك مود
 
   bool _isReadOnly = true;
   String _currentImageUrl = '';
@@ -58,6 +59,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(15.r),
         ),
+        backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white, // ✅ لون الخلفية
         title: Row(
           children: [
             Icon(
@@ -66,19 +68,27 @@ class _AddJudgePageState extends State<AddJudgePage> {
               size: 28.sp,
             ),
             SizedBox(width: 10.w),
-            Text("add_judge.confirm_delete_title".tr()),
+            Text(
+              "add_judge.confirm_delete_title".tr(),
+              style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark), // ✅ لون العنوان
+            ),
           ],
         ),
         content: Text(
           "add_judge.confirm_delete_msg".tr(),
-          style: AppTextStyles.bodyMedium.copyWith(color: AppColors.navyDark),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white70 : AppColors.navyDark, // ✅ لون المحتوى
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext),
             child: Text(
               "add_judge.cancel".tr(),
-              style: TextStyle(color: AppColors.navyLight),
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.navyLight, // ✅ لون الزر
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           ElevatedButton(
@@ -94,7 +104,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
             },
             child: Text(
               "add_judge.confirm".tr(),
-              style: TextStyle(
+              style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
@@ -179,6 +189,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocListener<JudgeDataCubit, JudgeDataState>(
       listenWhen: (previous, current) =>
           current is JudgeSuccess ||
@@ -225,6 +236,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
                 : (isEditing
                       ? "add_judge.edit_title".tr()
                       : "add_judge.add_title".tr()),
+            style: theme.appBarTheme.titleTextStyle,
           ),
           centerTitle: true,
           elevation: 0,
@@ -232,7 +244,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
             if (isEditing)
               IconButton(
                 icon: const Icon(Icons.delete_forever, color: Colors.redAccent),
-                tooltip: "add_judge.delete_user".tr(), // ✅ تعديل
+                tooltip: "add_judge.delete_user".tr(),
                 onPressed: _showDeleteConfirmationDialog,
               ),
             if (widget.existingUid != null)
@@ -256,9 +268,34 @@ class _AddJudgePageState extends State<AddJudgePage> {
                     child: CircularProgressIndicator(color: AppColors.darkGold),
                   );
                 }
+                // ✅ إضافة شاشة الخطأ زي الدكتور
+                if (isEditing && state is JudgeError) {
+                  return Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline, size: 60.sp, color: AppColors.error),
+                        SizedBox(height: 16.h),
+                        Text(
+                          state.error,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: isDark ? Colors.white : AppColors.navyDark,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 16.h),
+                        ElevatedButton(
+                          onPressed: () => context.read<JudgeDataCubit>().getJudgeProfile(widget.existingUid!),
+                          child: Text("retry".tr()),
+                        ),
+                      ],
+                    ),
+                  );
+                }
 
                 return SingleChildScrollView(
                   padding: EdgeInsets.all(20.w),
+                  physics: const BouncingScrollPhysics(), // ✅ إضافة السكرول
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -273,25 +310,20 @@ class _AddJudgePageState extends State<AddJudgePage> {
                               "add_judge.name_ar".tr(),
                               _nameArController,
                               Icons.person,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                             ),
                             _buildTextField(
                               "add_judge.name_en".tr(),
                               _nameEnController,
                               Icons.person_outline,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                               isEn: true,
                             ),
                             _buildTextField(
                               "add_judge.email".tr(),
                               _emailController,
                               Icons.email_outlined,
-                              (v) =>
-                                  !RegExp(
-                                    r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                                  ).hasMatch(v!)
+                              (v) => !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(v!)
                                   ? "add_judge.invalid_email".tr()
                                   : null,
                               isEn: true,
@@ -300,8 +332,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
                               "add_judge.phone".tr(),
                               _phoneController,
                               Icons.phone,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                               keyboardType: TextInputType.phone,
                               isEn: true,
                             ),
@@ -309,8 +340,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
                               "add_judge.national_id".tr(),
                               _nationalIdController,
                               Icons.badge,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                               keyboardType: TextInputType.number,
                               isEn: true,
                             ),
@@ -318,8 +348,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
                               "add_judge.employee_id".tr(),
                               _employeeIdController,
                               Icons.work_history,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                               keyboardType: TextInputType.number,
                               isEn: true,
                             ),
@@ -333,37 +362,33 @@ class _AddJudgePageState extends State<AddJudgePage> {
                               "add_judge.job_ar".tr(),
                               _jobTitleArController,
                               Icons.work,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                             ),
                             _buildTextField(
                               "add_judge.job_en".tr(),
                               _jobTitleEnController,
                               Icons.work_outline,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                               isEn: true,
                             ),
                             _buildTextField(
                               "add_judge.address_ar".tr(),
                               _addressArController,
                               Icons.location_on,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                             ),
                             _buildTextField(
                               "add_judge.address_en".tr(),
                               _addressEnController,
                               Icons.location_on_outlined,
-                              (v) =>
-                                  v!.isEmpty ? "add_judge.required".tr() : null,
+                              (v) => v!.isEmpty ? "add_judge.required".tr() : null,
                               isEn: true,
                             ),
                           ],
                         ),
                         SizedBox(height: 30.h),
                         if (!_isReadOnly) _buildSaveButton(state),
-                        SizedBox(height: 20.h),
+                        SizedBox(height: 40.h), // ✅ تعديل المسافة
                       ],
                     ),
                   ),
@@ -378,6 +403,7 @@ class _AddJudgePageState extends State<AddJudgePage> {
                     color: Colors.black.withOpacity(0.5),
                     child: Center(
                       child: Card(
+                        color: isDark ? const Color(0xFF1E1E2E) : Colors.white, // ✅ لون الكارت
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(15.r),
                         ),
@@ -386,14 +412,12 @@ class _AddJudgePageState extends State<AddJudgePage> {
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const CircularProgressIndicator(
-                                color: AppColors.error,
-                              ),
+                              const CircularProgressIndicator(color: AppColors.error),
                               SizedBox(height: 15.h),
                               Text(
-                                "add_judge.deleting".tr(), // ✅ تعديل
+                                "add_judge.deleting".tr(),
                                 style: AppTextStyles.bodyMedium.copyWith(
-                                  color: AppColors.navyDark,
+                                  color: isDark ? Colors.white : AppColors.navyDark, // ✅ لون النص
                                 ),
                               ),
                             ],
@@ -446,32 +470,28 @@ class _AddJudgePageState extends State<AddJudgePage> {
 
   Widget _buildSectionCard(String title, IconData icon, List<Widget> children) {
     return Card(
-      color: Colors.white,
-      elevation: 0,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.r),
-        side: BorderSide(color: AppColors.navyLight.withOpacity(0.1)),
-      ),
+      color: isDark ? const Color(0xFF1E1E2E) : Colors.white, // ✅ لون الكارت
+      elevation: 0.5, // ✅ تعديل الظل
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)), // ✅ إزالة الـ side
       margin: EdgeInsets.only(bottom: 20.h),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(18.w), // ✅ تعديل البادينج
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Icon(icon, color: AppColors.darkGold, size: 22.sp),
-                SizedBox(width: 8.w),
+                SizedBox(width: 10.w), // ✅ تعديل المسافة
                 Text(
                   title,
                   style: AppTextStyles.titleMedium.copyWith(
-                    color: AppColors.navyDark,
-                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : AppColors.navyDark, // ✅ لون العنوان
                   ),
                 ),
               ],
             ),
-            const Divider(height: 25, thickness: 0.5),
+            Divider(height: 30, color: isDark ? Colors.white24 : Colors.grey.shade300), // ✅ لون الفاصل
             ...children,
           ],
         ),
@@ -501,17 +521,39 @@ class _AddJudgePageState extends State<AddJudgePage> {
             ? ui.TextDirection.ltr
             : (isArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr),
         style: AppTextStyles.bodyMedium.copyWith(
-          color: _isReadOnly ? Colors.grey : AppColors.navyDark,
+          color: _isReadOnly
+              ? (isDark ? Colors.white54 : Colors.grey) // ✅ لون القراءة فقط
+              : (isDark ? Colors.white : AppColors.navyDark), // ✅ لون الكتابة
         ),
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, size: 20.sp, color: AppColors.navyLight),
+          prefixIcon: Icon(icon, size: 20.sp, color: isDark ? Colors.white70 : AppColors.navyLight), // ✅ لون الأيقونة
           labelStyle: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.navyLight,
+            color: isDark ? Colors.white70 : AppColors.navyLight, // ✅ لون التسمية
           ),
           alignLabelWithHint: true,
           filled: _isReadOnly,
-          fillColor: _isReadOnly ? Colors.grey.shade200 : Colors.white,
+          fillColor: _isReadOnly
+              ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200) // ✅ لون الخلفية للقراءة فقط
+              : (isDark ? const Color(0xFF2A2A3E) : Colors.white), // ✅ لون الخلفية العادي
+          
+          // ✅ إضافة البوردرز زي ما الدكتور بالظبط
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: BorderSide(
+              color: isDark ? Colors.white24 : Colors.grey.shade300,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+          ),
+          disabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.r),
+            borderSide: BorderSide(
+              color: isDark ? Colors.white24 : Colors.grey.shade300,
+            ),
+          ),
         ),
       ),
     );

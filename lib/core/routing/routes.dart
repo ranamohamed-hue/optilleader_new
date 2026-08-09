@@ -1,13 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Routes {
+    static const splash = '/splash'; 
+
   static const login = '/login';
   static const register = '/register';
   static const databaseAdmin = '/databaseAdmin';
   static const admin = '/admin';
   static const judge = '/judge';
   static const user = '/user';
-  static const employee = '/employee';
+  static const adminManager = '/adminManager';
   static const employeeCourses = '/employee/courses';
   static const changePassword = '/change-password';
   static const settings = '/settings';
@@ -36,6 +38,7 @@ static const editAnnountmentPage = '/admin/edit-announcement';
   static const addAdminPage = '/databaseAdmin/addAdminPage';
   static const addJudgePage = '/databaseAdmin/addJudgePage';
   static const searchPage = '/databaseAdmin/searchPage';
+  static const addEmployeePage = '/databaseAdmin/addEmployeePage';
   static const String usersListPage = '/databaseAdmin/users-list';
   //صفحات خاصه بالمحكم
   static const judgeEvaluation = '/judge/evaluationScreen';
