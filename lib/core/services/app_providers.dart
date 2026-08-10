@@ -1,61 +1,35 @@
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:provider/provider.dart';
-
-import 'package:optialeader/core/services/hive_service.dart';
-import 'package:optialeader/core/theming/logic/theme_cubit.dart';
-
-import 'package:optialeader/feature/auth/data/repo/auth_repo_impl.dart';
-import 'package:optialeader/feature/auth/logic/cubits/auth_cubit.dart';
-
-import 'package:optialeader/feature/notification/data/repo/notification_repo.dart';
-import 'package:optialeader/feature/notification/data/repo/notification_repo_impl.dart';
 import 'package:provider/single_child_widget.dart';
+import 'package:optialeader/core/theming/logic/theme_cubit.dart';
+import 'package:optialeader/feature/notification/data/repo/notification_repo.dart'; // <-- تأكد من استدعاء الكلاس الأساسي (الابستراكت)
+import 'package:optialeader/feature/notification/data/repo/notification_repo_impl.dart';
+import 'package:optialeader/feature/notification/logic/app_notification_cubit.dart'; // <-- استدعاء الكيوبت
 import 'package:optialeader/feature/admin/logic/admin_providers.dart';
 import 'package:optialeader/feature/doctor/logic/doctor_providers.dart';
 import 'package:optialeader/feature/judge/data/judge_providers.dart';
 import 'package:optialeader/feature/database_admin/logic/general_data_providers.dart';
 
 class AppProviders {
-  static List<SingleChildWidget> providers({
-    required HiveService hiveService,
-  }) {
+  static List<SingleChildWidget> providers() {
     return [
-      // Notification
+      // 1. أولاً: نضع الـ Repositories (مصادر البيانات)
       RepositoryProvider<NotificationRepo>(
         create: (context) => NotificationRepoImpl(),
       ),
 
-      // Theme
-      BlocProvider<ThemeCubit>(
-        create: (context) => ThemeCubit(),
+      // 2. ثانياً: نضع الـ Cubits التي تعتمد على الـ Repositories
+          BlocProvider<NotificationCubit>(
+        create: (context) => NotificationCubit(
+          notificationRepo: context.read<NotificationRepo>(),
+          // لن نمرر userId، سيتركه فارغاً وبالتالي سيستخدم Firebase UID لما يتم استدعاء fetchNotifications
+        ),
       ),
-
-      // Auth + Hive
-      BlocProvider<AuthCubit>(
-        create: (context) => AuthCubit(
-          AuthRepoImpl(
-            auth: FirebaseAuth.instance,
-            firestore: FirebaseFirestore.instance,
-
-            // لو AuthRepoImpl عندك فيه hiveService
-            hiveService: hiveService,
-          ),
-        )..checkAuthStatus(),
-      ),
-
-      // Doctor
+      // 3. ثالثاً: باقي الـ Cubits التي لا تعتمد على شيء أو تعتمد على أشياء أخرى
+      BlocProvider<ThemeCubit>(create: (context) => ThemeCubit()),
+      
       ...DoctorProviders.providers(),
-
-      // Admin
       ...AdminProviders.providers(),
-
-      // Judge
       ...JudgeProviders.providers(),
-
-      // General Data
       ...GeneralDataProviders.providers(),
     ];
   }

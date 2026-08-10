@@ -90,7 +90,7 @@
     "degree_diploma": "Diploma",
     "degree_master": "Master",
     "degree_phd": "PhD",
-    
+    "select_date":"Select Date",
     "degree_name_ar": "Degree Name (Arabic)",
     "degree_name_en": "Degree Name (English)",
     "major_ar": "Major (Arabic)",

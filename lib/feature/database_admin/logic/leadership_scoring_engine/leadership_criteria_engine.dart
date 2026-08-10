@@ -440,7 +440,14 @@ class LeadershipCriteriaEngine {
         doctors: departmentDoctors,
         departmentAr: doctor.departmentAr,
       );
-
+print('====================================');
+print('الدكتور الحالي: ${doctor.uid}');
+print('اسم الدكتور: ${doctor.nameAr}');
+print('القسم: ${doctor.departmentAr}');
+print('عدد دكاترة القسم: ${departmentDoctors.length}');
+print('Top 3 UIDs: $top3Uids');
+print('هل الدكتور ضمن Top 3؟ ${top3Uids.contains(doctor.uid)}');
+print('====================================');
       isTop3 =
           doctor.uid != null &&
           top3Uids.contains(doctor.uid);

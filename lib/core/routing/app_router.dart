@@ -27,166 +27,76 @@ import 'package:optialeader/feature/admin/logic/admin_providers.dart';
 import 'package:optialeader/feature/judge/data/judge_providers.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-
 GoRouter createRouter(AuthCubit authCubit) {
-  
-  // دالة مساعدة لاختصار حالات تسجيل الدخول
-  bool isAuthenticated(AuthState state) {
-    return state is AuthenticatedState || state is LoginSuccessState;
-  }
-
   String getHomeByRole(UserRole role) {
     switch (role) {
-      case UserRole.database_admin:
-        return Routes.databaseAdmin;
-      case UserRole.admin:
-        return Routes.admin;
-      case UserRole.judge:
-        return Routes.judge;
-      case UserRole.user:
-        return Routes.user;
-      case UserRole.admin_manager:
-        return Routes.adminManager;
+      case UserRole.database_admin: return Routes.databaseAdmin;
+      case UserRole.admin: return Routes.admin;
+      case UserRole.judge: return Routes.judge;
+      case UserRole.user: return Routes.user;
+      case UserRole.admin_manager: return Routes.adminManager;
     }
-  }
-
-  String getInitialRoute() {
-    final state = authCubit.state;
-    if (state is AuthenticatedState) {
-      return getHomeByRole(state.userModel.role);
-    }
-    if (state is LoginSuccessState) {
-      return getHomeByRole(state.userModel.role);
-    }
-    if (state is NewUserFirstLoginState) {
-      return Routes.changePassword;
-    }
-    return Routes.login;
   }
 
   return GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: getInitialRoute(), 
+    initialLocation: Routes.splash, // نبدأ دائماً بالـ Splash
     refreshListenable: RouterRefreshNotifier(authCubit),
-    
     redirect: (context, state) {
       final authState = authCubit.state;
-      final String location = state.matchedLocation;
-      
-      final bool isLogged = isAuthenticated(authState);
+      final location = state.matchedLocation;
 
-      // الحالة الأولى: لو المستخدم مسجل وواقف بالغلط في اللوجين، وديه على صفحته
-      if (isLogged) {
-        if (location == Routes.login) {
-          final userModel = (authState is AuthenticatedState) 
-              ? authState.userModel 
-              : (authState as LoginSuccessState).userModel;
-          return getHomeByRole(userModel.role);
+      // 1. إذا كان المستخدم مسجل الدخول
+      if (authState is AuthenticatedState) {
+        // إذا كان في شاشة اللودنج أو اللوجين -> يوجهه للرئيسية حسب دوره
+        if (location == Routes.splash || location == Routes.login) {
+          return getHomeByRole(authState.userModel.role);
         }
-        return null; 
+        return null; // إذا كان في أي مكان آخر، اتركه مكانه
       }
 
+      // 2. إذا كان مستخدم جديد ويحتاج لتغيير الباسورد
       if (authState is NewUserFirstLoginState) {
-        return location == Routes.changePassword ? null : Routes.changePassword;
+        if (location == Routes.changePassword) return null;
+        return Routes.changePassword;
       }
 
-      return location == Routes.login ? null : Routes.login;
+      // 3. إذا لم يسجل الدخول أو حالة الخطأ أو تسجيل الخروج
+      if (authState is AuthInitialState || 
+          authState is LoginErrorState || 
+          authState is LogoutSuccessState) {
+        // إذا كان في شاشة اللودنج -> يوجهه لشاشة اللوجين
+        if (location == Routes.splash) {
+          return Routes.login;
+        }
+        // إذا كان في اللوجين بالفعل اتركه
+        if (location == Routes.login) return null;
+        
+        // إذا حاول الدخول لأي صفحة أخرى وهو غير مسجل -> ارجعه للوجين
+        return Routes.login;
+      }
+
+      // 4. في حالة كان الـ state هو AuthLoadingState (أثناء الفحص) اتركه في الـ Splash
+      return null;
     },
-   
     routes: [
-      /// --- AUTH ROUTES ---
-      /// 
-      
       GoRoute(
-        path: Routes.login,
-        builder: (context, state) => const SignInView(),
+        path: Routes.splash, 
+        builder: (context, state) => const Scaffold(body: Center(child: CircularProgressIndicator()))
       ),
-      GoRoute(
-        path: Routes.changePassword,
-        builder: (context, state) => const ChangePasswordView(),
-      ),
-
-      /// --- DASHBOARD ROUTES ---
-      GoRoute(
-        path: Routes.databaseAdmin,
-        builder: (context, state) => const DatabaseAdminDashboard(),
-        routes: databaseAdminSubRoutes,
-      ),
-      /// --- ADMIN ROUTE ---
-      GoRoute(
-        path: Routes.admin,
-        builder: (context, state) => const AdminWrapper(),
-        routes: adminSubRoutes,
-      ),
-      /// --- JUDGE ROUTE ---
-      GoRoute(
-        path: Routes.judge,
-        builder: (context, state) => const JudgeWrapper(),
-        routes: judgeSubRoutes,
-      ),
-      GoRoute(
-        path: Routes.user,
-        builder: (context, state) => const DashboardUserPage(),
-        routes: userSubRoutes,
-      ),
-      GoRoute(
-        path: Routes.adminManager,
-        builder: (context, state) => const EmployeeDashboardScreen(),
-      ),
-
-      /// --- SETTINGS ---
-      GoRoute(
-        path: Routes.settings,
-        builder: (context, state) {
-          final args = state.extra as Map<String, dynamic>? ?? {};
-          return SettingsScreen(
-            uid: args['uid'] as String? ?? '',
-            role: args['role'] as String? ?? 'user',
-          );
-        },
-      ),
-
-      /// --- NOTIFICATION ---
-      GoRoute(
-        path: Routes.notification,
-        builder: (context, state) {
-          final notificationCubit = context.read<NotificationCubit>();
-          notificationCubit.fetchNotifications();
-          return const NotificationsScreen();
-        },
-      ),
-
-      /// --- EMPLOYEE COURSES ---
-      GoRoute(
-        path: Routes.employeeCourses,
-        builder: (context, state) => EmployeeCoursesPage(
-          employee: state.extra as EmployeeModel,
-        ),
-      ),
+      GoRoute(path: Routes.login, builder: (context, state) => const SignInView()),
+      GoRoute(path: Routes.changePassword, builder: (context, state) => const ChangePasswordView()),
+      GoRoute(path: Routes.databaseAdmin, builder: (context, state) => const DatabaseAdminDashboard(), routes: databaseAdminSubRoutes),
+      GoRoute(path: Routes.admin, builder: (context, state) => const DashboardScreen(), routes: adminSubRoutes),
+      GoRoute(path: Routes.judge, builder: (context, state) => const MohakemDashboardHome(), routes: judgeSubRoutes),
+      GoRoute(path: Routes.user, builder: (context, state) => const DashboardUserPage(), routes: userSubRoutes),
+      GoRoute(path: Routes.adminManager, builder: (context, state) => const EmployeeDashboardScreen()),
+      GoRoute(path: Routes.settings, builder: (context, state) {
+        final args = state.extra as Map<String, dynamic>? ?? {};
+        return SettingsScreen(uid: args['uid'] ?? '', role: args['role'] ?? 'user');
+      }),
+      GoRoute(path: Routes.notification, builder: (context, state) => const NotificationsScreen()),
+      GoRoute(path: Routes.employeeCourses, builder: (context, state) => EmployeeCoursesPage(employee: state.extra as EmployeeModel)),
     ],
   );
-}
-
-class AdminWrapper extends StatelessWidget {
-  const AdminWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: AdminProviders.providers(),
-      child: const DashboardScreen(),
-    );
-  }
-}
-
-class JudgeWrapper extends StatelessWidget {
-  const JudgeWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: JudgeProviders.providers(),
-      child: const MohakemDashboardHome(),
-    );
-  }
 }

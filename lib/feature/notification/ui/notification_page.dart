@@ -322,7 +322,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       String minute = date.minute.toString().padLeft(2, '0');
       return 'notifications.time.today'.tr(args: ['$hour:$minute']);
     } else if (diff.inDays == 1) {
-      return 'notifications.time.yesterday'.tr();
+      return 'notification.time.yesterday'.tr();
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

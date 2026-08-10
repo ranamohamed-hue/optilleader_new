@@ -95,16 +95,7 @@ final List<RouteBase> userSubRoutes = [
       );
     },
   ),
-   GoRoute(
-    path: 'competition-results-view',
-    builder: (context, state) {
-      final args = state.extra as Map<String, dynamic>?;
-      return CompetitionResultsViewPage(
-        announcementId: args?['announcementId'] ?? '',
-        currentDoctorId: args?['currentDoctorId'],
-      );
-    },
-  ),
+   
   GoRoute(
     path: 'pendingRequests',
     builder: (context, state) {

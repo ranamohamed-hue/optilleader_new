@@ -386,19 +386,35 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         courses: _existingDoctor?.courses ?? const [],
         academicActivities: _existingDoctor?.academicActivities,
         internalCommittees: _internalCommittees,
-        hasHealthCertificate: _existingDoctor?.hasHealthCertificate,
-        hasCommitteeMembership: _existingDoctor?.hasCommitteeMembership,
-        hasSelfEvaluationReport: _existingDoctor?.hasSelfEvaluationReport,
-        hasArbitrationPlan: _existingDoctor?.hasArbitrationPlan,
-        hasAdminExperience: _existingDoctor?.hasAdminExperience,
-        hasExcellentPerformanceReports:
-            _existingDoctor?.hasExcellentPerformanceReports,
-        isTop3Senior: _existingDoctor?.isTop3Senior,
+     hasHealthCertificate:
+    _existingDoctor?.hasHealthCertificate ?? false,
+
+hasCommitteeMembership:
+    _existingDoctor?.hasCommitteeMembership ?? false,
+
+hasSelfEvaluationReport:
+    _existingDoctor?.hasSelfEvaluationReport ?? false,
+
+hasArbitrationPlan:
+    _existingDoctor?.hasArbitrationPlan ?? false,
+
+hasAdminExperience:
+    _existingDoctor?.hasAdminExperience ?? false,
+
+hasExcellentPerformanceReports:
+    _existingDoctor?.hasExcellentPerformanceReports ?? false,
+
+isTop3Senior:
+    _existingDoctor?.isTop3Senior ?? false,
+
+hasSupremeCouncilTraining:
+    _existingDoctor?.hasSupremeCouncilTraining ?? false,
+
+hasFLDCTraining:
+    _existingDoctor?.hasFLDCTraining ?? false,
         isOnSecondment: isOnSecondment,
         isOnUnpaidLeave: isOnUnpaidLeave,
         activeDutySinceDate: activeDutySinceDate,
-        hasSupremeCouncilTraining: hasSupremeCouncilTraining,
-        hasFLDCTraining: hasFLDCTraining,
         workPlanFileUrl: _existingDoctor?.workPlanFileUrl,
         workPlanStatus: _existingDoctor?.workPlanStatus,
       );

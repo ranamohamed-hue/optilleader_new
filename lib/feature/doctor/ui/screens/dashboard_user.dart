@@ -108,6 +108,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
 
   @override
   Widget build(BuildContext context) {
+    
     final theme = Theme.of(context);
     final primaryNavy = theme.colorScheme.primary;
     final goldAccent = theme.colorScheme.secondary;

@@ -62,23 +62,52 @@ class _DoctorNominationPageState extends State<DoctorNominationPage> {
     }
   }
 
-  void _applyDoctorData(DoctorProfileModel? doctor) {
-    if (doctor == null) {
-      setState(() => _isLoadingData = false);
-      return;
-    }
-
-    setState(() {
-      _doctor = doctor;
-      doctorName = doctor.nameAr;
-      doctorImageUrl = doctor.profileImage;
-      mandatoryCriteria = LeadershipCriteriaEngine.checkMandatoryCriteria(
-        doctor: doctor,
-        targetRole: widget.announcement.targetRole,
-      );
-      _isLoadingData = false;
-    });
+  
+Future<void> _applyDoctorData(
+  DoctorProfileModel? doctor,
+) async {
+  if (doctor == null) {
+    setState(() => _isLoadingData = false);
+    return;
   }
+
+  List<DoctorProfileModel> departmentDoctors = [];
+
+  // لو الوظيفة رئيس قسم، نجيب دكاترة القسم
+  if (widget.announcement.targetRole == 'head_department') {
+    try {
+      final cubit = context.read<DoctorDataCubit>();
+
+      final allDoctors = await cubit.getAllDoctorsOnce();
+
+      departmentDoctors = allDoctors.where((doc) {
+        return doc.departmentAr.trim() ==
+            doctor.departmentAr.trim();
+      }).toList();
+    } catch (e) {
+      print('❌ خطأ في جلب دكاترة القسم: $e');
+      departmentDoctors = [];
+    }
+  }
+
+  final criteria =
+      LeadershipCriteriaEngine.checkMandatoryCriteria(
+    doctor: doctor,
+    targetRole: widget.announcement.targetRole,
+    departmentDoctors: departmentDoctors,
+  );
+
+  if (!mounted) return;
+
+  setState(() {
+    _doctor = doctor;
+    doctorName = doctor.nameAr;
+    doctorImageUrl = doctor.profileImage;
+    mandatoryCriteria = criteria;
+    _isLoadingData = false;
+  });
+}
+
 
   Future<void> _pickDeclarationFile() async {
     FilePickerResult? result = await FilePicker.pickFiles(

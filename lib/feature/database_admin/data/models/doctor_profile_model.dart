@@ -78,17 +78,17 @@ class DoctorProfileModel {
 
   final List<String> internalCommittees;
 
-  final bool? hasHealthCertificate;
-  final bool? hasCommitteeMembership;
-  final bool? hasSelfEvaluationReport;
-  final bool? hasArbitrationPlan;
-  final bool? hasAdminExperience;
-  final bool? hasExcellentPerformanceReports;
+  final bool hasHealthCertificate;
+  final bool hasCommitteeMembership;
+  final bool hasSelfEvaluationReport;
+  final bool hasArbitrationPlan;
+  final bool hasAdminExperience;
+  final bool hasExcellentPerformanceReports;
 
-  final bool? isTop3Senior;
+  final bool isTop3Senior;
 
-  final bool? hasSupremeCouncilTraining;
-  final bool? hasFLDCTraining;
+  final bool hasSupremeCouncilTraining;
+  final bool hasFLDCTraining;
 
   final String? workPlanFileUrl;
   final VerificationStatus? workPlanStatus;
@@ -142,15 +142,15 @@ class DoctorProfileModel {
     this.courses = const [],
     this.academicActivities,
     this.internalCommittees = const [],
-    this.hasHealthCertificate,
-    this.hasCommitteeMembership,
-    this.hasSelfEvaluationReport,
-    this.hasArbitrationPlan,
-    this.hasAdminExperience,
-    this.hasExcellentPerformanceReports,
-    this.isTop3Senior,
-    this.hasSupremeCouncilTraining,
-    this.hasFLDCTraining,
+   this.hasHealthCertificate = false,
+this.hasCommitteeMembership = false,
+this.hasSelfEvaluationReport = false,
+this.hasArbitrationPlan = false,
+this.hasAdminExperience = false,
+this.hasExcellentPerformanceReports = false,
+this.isTop3Senior = false,
+this.hasSupremeCouncilTraining = false,
+this.hasFLDCTraining = false,
     this.workPlanFileUrl,
     this.workPlanStatus,
   });
@@ -346,19 +346,33 @@ currentJobEn:
               Map<String, dynamic>.from(scientificWork['academic_activities']),
             )
           : null,
-      hasHealthCertificate: adminProofs['has_health_certificate'],
-      hasCommitteeMembership: adminProofs['has_committee_membership'],
-      hasSelfEvaluationReport: adminProofs['has_self_evaluation_report'],
-      hasArbitrationPlan: adminProofs['has_arbitration_plan'],
-      hasAdminExperience: adminProofs['has_admin_experience'],
-      hasExcellentPerformanceReports:
-          adminProofs['has_excellent_performance_reports'],
-      isTop3Senior: adminProofs['is_top3_senior'],
-      hasSupremeCouncilTraining:
-          adminProofs['has_supreme_council_training'] ?? false,
-      hasFLDCTraining: adminProofs['has_fldc_training'] ?? false,
-      workPlanFileUrl: leadershipData['work_plan_file_url'],
-      workPlanStatus: parseStatus(leadershipData['work_plan_status']),
+      hasHealthCertificate:
+    adminProofs['has_health_certificate'] ?? false,
+
+hasCommitteeMembership:
+    adminProofs['has_committee_membership'] ?? false,
+
+hasSelfEvaluationReport:
+    adminProofs['has_self_evaluation_report'] ?? false,
+
+hasArbitrationPlan:
+    adminProofs['has_arbitration_plan'] ?? false,
+
+hasAdminExperience:
+    adminProofs['has_admin_experience'] ?? false,
+
+hasExcellentPerformanceReports:
+    adminProofs['has_excellent_performance_reports'] ?? false,
+
+isTop3Senior:
+    adminProofs['is_top3_senior'] ?? false,
+
+hasSupremeCouncilTraining:
+    adminProofs['has_supreme_council_training'] ?? false,
+
+hasFLDCTraining:
+    adminProofs['has_fldc_training'] ?? false,
+
     );
   }
 
@@ -452,17 +466,17 @@ currentJobEn:
         'courses': courses.map((x) => x.toMap()).toList(),
         'academic_activities': academicActivities?.toJson(),
       },
-      'admin_proofs': {
-        'has_health_certificate': hasHealthCertificate,
-        'has_committee_membership': hasCommitteeMembership,
-        'has_self_evaluation_report': hasSelfEvaluationReport,
-        'has_arbitration_plan': hasArbitrationPlan,
-        'has_admin_experience': hasAdminExperience,
-        'has_excellent_performance_reports': hasExcellentPerformanceReports,
-        'is_top3_senior': isTop3Senior,
-        'has_supreme_council_training': hasSupremeCouncilTraining ?? false,
-        'has_fldc_training': hasFLDCTraining ?? false,
-      },
+    'admin_proofs': {
+  'has_health_certificate': hasHealthCertificate,
+  'has_committee_membership': hasCommitteeMembership,
+  'has_self_evaluation_report': hasSelfEvaluationReport,
+  'has_arbitration_plan': hasArbitrationPlan,
+  'has_admin_experience': hasAdminExperience,
+  'has_excellent_performance_reports': hasExcellentPerformanceReports,
+  'is_top3_senior': isTop3Senior,
+  'has_supreme_council_training': hasSupremeCouncilTraining,
+  'has_fldc_training': hasFLDCTraining,
+},
     };
   }
 
@@ -683,54 +697,56 @@ currentJobEn:
         .replaceAll('ة', 'ه')
         .replaceAll('ى', 'ي');
   }
+
 static List<String> getTop3SeniorInDepartment({
-  required List<DoctorProfileModel> doctors,
+  required List doctors,
   required String departmentAr,
 }) {
   final targetDept = departmentAr.trim();
 
-  final filtered = doctors.where((doctor) {
-    // 1. التحقق من تطابق القسم
-    final docDept = doctor.departmentAr.trim();
-    
-    // 2. التحقق من درجة الأستاذية
-    final isProfessor = doctor.academicHistory.any((h) {
-      final degree = (h['degree'] ?? '').toString().toLowerCase();
-      final normalized = _normalizeArabic(degree);
-      return normalized.contains('استاذ') || normalized.contains('professor');
-    });
+  if (targetDept.isEmpty) return [];
 
-    // 3. التأكد من وجود تاريخ الحصول على اللقب (أو تاريخ التعيين كخيار ثاني)
-    return docDept == targetDept &&
-        doctor.uid != null &&
-        isProfessor;
+  // دكاترة نفس القسم فقط
+  final filtered = doctors.where((doctor) {
+    return doctor.departmentAr.trim() == targetDept &&
+        doctor.uid != null;
   }).toList();
 
-  // الترتيب: الأقدم في الحصول على درجة أستاذ (أولوية)
+  if (filtered.isEmpty) return [];
+
+  // هل يوجد أستاذ؟
+  final professors = filtered
+      .where((doctor) => doctor.professorRankDate != null)
+      .toList();
+
+  // ==========================================================
+  // يوجد أساتذة → الأقدمية حسب تاريخ الأستاذية
+  // ==========================================================
+  if (professors.isNotEmpty) {
+    professors.sort((a, b) {
+      return a.professorRankDate!.compareTo(
+        b.professorRankDate!,
+      );
+    });
+
+    return professors
+        .take(3)
+        .map<String>((doctor) => doctor.uid!)
+        .toList();
+  }
+
+  // ==========================================================
+  // لا يوجد أساتذة → الأقدمية حسب تاريخ التعيين
+  // ==========================================================
   filtered.sort((a, b) {
-    final dateA = a.professorRankDate ?? a.hiringDate ?? DateTime(2050);
-    final dateB = b.professorRankDate ?? b.hiringDate ?? DateTime(2050);
+    final dateA = a.hiringDate ?? DateTime(9999);
+    final dateB = b.hiringDate ?? DateTime(9999);
+
     return dateA.compareTo(dateB);
   });
 
-  return filtered.take(3).map((d) => d.uid!).toList();
-} 
-  
-  
-  static Map<String, bool> calculateTop3SeniorMap({
-    required List<DoctorProfileModel> doctors,
-    required String departmentAr,
-  }) {
-    final top3Uids = getTop3SeniorInDepartment(
-      doctors: doctors,
-      departmentAr: departmentAr,
-    );
-    final Map<String, bool> result = {};
-    for (var doctor in doctors) {
-      if (doctor.departmentAr == departmentAr) {
-        result[doctor.uid!] = top3Uids.contains(doctor.uid);
-      }
-    }
-    return result;
-  }
-}
+  return filtered
+      .take(3)
+      .map<String>((doctor) => doctor.uid!)
+      .toList();
+}}
