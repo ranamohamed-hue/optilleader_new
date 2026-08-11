@@ -40,7 +40,8 @@
       "university_president": "رئيس الجامعة",
 "vice_university_president": "نائب رئيس الجامعة",
 "error_message": "حدث خطأ في تحميل البيانات",
-  "retry": "إعادة المحاولة"
+  "retry": "إعادة المحاولة",
+  "view":"عرض"
 
     }
   },

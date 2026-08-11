@@ -13,4 +13,6 @@ abstract class JudgeRepo {
   Future<Either<String, String>> uploadImageToSupabase(String uid, String filePath);
 
   Future<Either<String, Unit>> deleteJudgeAccount(String uid);
+    // ✅ دالة جلب عدد المتقدمين لإعلان معين
+  Future<Either<String, int>> getAnnouncementApplicantsCount(String announcementId);
 }

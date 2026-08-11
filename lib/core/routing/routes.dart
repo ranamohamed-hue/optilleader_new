@@ -57,4 +57,11 @@ static const editAnnountmentPage = '/admin/edit-announcement';
   static const addActivity = '/user/addActivity';
   static const notification = '/notification';
 static const doctorRequestsStatus = '/user/doctorRequestsStatus';
+
+//صفحات المظف
+static const announcementDetailsAdminPage='/adminManager/announcementDetailsAdminPage';
+static const employeeArchievePage='/adminManager/employeeArchievePage';
+static const employeeCoursePage='/adminManager/employeeCoursePage';
+static const employeeNominationPage='/adminManager/employeeNominationPage';
+
 }

@@ -8,11 +8,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import 'package:optialeader/core/routing/routes.dart';
+import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
+import 'package:optialeader/feature/admin/data/repo/announcement_repos/announcement_repo_impl.dart';
+import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_cubit.dart';
+import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_state.dart';
 import 'package:optialeader/feature/database_admin/data/models/employee_model.dart';
 import 'package:optialeader/feature/database_admin/logic/employee_logic/employee_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/employee_logic/employee_state.dart';
+import 'package:optialeader/feature/employee/ui/employee_archive_page.dart';
 import 'package:optialeader/feature/notification/logic/app_notification_cubit.dart';
 import 'package:optialeader/feature/notification/ui/notification_page.dart';
+import 'package:optialeader/feature/notification/data/repo/notification_repo.dart';
 import 'package:optialeader/feature/setting/ui/setting.dart';
 
 class EmployeeDashboardScreen extends StatefulWidget {
@@ -33,7 +39,8 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         context.read<EmployeeDataCubit>().getEmployeeProfile(uid);
-        context.read<NotificationCubit>().fetchNotifications();
+
+        // ❌❌❌ شيلنا السطر ده لأن الكيوبت الجديد هيشتغل لوحده ❌❌❌
       }
     });
   }
@@ -44,51 +51,54 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
     final colorPrimary = theme.primaryColor;
     final colorGold = theme.colorScheme.secondary;
 
-    return BlocBuilder<EmployeeDataCubit, EmployeeDataState>(
-      builder: (context, state) {
-        if (state is EmployeeLoading || state is EmployeeInitial) {
-          return Scaffold(
-            body: Center(child: CircularProgressIndicator(color: colorGold)),
-          );
-        }
+    return BlocProvider(
+      create: (context) => AnnouncementCubit(
+        context.read<AnnouncementRepositoryImpl>(),
+        context.read<NotificationRepo>(),
+        isAdmin: false, // ✅ الموظف مش هيشوف غير إعلانات الإدارة
+      ),
+      child: BlocBuilder<EmployeeDataCubit, EmployeeDataState>(
+        builder: (context, state) {
+          if (state is EmployeeLoading || state is EmployeeInitial) {
+            return Scaffold(
+              body: Center(child: CircularProgressIndicator(color: colorGold)),
+            );
+          }
 
-        if (state is EmployeeError) {
-          return Scaffold(body: Center(child: Text(state.error)));
-        }
+          if (state is EmployeeError) {
+            return Scaffold(body: Center(child: Text(state.error)));
+          }
 
-        if (state is EmployeeLoaded) {
-          final employee = state.employee;
+          if (state is EmployeeLoaded) {
+            final employee = state.employee;
 
-          return Scaffold(
-            backgroundColor: theme.scaffoldBackgroundColor,
-            body: IndexedStack(
-              index: _currentIndex,
-              children: [
-                _HomeTab(
-                  employee: employee,
-                  onTabTapped: (index) => setState(() => _currentIndex = index),
-                ),
-                _NotificationsTab(),
-                _SettingsTab(employee: employee),
-              ],
-            ),
-            bottomNavigationBar: _buildBottomNav(
-              colorPrimary,
-              colorGold,
-              employee,
-            ),
-          );
-        }
+            return Scaffold(
+              backgroundColor: theme.scaffoldBackgroundColor,
+              body: IndexedStack(
+                index: _currentIndex,
+                children: [
+                  _HomeTab(employee: employee),
+                  _NotificationsTab(),
+                  _SettingsTab(employee: employee),
+                ],
+              ),
+              bottomNavigationBar: _buildBottomNav(),
+            );
+          }
 
-        return const SizedBox.shrink();
-      },
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 
-  Widget _buildBottomNav(Color navy, Color gold, EmployeeModel employee) {
+  Widget _buildBottomNav() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return BottomNavigationBar(
-      selectedItemColor: gold,
-      unselectedItemColor: navy.withOpacity(0.4),
+      selectedItemColor: colorScheme.secondary,
+      unselectedItemColor: colorScheme.onSurfaceVariant,
+      backgroundColor: colorScheme.surface,
       type: BottomNavigationBarType.fixed,
       currentIndex: _currentIndex,
       onTap: (index) => setState(() => _currentIndex = index),
@@ -115,22 +125,20 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
 // ============================================================
 class _HomeTab extends StatelessWidget {
   final EmployeeModel employee;
-  final ValueChanged<int> onTabTapped;
-
-  const _HomeTab({required this.employee, required this.onTabTapped});
+  const _HomeTab({required this.employee});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorPrimary = theme.primaryColor;
     final colorGold = theme.colorScheme.secondary;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return SafeArea(
       child: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Column(
           children: [
-            // ====== Header ======
             Container(
               width: double.infinity,
               padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 20.h),
@@ -146,13 +154,6 @@ class _HomeTab extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'employee_dashboard.welcome'.tr(),
-                          style: TextStyle(
-                            color: Colors.white.withOpacity(0.8),
-                            fontSize: 14.sp,
-                          ),
-                        ),
                         Text(
                           employee.nameAr,
                           style: TextStyle(
@@ -208,7 +209,6 @@ class _HomeTab extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // ====== كروت الإجراءات السريعة (صف 1) ======
                   Row(
                     children: [
                       Expanded(
@@ -216,58 +216,33 @@ class _HomeTab extends StatelessWidget {
                           context,
                           icon: Icons.upload_file,
                           title: 'employee_dashboard.actions.upload_files'.tr(),
-                          color: Colors.blue,
-                          onTap: () => context.push(Routes.digitalArchieve),
+                          color: isDark
+                              ? const Color.fromARGB(255, 221, 178, 114)
+                              : colorGold,
+                          onTap: () {
+                            context.push(
+                              Routes.employeeArchievePage,
+                              extra: employee,
+                            );
+                          },
                         ),
                       ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: _buildActionCard(
-                          context,
-                          icon: Icons.badge_rounded,
-                          title: 'employee_dashboard.actions.career_info'.tr(),
-                          color: Colors.teal,
-                          onTap: () => context.push(Routes.careerInfo),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  SizedBox(height: 15.h),
-
-                  // ====== كروت الإجراءات السريعة (صف 2) ======
-                  Row(
-                    children: [
+                      SizedBox(width: 15.w),
                       Expanded(
                         child: _buildActionCard(
                           context,
                           icon: Icons.school_rounded,
                           title: 'employee_dashboard.actions.courses'.tr(),
-                          color: Colors.deepPurple,
+                          color: colorGold,
                           onTap: () => context.push(
                             Routes.employeeCourses,
                             extra: employee,
                           ),
                         ),
                       ),
-                      SizedBox(width: 12.w),
-                      Expanded(
-                        child: _buildActionCard(
-                          context,
-                          icon: Icons.work_history_rounded,
-                          title: 'employee_dashboard.actions.promotions'.tr(),
-                          color: Colors.orange,
-                          onTap: () {
-                            // TODO: route for promotions
-                          },
-                        ),
-                      ),
                     ],
                   ),
-
                   SizedBox(height: 25.h),
-
-                  // ====== أحدث الإعلانات ======
                   _buildSectionTitle(
                     colorGold,
                     colorPrimary,
@@ -296,7 +271,7 @@ class _HomeTab extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16.r),
       child: Container(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.symmetric(vertical: 25.h, horizontal: 16.w),
         decoration: BoxDecoration(
           color: color.withOpacity(0.1),
           borderRadius: BorderRadius.circular(16.r),
@@ -304,14 +279,22 @@ class _HomeTab extends StatelessWidget {
         ),
         child: Column(
           children: [
-            Icon(icon, color: color, size: 30.sp),
-            SizedBox(height: 8.h),
+            Container(
+              padding: EdgeInsets.all(12.w),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(14.r),
+              ),
+              child: Icon(icon, color: color, size: 32.sp),
+            ),
+            SizedBox(height: 12.h),
             Text(
               title,
+              textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 13.sp,
                 fontWeight: FontWeight.bold,
-                color: color,
+                color: Theme.of(context).colorScheme.onSurface,
               ),
             ),
           ],
@@ -344,74 +327,99 @@ class _HomeTab extends StatelessWidget {
     );
   }
 
-  // ====== قائمة أحدث 3 إعلانات ======
   Widget _buildAnnouncementsList(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('announcements')
-          .where('status', isEqualTo: 'Active')
-          .orderBy('createdAt', descending: true)
-          .limit(3)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator(strokeWidth: 2));
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return BlocBuilder<AnnouncementCubit, AnnouncementState>(
+      builder: (context, state) {
+        if (state is AnnouncementLoading) {
+          return Center(
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: colorScheme.secondary,
+            ),
+          );
         }
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+
+        if (state is AnnouncementError) {
+          return Center(
+            child: Text(
+              'حدث خطأ في جلب الإعلانات',
+              style: TextStyle(color: colorScheme.error),
+            ),
+          );
+        }
+
+        List<AnnouncementModel> announcements = [];
+        if (state is AnnouncementLoaded) {
+          announcements = state.announcements;
+        }
+
+        if (announcements.isEmpty) {
           return Container(
             padding: EdgeInsets.all(20.w),
             decoration: BoxDecoration(
-              color: Colors.grey.shade50,
+              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
               borderRadius: BorderRadius.circular(12.r),
             ),
             child: Center(
               child: Text(
                 'employee_dashboard.sections.no_announcements'.tr(),
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(color: colorScheme.onSurfaceVariant),
               ),
             ),
           );
         }
 
-        final docs = snapshot.data!.docs;
+        final displayedAnnouncements = announcements.take(3).toList();
+
         return Column(
-          children: docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final title =
-                data['title'] ??
-                data['title_ar'] ??
-                'employee_dashboard.announcement.no_title'.tr();
+          children: displayedAnnouncements.map((ann) {
             return Card(
               margin: EdgeInsets.only(bottom: 10.h),
-              elevation: 2,
+              elevation: 0,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12.r),
+                side: BorderSide(
+                  color: colorScheme.outlineVariant.withOpacity(0.3),
+                ),
               ),
+              color: colorScheme.surface,
               child: ListTile(
                 contentPadding: EdgeInsets.symmetric(
                   horizontal: 16.w,
                   vertical: 8.h,
                 ),
-                leading: Icon(
-                  Icons.campaign_rounded,
-                  color: Theme.of(context).primaryColor,
+                leading: Container(
+                  padding: EdgeInsets.all(8.w),
+                  decoration: BoxDecoration(
+                    color: colorScheme.primary.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10.r),
+                  ),
+                  child: Icon(
+                    Icons.campaign_rounded,
+                    color: colorScheme.primary,
+                    size: 22.sp,
+                  ),
                 ),
                 title: Text(
-                  title,
+                  ann.title,
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14.sp,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 trailing: Icon(
                   Icons.arrow_forward_ios,
                   size: 14.sp,
-                  color: Colors.grey,
+                  color: colorScheme.outline,
                 ),
-                onTap: () {
-                  // ممكن تفتح شاشة تفاصيل الإعلان هنا
-                },
-              ),
+onTap: () {
+  context.push(
+    '${Routes.announcementDetailsAdminPage}?id=${ann.id}',
+  );
+},              ),
             );
           }).toList(),
         );
@@ -425,9 +433,7 @@ class _HomeTab extends StatelessWidget {
 // ============================================================
 class _NotificationsTab extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return const NotificationsScreen();
-  }
+  Widget build(BuildContext context) => const NotificationsScreen();
 }
 
 // ============================================================
@@ -435,11 +441,9 @@ class _NotificationsTab extends StatelessWidget {
 // ============================================================
 class _SettingsTab extends StatelessWidget {
   final EmployeeModel employee;
-
   const _SettingsTab({required this.employee});
 
   @override
-  Widget build(BuildContext context) {
-    return SettingsScreen(uid: employee.uid ?? '', role: 'employee');
-  }
+  Widget build(BuildContext context) =>
+      SettingsScreen(uid: employee.uid ?? '', role: 'employee');
 }

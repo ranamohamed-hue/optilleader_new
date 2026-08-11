@@ -22,6 +22,11 @@ class EmployeeModel {
   final String universityEn;
   final String facultyAr;
   final String facultyEn;
+  
+  // ✅✅✅ حقول القسم (جديدة) ✅✅✅
+  final String departmentAr;
+  final String departmentEn;
+
   final bool? hasAdminExperience; 
   final bool? hasAdminTraining;   
   
@@ -55,7 +60,14 @@ class EmployeeModel {
   // 8. توقيتات النظام
   final DateTime createdAt;
   final DateTime? updatedAt;
-
+  final String? icdlCertificateUrl;
+  final List<String> adminTrainingCertUrls;
+  final String? healthCertificateUrl;
+  final List<String> adminExperienceDocUrls;
+  final List<String> performanceReportUrls;
+  final List<String> participationDocUrls;
+  final bool? hasParticipationProof; 
+  List<dynamic> archiveFiles;
   EmployeeModel({
     this.uid,
     this.role = 'admin_manager',
@@ -74,6 +86,8 @@ class EmployeeModel {
     this.universityEn = '',
     this.facultyAr = '',
     this.facultyEn = '',
+    this.departmentAr = '',   // ✅
+    this.departmentEn = '',   // ✅
     this.hasAdminExperience,
     this.hasAdminTraining,
     required this.degree,
@@ -95,7 +109,55 @@ class EmployeeModel {
     this.adminSubDeptName,
     required this.createdAt,
     this.updatedAt,
+     this.icdlCertificateUrl,
+    this.adminTrainingCertUrls = const [],
+    this.healthCertificateUrl,
+    this.adminExperienceDocUrls = const [],
+    this.performanceReportUrls = const [],
+    this.participationDocUrls = const [],
+    this.hasParticipationProof,
+    this.archiveFiles=const[]
+    
   });
+
+  // ═══════════════════════════════════════════════════════
+  // ✅✅✅ هل هذا المستخدم دكتور؟ ✅✅✅
+  // ═══════════════════════════════════════════════════════
+  bool get isDoctor {
+    final job = currentJobAr.toLowerCase();
+    return job.contains('دكتور') ||
+        job.contains('أ.د') ||
+        job.contains('د.') ||
+        job.contains('بروفيسور') ||
+        job.contains('أستاذ') ||
+        job.contains('استاذ');
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ✅✅✅ توليد مفاتيح المطابقة للمستخدم ✅✅✅
+  // ═══════════════════════════════════════════════════════
+  List<String> get matchKeys {
+    final keys = <String>['general'];
+
+    if (isDoctor) {
+      keys.add('doctor');
+      if (facultyAr.isNotEmpty) {
+        keys.add('doctor:$facultyAr');
+        if (departmentAr.isNotEmpty) {
+          keys.add('doctor:$facultyAr:$departmentAr');
+        }
+      }
+    }
+
+    if (role == 'admin_manager') {
+      keys.add('role:admin_manager');
+      if (adminSectorName != null && adminSectorName!.isNotEmpty) {
+        keys.add('admin_manager:$adminSectorName');
+      }
+    }
+
+    return keys;
+  }
 
   factory EmployeeModel.fromJson(Map<String, dynamic> json, String id) {
     DateTime? parseDate(dynamic dateField) {
@@ -107,7 +169,8 @@ class EmployeeModel {
     final profile = json['profile'] as Map<String, dynamic>? ?? {};
     final adminProofs = json['admin_proofs'] as Map<String, dynamic>? ?? {};
     final adminData = json['admin_data'] as Map<String, dynamic>? ?? {};
-
+   
+    final proofs = json['proof_documents'] as Map<String, dynamic>? ?? {}; // ✅ 
     return EmployeeModel(
       uid: id,
       role: json['role'] ?? 'admin_manager',
@@ -126,6 +189,8 @@ class EmployeeModel {
       universityEn: profile['university_en'] ?? '',
       facultyAr: profile['faculty_ar'] ?? '',
       facultyEn: profile['faculty_en'] ?? '',
+      departmentAr: profile['department_ar'] ?? '',   // ✅
+      departmentEn: profile['department_en'] ?? '',   // ✅
       hasAdminExperience: adminProofs['has_admin_experience'],
       hasAdminTraining: adminProofs['has_admin_training'],
       degree: adminData['degree'] ?? '',
@@ -147,6 +212,15 @@ class EmployeeModel {
       adminSubDeptName: adminData['sub_dept_name'],
       createdAt: parseDate(json['created_at']) ?? DateTime.now(),
       updatedAt: parseDate(json['updated_at']),
+      icdlCertificateUrl: proofs['icdl_certificate_url'],
+      adminTrainingCertUrls: List<String>.from(proofs['admin_training_cert_urls'] ?? []),
+      healthCertificateUrl: proofs['health_certificate_url'],
+      adminExperienceDocUrls: List<String>.from(proofs['admin_experience_doc_urls'] ?? []),
+      performanceReportUrls: List<String>.from(proofs['performance_report_urls'] ?? []),
+      participationDocUrls: List<String>.from(proofs['participation_doc_urls'] ?? []),
+      hasParticipationProof: adminProofs['has_participation_proof'],
+      archiveFiles: json['archiveFiles'] ?? [],
+      
     );
   }
 
@@ -171,7 +245,10 @@ class EmployeeModel {
         'university_en': universityEn,
         'faculty_ar': facultyAr,
         'faculty_en': facultyEn,
+        'department_ar': departmentAr,   // ✅
+        'department_en': departmentEn,   // ✅
         'birth_date': birthDate != null ? Timestamp.fromDate(birthDate!) : null,
+        'archiveFiles': archiveFiles,
       },
       'admin_data': {
         'degree': degree,
@@ -200,6 +277,17 @@ class EmployeeModel {
       },
       'created_at': Timestamp.fromDate(createdAt),
       'updated_at': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
+        'proof_documents': {
+        'icdl_certificate_url': icdlCertificateUrl,
+        'admin_training_cert_urls': adminTrainingCertUrls,
+        'health_certificate_url': healthCertificateUrl,
+        'admin_experience_doc_urls': adminExperienceDocUrls,
+        'performance_report_urls': performanceReportUrls,
+        'participation_doc_urls': participationDocUrls,
+      },
+      // ✅ وأضف المتغير الناقص في admin_proofs:
+            'archiveFiles': archiveFiles, 
+
     };
   }
 
@@ -221,6 +309,8 @@ class EmployeeModel {
     String? universityEn,
     String? facultyAr,
     String? facultyEn,
+    String? departmentAr,   // ✅
+    String? departmentEn,   // ✅
     bool? hasAdminExperience,
     bool? hasAdminTraining,
     String? degree,
@@ -242,6 +332,15 @@ class EmployeeModel {
     String? adminSubDeptName,
     DateTime? createdAt,
     DateTime? updatedAt,
+       String? icdlCertificateUrl,
+    List<String>? adminTrainingCertUrls,
+    String? healthCertificateUrl,
+    List<String>? adminExperienceDocUrls,
+    List<String>? performanceReportUrls,
+    List<String>? participationDocUrls,
+    bool? hasParticipationProof,
+        List<dynamic>? archiveFiles, // ✅ أضف هذا السطر
+
   }) {
     return EmployeeModel(
       uid: uid ?? this.uid,
@@ -261,6 +360,8 @@ class EmployeeModel {
       universityEn: universityEn ?? this.universityEn,
       facultyAr: facultyAr ?? this.facultyAr,
       facultyEn: facultyEn ?? this.facultyEn,
+      departmentAr: departmentAr ?? this.departmentAr,   // ✅
+      departmentEn: departmentEn ?? this.departmentEn,   // ✅
       hasAdminExperience: hasAdminExperience ?? this.hasAdminExperience,
       hasAdminTraining: hasAdminTraining ?? this.hasAdminTraining,
       degree: degree ?? this.degree,
@@ -282,6 +383,15 @@ class EmployeeModel {
       adminSubDeptName: adminSubDeptName ?? this.adminSubDeptName,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+       icdlCertificateUrl: icdlCertificateUrl ?? this.icdlCertificateUrl,
+      adminTrainingCertUrls: adminTrainingCertUrls ?? this.adminTrainingCertUrls,
+      healthCertificateUrl: healthCertificateUrl ?? this.healthCertificateUrl,
+      adminExperienceDocUrls: adminExperienceDocUrls ?? this.adminExperienceDocUrls,
+      performanceReportUrls: performanceReportUrls ?? this.performanceReportUrls,
+      participationDocUrls: participationDocUrls ?? this.participationDocUrls,
+      hasParticipationProof: hasParticipationProof ?? this.hasParticipationProof,
+            archiveFiles: archiveFiles ?? this.archiveFiles, // ✅ أضف هذا السطر
+
     );
   }
 }

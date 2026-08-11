@@ -65,27 +65,28 @@ class _UsersListPageState extends State<UsersListPage> {
     );
   }
 
-  Widget _buildBody(BuildContext context) {
+    Widget _buildBody(BuildContext context) {
+    // ═══════════════════════════════════════════════════════
+    // 1. الأطباء
+    // ═══════════════════════════════════════════════════════
     if (widget.role == 'doctor') {
       return BlocBuilder<DoctorDataCubit, DoctorDataState>(
         builder: (context, state) {
+          // ✅ لو مفيش بيانات ولا لودينج ولا خطأ = جاي من عملية نجاح، نفعل ريفريش
+          if (state is! AllDoctorLoaded && state is! DoctorLoading && state is! DoctorError) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) context.read<DoctorDataCubit>().watchAllDoctors();
+            });
+            return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
+          }
+
           if (state is DoctorLoading) {
             return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
           }
           if (state is AllDoctorLoaded) {
             return _buildUsersList(
               context,
-              state.doctors!
-                  .map((d) => _UserInfo(
-                        uid: d.uid ?? '',
-                        nameAr: d.nameAr,
-                        nameEn: d.nameEn,
-                        jobAr: d.currentJobAr,
-                        jobEn: d.currentJobEn,
-                        image: d.profileImage,
-                        role: 'doctor',
-                      ))
-                  .toList(),
+              state.doctors!.map((d) => _UserInfo(uid: d.uid ?? '', nameAr: d.nameAr, nameEn: d.nameEn, jobAr: d.currentJobAr, jobEn: d.currentJobEn, image: d.profileImage, role: 'doctor')).toList(),
             );
           }
           if (state is DoctorError) {
@@ -96,26 +97,27 @@ class _UsersListPageState extends State<UsersListPage> {
       );
     }
 
+    // ═══════════════════════════════════════════════════════
+    // 2. القضاة
+    // ═══════════════════════════════════════════════════════
     if (widget.role == 'judge') {
       return BlocBuilder<JudgeDataCubit, JudgeDataState>(
         builder: (context, state) {
+          // ✅ نفس المنطق الآمن
+          if (state is! AllJudgesLoaded && state is! JudgeLoading && state is! JudgeError) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) context.read<JudgeDataCubit>().watchAllJudges();
+            });
+            return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
+          }
+
           if (state is JudgeLoading) {
             return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
           }
           if (state is AllJudgesLoaded) {
             return _buildUsersList(
               context,
-              state.judges
-                  .map((j) => _UserInfo(
-                        uid: j.uid,
-                        nameAr: j.nameAr,
-                        nameEn: j.nameEn,
-                        jobAr: j.jopAr,
-                        jobEn: j.jopEn,
-                        image: j.profileImage,
-                        role: 'judge',
-                      ))
-                  .toList(),
+              state.judges.map((j) => _UserInfo(uid: j.uid, nameAr: j.nameAr, nameEn: j.nameEn, jobAr: j.jopAr, jobEn: j.jopEn, image: j.profileImage, role: 'judge')).toList(),
             );
           }
           if (state is JudgeError) {
@@ -126,26 +128,27 @@ class _UsersListPageState extends State<UsersListPage> {
       );
     }
 
+    // ═══════════════════════════════════════════════════════
+    // 3. الأدمن
+    // ═══════════════════════════════════════════════════════
     if (widget.role == 'admin') {
       return BlocBuilder<AdminDataCubit, AdminDataState>(
         builder: (context, state) {
+          // ✅ نفس المنطق الآمن
+          if (state is! AllAdminsLoaded && state is! AdminLoading && state is! AdminError) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) context.read<AdminDataCubit>().watchAllAdmins();
+            });
+            return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
+          }
+
           if (state is AdminLoading) {
             return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
           }
           if (state is AllAdminsLoaded) {
             return _buildUsersList(
               context,
-              state.admins
-                  .map((a) => _UserInfo(
-                        uid: a.uid ?? '',
-                        nameAr: a.nameAr,
-                        nameEn: a.nameEn,
-                        jobAr: a.jopAr ?? '',
-                        jobEn: a.jopEn ?? '',
-                        image: a.profileImage,
-                        role: 'admin',
-                      ))
-                  .toList(),
+              state.admins.map((a) => _UserInfo(uid: a.uid ?? '', nameAr: a.nameAr, nameEn: a.nameEn, jobAr: a.jopAr ?? '', jobEn: a.jopEn ?? '', image: a.profileImage, role: 'admin')).toList(),
             );
           }
           if (state is AdminError) {
@@ -156,36 +159,34 @@ class _UsersListPageState extends State<UsersListPage> {
       );
     }
 
-    // ✅ إضافة كود عرض الموظفين الذي كان مفقوداً
+    // ═══════════════════════════════════════════════════════
+    // 4. الموظفين الإداريين
+    // ═══════════════════════════════════════════════════════
     if (widget.role == 'admin_manager') {
-      return BlocBuilder<EmployeeDataCubit, EmployeeDataState>( // ⚠️ تأكد أن اسم الـ State هو EmployeeState
+      return BlocBuilder<EmployeeDataCubit, EmployeeDataState>(
         builder: (context, state) {
-          // ⚠️ تأكد أن اسم حالة التحميل هو EmployeeLoading
-          if (state is EmployeeLoading) { 
+          // ✅ نفس المنطق الآمن
+          if (state is! AllEmployeesLoaded && state is! EmployeeLoading && state is! EmployeeError) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (context.mounted) context.read<EmployeeDataCubit>().watchAllEmployees();
+            });
             return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
           }
-          // ⚠️ تأكد أن اسم حالة النجاح هي AllEmployeesLoaded
-          if (state is AllEmployeesLoaded) { 
+
+          if (state is EmployeeLoading) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.darkGold));
+          }
+          if (state is AllEmployeesLoaded) {
+            if (state.employees.isEmpty) {
+              return Center(child: Text('no_users_found'.tr()));
+            }
             return _buildUsersList(
               context,
-              // ⚠️ تأكد أن اسم الـ List داخل الـ State هو employees
-              state.employees 
-                  .map((e) => _UserInfo(
-                        uid: e.uid!,
-                        nameAr: e.nameAr,
-                        nameEn: e.nameEn,
-                        // ⚠️ تأكد من أسماء حقول الوظيفة في موديل الموظف (هل هي jopAr أم jobAr؟)
-                        jobAr: e.currentJobAr ?? '', 
-                        jobEn: e.currentJobEn ?? '',
-                        image: e.profileImage,
-                        role: 'admin_manager',
-                      ))
-                  .toList(),
+              state.employees.map((e) => _UserInfo(uid: e.uid ?? '', nameAr: e.nameAr, nameEn: e.nameEn, jobAr: e.currentJobAr, jobEn: e.currentJobEn, image: e.profileImage, role: 'admin_manager')).toList(),
             );
           }
-          // ⚠️ تأكد أن اسم حالة الخطأ هو EmployeeError
-          if (state is EmployeeError) { 
-            return Center(child: Text(state.error ?? 'unknown_error'.tr()));
+          if (state is EmployeeError) {
+            return Center(child: Text(state.error));
           }
           return const SizedBox();
         },
@@ -194,7 +195,6 @@ class _UsersListPageState extends State<UsersListPage> {
 
     return Center(child: Text('invalid_role'.tr()));
   }
-
   Widget _buildUsersList(BuildContext context, List<_UserInfo> users) {
     if (users.isEmpty) {
       return Center(child: Text('no_users_found'.tr()));

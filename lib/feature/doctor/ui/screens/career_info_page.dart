@@ -320,126 +320,58 @@ class _CareerInfoPageState extends State<CareerInfoPage> {
       ),
     );
   }
-Widget _buildCareerPathCard(
-  BuildContext context,
-  DoctorProfileModel? doctor,
-) {
-  final theme = Theme.of(context);
-  final colorScheme = theme.colorScheme;
-  final isArabic = context.locale.languageCode == 'ar';
 
-  // الوظيفة الحالية من Firestore
-  final currentJob = isArabic
-      ? doctor?.currentJobAr.trim() ?? ''
-      : doctor?.currentJobEn.trim() ?? '';
+  Widget _buildCareerPathCard(
+    BuildContext context,
+    DoctorProfileModel? doctor,
+  ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
 
-  // سنوات الخبرة من الـ getter الموجود في Model
-  final experienceYears = doctor?.yearsSinceHiring ?? 0;
-
-  return Container(
-    width: double.infinity,
-    padding: EdgeInsets.all(18.w),
-    decoration: BoxDecoration(
-      color: theme.cardTheme.color,
-      borderRadius: BorderRadius.vertical(
-        bottom: Radius.circular(15.r),
-      ),
-      border: Border.all(
-        color: colorScheme.primary.withOpacity(0.1),
-      ),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // الوظيفة الحالية
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Icon(
-              Icons.work_outline_rounded,
-              color: colorScheme.secondary,
-              size: 20.sp,
-            ),
-            SizedBox(width: 10.w),
-            Expanded(
-              child: Text(
-                currentJob.isNotEmpty
-                    ? 'career.current_role'.tr(
-                        args: [currentJob],
-                      )
-                    : 'career.current_role'.tr(
-                        args: ['-'],
-                      ),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14.sp,
-                  color: colorScheme.onSurface,
-                ),
-              ),
-            ),
-          ],
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(18.w),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(15.r),
         ),
-
-        SizedBox(height: 10.h),
-
-        // سنوات الخبرة
-        Row(
-          children: [
-            Icon(
-              Icons.workspace_premium_outlined,
-              color: colorScheme.secondary,
-              size: 20.sp,
-            ),
-            SizedBox(width: 10.w),
-            Text(
-              'career.experience'.tr(
-                args: [experienceYears.toString()],
-              ),
-              style: TextStyle(
-                color: colorScheme.secondary,
-                fontWeight: FontWeight.w600,
-                fontSize: 14.sp,
-              ),
-            ),
-          ],
-        ),
-
-        Divider(
-          height: 30.h,
+        border: Border.all(
           color: colorScheme.primary.withOpacity(0.1),
         ),
-
-        Text(
-          'career.previous_positions'.tr(),
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 13.sp,
-            color: colorScheme.onSurface,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'career.previous_positions'.tr(),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 13.sp,
+              color: colorScheme.onSurface,
+            ),
           ),
-        ),
+          SizedBox(height: 10.h),
 
-        SizedBox(height: 10.h),
-
-        if (doctor?.previousLeadershipRoles != null &&
-            doctor!.previousLeadershipRoles.isNotEmpty)
-          ...doctor.previousLeadershipRoles.map(
-            (role) => _buildHistoryItem(
+          if (doctor?.previousLeadershipRoles != null &&
+              doctor!.previousLeadershipRoles.isNotEmpty)
+            ...doctor.previousLeadershipRoles.map(
+              (role) => _buildHistoryItem(
+                context,
+                role.toString().tr(),
+                '',
+              ),
+            )
+          else
+            _buildHistoryItem(
               context,
-              role.toString().tr(),
+              'career.no_previous_roles'.tr(),
               '',
             ),
-          )
-        else
-          _buildHistoryItem(
-            context,
-            'career.no_previous_roles'.tr(),
-            '',
-          ),
-      ],
-    ),
-  );
-}
-
+        ],
+      ),
+    );
+  }
 
   
   Widget _buildCurrentInfoCard(BuildContext context, DoctorProfileModel? doctor) {

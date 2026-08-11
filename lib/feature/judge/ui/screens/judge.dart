@@ -61,13 +61,20 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
   }
 
   void _showWelcomeDialog() {
-    final colorScheme = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (dialogContext) => AlertDialog(
+        // ✅ خلفية الحوار متكيفة
+        backgroundColor: colorScheme.surface,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20.r),
+          // ✅ حدود خفيفة في الداكن
+          side: theme.brightness == Brightness.dark
+              ? BorderSide(color: colorScheme.outlineVariant.withOpacity(0.3))
+              : BorderSide.none,
         ),
         title: Row(
           children: [
@@ -75,13 +82,20 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
             SizedBox(width: 10.w),
             Text(
               'dashboardJudge.welcome_title'.tr(),
-              style: const TextStyle(fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
             ),
           ],
         ),
         content: Text(
           'dashboardJudge.welcome_body'.tr(),
-          style: TextStyle(fontSize: 15.sp, height: 1.5),
+          style: TextStyle(
+            fontSize: 15.sp,
+            height: 1.5,
+            color: colorScheme.onSurfaceVariant,
+          ),
         ),
         actions: [
           SizedBox(
@@ -112,17 +126,27 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     final theme = Theme.of(context);
     final colorPrimary = theme.colorScheme.primary;
     final colorGold = theme.colorScheme.secondary;
+    final colorScheme = theme.colorScheme;
 
     return BlocBuilder<JudgeDataCubit, JudgeDataState>(
       builder: (context, state) {
         if (state is JudgeInitial || state is JudgeLoading) {
           return Scaffold(
-            body: Center(child: CircularProgressIndicator(color: colorGold)),
+            body: Center(
+              child: CircularProgressIndicator(color: colorGold),
+            ),
           );
         }
 
         if (state is JudgeError) {
-          return Scaffold(body: Center(child: Text(state.error ?? "Error")));
+          return Scaffold(
+            body: Center(
+              child: Text(
+                state.error ?? "Error",
+                style: TextStyle(color: colorScheme.error),
+              ),
+            ),
+          );
         }
 
         if (state is JudgeLoaded) {
@@ -160,7 +184,7 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                         colorGold,
                         displayName,
                         judge.profileImage,
-                        judge.jopAr, // ✅ تمرير الوظيفة
+                        judge.jopAr,
                       ),
                     ),
                   ),
@@ -185,7 +209,8 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                           style: TextStyle(
                             fontSize: 17.sp,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            // ✅ onSurface بدل Colors.white
+                            color: colorScheme.onSurface,
                           ),
                         ),
                         SizedBox(height: 20.h),
@@ -282,13 +307,12 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
   ) {
     final theme = Theme.of(context);
     final gold = theme.colorScheme.secondary;
-    final navy = theme.primaryColor;
+    final navy = theme.colorScheme.primary;
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     List<NominationRequestModel> recentList = List.from(allRequests);
-    
-    // ✅ إزالة الطلبات اللي تم تحديد موعد مقابلة لها من القائمة
     recentList.removeWhere((request) => request.interviewDate != null);
-    
     recentList.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     recentList = recentList.take(3).toList();
 
@@ -298,7 +322,7 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildSectionTitle(gold, navy, 'dashboardJudge.recent_requests_title'.tr()),
+            _buildSectionTitle(gold, 'dashboardJudge.recent_requests_title'.tr()),
             TextButton(
               onPressed: () async {
                 await context.push('/judge/orders-list', extra: {});
@@ -314,11 +338,21 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
         SizedBox(height: 15.h),
         Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            // ✅ surface بدل Colors.white
+            color: colorScheme.surface,
             borderRadius: BorderRadius.circular(18.r),
             boxShadow: [
-              BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10),
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withOpacity(0.3)
+                    : Colors.black.withOpacity(0.03),
+                blurRadius: 10,
+              ),
             ],
+            // ✅ حدود في الداكن
+            border: isDark
+                ? Border.all(color: colorScheme.outlineVariant.withOpacity(0.3))
+                : null,
           ),
           child: Column(
             children: List.generate(recentList.length, (index) {
@@ -340,7 +374,8 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                     children: [
                       CircleAvatar(
                         radius: 22.r,
-                        backgroundColor: navy.withOpacity(0.05),
+                        // ✅ خلفية متكيفة
+                        backgroundColor: navy.withOpacity(isDark ? 0.2 : 0.05),
                         child: ClipOval(
                           child:
                               request.doctorImageUrl != null &&
@@ -378,7 +413,8 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                               style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 13.sp,
-                                color: navy,
+                                // ✅ onSurface بدل navy
+                                color: colorScheme.onSurface,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -390,7 +426,8 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                               ),
                               style: TextStyle(
                                 fontSize: 11.sp,
-                                color: Colors.grey[600],
+                                // ✅ onSurfaceVariant بدل grey[600]
+                                color: colorScheme.onSurfaceVariant,
                               ),
                             ),
                           ],
@@ -402,7 +439,7 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                           vertical: 4.h,
                         ),
                         decoration: BoxDecoration(
-                          color: gold.withOpacity(0.1),
+                          color: gold.withOpacity(isDark ? 0.2 : 0.1),
                           borderRadius: BorderRadius.circular(8.r),
                         ),
                         child: Icon(
@@ -430,6 +467,10 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     Color color,
     String filterStatus,
   ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
     return InkWell(
       onTap: () async {
         await context.push(
@@ -442,19 +483,28 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
       child: Container(
         padding: EdgeInsets.all(20.w),
         decoration: BoxDecoration(
-          color: Colors.white,
+          // ✅ surface بدل Colors.white
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(20.r),
           boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10),
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+            ),
           ],
-          border: Border.all(color: color.withOpacity(0.2), width: 1.5),
+          border: Border.all(
+            color: color.withOpacity(isDark ? 0.4 : 0.2),
+            width: 1.5,
+          ),
         ),
         child: Row(
           children: [
             Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withOpacity(isDark ? 0.2 : 0.1),
                 borderRadius: BorderRadius.circular(15.r),
               ),
               child: Icon(icon, color: color, size: 28.sp),
@@ -469,13 +519,18 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                     style: TextStyle(
                       fontSize: 15.sp,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      // ✅ onSurface بدل Colors.black87
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   SizedBox(height: 5.h),
                   Text(
                     "$count ${'dashboard.main_cards.request'.tr()}",
-                    style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+                    style: TextStyle(
+                      fontSize: 12.sp,
+                      // ✅ onSurfaceVariant بدل grey[600]
+                      color: colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -492,27 +547,29 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     Color gold,
     String name,
     String? imageUrl,
-    String? jobTitle, 
+    String? jobTitle,
   ) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isArabic = context.locale.languageCode == 'ar';
+
     return Row(
       textDirection: isArabic ? ui.TextDirection.rtl : ui.TextDirection.ltr,
       children: [
         Expanded(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start, // ✅ تغيير المحاذاة لليسار
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 name,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18.sp, // ✅ تكبير الخط
+                  // ✅ onPrimary بدل Colors.white
+                  color: colorScheme.onPrimary,
+                  fontSize: 18.sp,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              // ✅ عرض الوظيفة لو موجودة
               if (jobTitle != null && jobTitle!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 4.0),
@@ -521,7 +578,8 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      color: Colors.white.withOpacity(0.85),
+                      // ✅ onPrimary.withOpacity بدل Colors.white.withOpacity
+                      color: colorScheme.onPrimary.withOpacity(0.85),
                       fontSize: 13.sp,
                     ),
                   ),
@@ -537,7 +595,8 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
           ),
           child: CircleAvatar(
             radius: 28.r,
-            backgroundColor: Colors.white.withOpacity(0.15),
+            // ✅ onPrimary.withOpacity بدل Colors.white.withOpacity
+            backgroundColor: colorScheme.onPrimary.withOpacity(0.15),
             child: ClipOval(
               child: (imageUrl != null && imageUrl.isNotEmpty)
                   ? CachedNetworkImage(
@@ -558,7 +617,10 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
     );
   }
 
-  Widget _buildSectionTitle(Color gold, Color navy, String title) {
+  // ✅ إزالة navy من الباراميترات - مش محتاجها
+  Widget _buildSectionTitle(Color gold, String title) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Row(
       children: [
         Container(
@@ -575,7 +637,8 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
           style: TextStyle(
             fontSize: 16.sp,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            // ✅ onSurface بدل Colors.white
+            color: colorScheme.onSurface,
           ),
         ),
       ],
@@ -583,49 +646,82 @@ class _MohakemDashboardHomeState extends State<MohakemDashboardHome> {
   }
 
   Widget _buildBottomNav(Color navy, Color gold, String uid, String role) {
-    return BottomNavigationBar(
-      selectedItemColor: gold,
-      unselectedItemColor: navy.withOpacity(0.4),
-      type: BottomNavigationBarType.fixed,
-      currentIndex: 0,
-      onTap: (index) async {
-        switch (index) {
-          case 0:
-            break;
-          case 1:
-            await context.push(Routes.notification);
-            _refreshRequests();
-            break;
-          case 2:
-            await context.push('/judge/orders-list');
-            _refreshRequests();
-            break;
-          case 3:
-            await context.push(
-              Routes.settings,
-              extra: {'uid': uid, 'role': role},
-            );
-            break;
-        }
-      },
-      items: [
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.grid_view_rounded),
-          label: 'dashboardJudge.tooltips.home'.tr(),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.notifications_active_outlined),
-          label: 'dashboardJudge.notifications'.tr(),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.assignment_outlined),
-          label: 'orders.title'.tr(),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.settings_outlined),
-          label: 'dashboardJudge.tooltips.settings'.tr(),
-        ),
-      ],
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        // ✅ خلفية متكيفة
+        color: colorScheme.surface,
+        border: isDark
+            ? Border(
+                top: BorderSide(
+                  color: colorScheme.outlineVariant.withOpacity(0.3),
+                  width: 1,
+                ),
+              )
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.4) : Colors.black.withOpacity(0.06),
+            blurRadius: 15,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      child: BottomNavigationBar(
+        backgroundColor: Colors.transparent,
+        selectedItemColor: gold,
+        // ✅ لون غير المحدد متكيف
+        unselectedItemColor: isDark
+            ? colorScheme.onSurface.withOpacity(0.4)
+            : navy.withOpacity(0.4),
+        elevation: 0,
+        type: BottomNavigationBarType.fixed,
+        currentIndex: 0,
+        selectedFontSize: 11.sp,
+        unselectedFontSize: 10.sp,
+        enableFeedback: true,
+        onTap: (index) async {
+          switch (index) {
+            case 0:
+              break;
+            case 1:
+              await context.push(Routes.notification);
+              _refreshRequests();
+              break;
+            case 2:
+              await context.push('/judge/orders-list');
+              _refreshRequests();
+              break;
+            case 3:
+              await context.push(
+                Routes.settings,
+                extra: {'uid': uid, 'role': role},
+              );
+              break;
+          }
+        },
+        items: [
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.grid_view_rounded),
+            label: 'dashboardJudge.tooltips.home'.tr(),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.notifications_active_outlined),
+            label: 'dashboardJudge.notifications'.tr(),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.assignment_outlined),
+            label: 'orders.title'.tr(),
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.settings_outlined),
+            label: 'dashboardJudge.tooltips.settings'.tr(),
+          ),
+        ],
+      ),
     );
   }
 }

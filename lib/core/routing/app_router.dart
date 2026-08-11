@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:optialeader/core/routing/router_refresh_notifier.dart';
 import 'package:optialeader/feature/admin/admin_routes.dart';
@@ -10,11 +9,11 @@ import 'package:optialeader/feature/auth/ui/change_password_screen.dart';
 import 'package:optialeader/feature/auth/ui/signin_screen.dart';
 import 'package:optialeader/feature/database_admin/data/models/employee_model.dart';
 import 'package:optialeader/feature/database_admin/routing/database_admin_routes.dart';
+import 'package:optialeader/feature/employee/employee_router/employee_rout.dart';
 import 'package:optialeader/feature/employee/ui/employee_courses_page.dart';
 import 'package:optialeader/feature/employee/ui/employee_dashboard_screen.dart';
 import 'package:optialeader/feature/judge/routing/judge_rouring.dart';
 import 'package:optialeader/feature/judge/ui/screens/judge.dart';
-import 'package:optialeader/feature/notification/logic/app_notification_cubit.dart';
 import 'package:optialeader/feature/notification/ui/notification_page.dart';
 import 'package:optialeader/feature/setting/ui/setting.dart';
 import 'package:optialeader/feature/doctor/routing/user_routing.dart';
@@ -22,9 +21,7 @@ import 'package:optialeader/feature/doctor/ui/screens/dashboard_user.dart';
 import 'package:optialeader/feature/auth/data/models/user_model.dart';
 import 'package:optialeader/feature/database_admin/ui/screens/database_admin_dashboard.dart';
 import 'routes.dart';
-import 'package:provider/provider.dart';
-import 'package:optialeader/feature/admin/logic/admin_providers.dart';
-import 'package:optialeader/feature/judge/data/judge_providers.dart';
+
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 GoRouter createRouter(AuthCubit authCubit) {
@@ -96,7 +93,11 @@ GoRouter createRouter(AuthCubit authCubit) {
         return SettingsScreen(uid: args['uid'] ?? '', role: args['role'] ?? 'user');
       }),
       GoRoute(path: Routes.notification, builder: (context, state) => const NotificationsScreen()),
-      GoRoute(path: Routes.employeeCourses, builder: (context, state) => EmployeeCoursesPage(employee: state.extra as EmployeeModel)),
+   GoRoute(
+        path: Routes.adminManager, 
+        builder: (context, state) => const EmployeeDashboardScreen(), 
+        routes: employeeSubRoutes, // ✅ ربط الراوتر الفرعي
+      ),
     ],
   );
 }

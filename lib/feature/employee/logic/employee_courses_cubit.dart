@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
-
 import 'package:optialeader/feature/employee/data/models/employee_course_model.dart';
 import 'package:optialeader/feature/employee/data/repo/employee_courses_repo.dart';
 import 'package:optialeader/feature/employee/logic/employee_courses_state.dart';
@@ -11,14 +9,12 @@ import 'package:optialeader/feature/employee/logic/employee_courses_state.dart';
 class EmployeeCoursesCubit extends Cubit<EmployeeCoursesState> {
   final EmployeeCoursesRepo _repo;
   String? _currentUid;
-
   StreamSubscription? _coursesSubscription;
 
   EmployeeCoursesCubit({EmployeeCoursesRepo? repo})
       : _repo = repo ?? EmployeeCoursesRepo(),
         super(EmployeeCoursesInitial());
 
-  // ✅ بدء الاستماع للدورات
   void loadCourses(String uid) {
     _currentUid = uid;
     emit(EmployeeCoursesLoading());
@@ -38,36 +34,39 @@ class EmployeeCoursesCubit extends Cubit<EmployeeCoursesState> {
     );
   }
 
-  // ✅ إضافة دورة (نرسل المفتاح من غير ترجمة)
+  // ✅ أضف uid كمتطلب إجباري
   Future<void> addCourse({
+    required String uid, 
     required EmployeeCourseModel course,
     required File certificateFile,
   }) async {
-    if (_currentUid == null) return;
-
+    // ✅ تم إزالة الجملة التي كانت توقف كل شيء بصمت
+    
     emit(EmployeeCoursesUploading());
-    try {
-      await _repo.addCourse(
-        uid: _currentUid!,
-        course: course,
-        certificateFile: certificateFile,
-      );
-      // نرسل المفتاح زي ما هو، والـ UI هيتولى الترجمة
-      emit( EmployeeCoursesActionSuccess('employee_courses.success_added'));
-    } catch (e) {
-      emit( EmployeeCoursesError('employee_courses.error_upload'));
-    }
-  }
 
-  // ✅ حذف دورة
+    final result = await _repo.addCourse(
+      uid: uid, // ✅ استخدام الـ uid الممرر مباشرة
+      course: course,
+      certificateFile: certificateFile,
+    );
+
+    result.fold(
+      (error) => emit(EmployeeCoursesError(error)),
+      (_) => emit(EmployeeCoursesActionSuccess('employee_courses.success_added')),
+    );
+  }
   Future<void> deleteCourse(EmployeeCourseModel course) async {
     if (_currentUid == null) return;
 
-    try {
-      await _repo.deleteCourse(uid: _currentUid!, course: course);
-    } catch (e) {
-      emit( EmployeeCoursesError('employee_courses.error_delete'));
-    }
+    final result = await _repo.deleteCourse(
+      uid: _currentUid!,
+      course: course,
+    );
+
+    result.fold(
+      (error) => emit(EmployeeCoursesError(error)),
+      (_) {}, // نجاح بدون رسالة
+    );
   }
 
   @override

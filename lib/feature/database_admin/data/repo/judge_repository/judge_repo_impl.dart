@@ -159,4 +159,20 @@ class JudgeRepoImpl extends JudgeRepo {
       return left("ERROR_JUDGE_DELETE");
     }
   }
+    @override
+  Future<Either<String, int>> getAnnouncementApplicantsCount(String announcementId) async {
+    try {
+      // ✅ نجيب كل الطلبات اللي announcementId بتاعها بيساوي id الإعلان
+      final snapshot = await _firestore
+          .collection('nomination_requests')
+          .where('announcementId', isEqualTo: announcementId)
+          .get();
+
+      // ✅ نرجع طول القائمة (العدد الحقيقي)
+      return right(snapshot.docs.length);
+    } catch (e) {
+      print('Error fetching applicants count: $e');
+      return left("ERROR_FETCH_COUNT");
+    }
+  }
 }

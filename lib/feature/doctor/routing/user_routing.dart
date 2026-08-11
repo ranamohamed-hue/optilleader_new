@@ -2,7 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
 import 'package:optialeader/feature/admin/ui/announces/competition_results_view_page.dart'; 
 import 'package:optialeader/feature/doctor/ui/screens/acadimic_data.dart';
-import 'package:optialeader/feature/doctor/ui/screens/announctments_datails_doctor_page.dart';
+import 'package:optialeader/feature/doctor/ui/screens/annountments_details_doctor_page.dart';
 import 'package:optialeader/feature/doctor/ui/screens/archievement_page.dart';
 import 'package:optialeader/feature/doctor/ui/screens/career_info_page.dart';
 import 'package:optialeader/feature/doctor/ui/screens/digital_archieve.dart';

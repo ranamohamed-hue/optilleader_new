@@ -21,7 +21,7 @@ class JudgeOrdersListScreen extends StatefulWidget {
 }
 
 class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
-  Color get _primaryNavy => Theme.of(context).primaryColor;
+  Color get _primaryNavy => Theme.of(context).colorScheme.primary;
   Color get _goldAccent => Theme.of(context).colorScheme.secondary;
 
   @override
@@ -35,6 +35,9 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
     String pageTitle = 'judge_orders.title'.tr();
     if (widget.filterRole != null) {
       pageTitle = 'dashboardJudge.categories.${widget.filterRole}'.tr();
@@ -44,13 +47,15 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
     }
 
     return Scaffold(
-      backgroundColor: _primaryNavy.withOpacity(0.04),
+      // ✅ خلفية متكيفة بدل اللون الثابت الشفاف
+      backgroundColor: colorScheme.surfaceContainerLowest,
       appBar: AppBar(
         backgroundColor: _primaryNavy,
         title: Text(
           pageTitle,
           style: TextStyle(
-            color: Colors.white,
+            // ✅ onPrimary بدل Colors.white
+            color: colorScheme.onPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 18.sp,
           ),
@@ -59,7 +64,8 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
         leading: IconButton(
           icon: Icon(
             Icons.arrow_back_ios_new,
-            color: Colors.white,
+            // ✅ onPrimary بدل Colors.white
+            color: colorScheme.onPrimary,
             size: 20.sp,
           ),
           onPressed: () => context.pop(),
@@ -75,7 +81,12 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
             return Center(child: CircularProgressIndicator(color: _goldAccent));
           }
           if (state is NominationRequestError) {
-            return Center(child: Text(state.message.tr()));
+            return Center(
+              child: Text(
+                state.message.tr(),
+                style: TextStyle(color: colorScheme.error),
+              ),
+            );
           }
 
           if (state is NominationRequestLoaded) {
@@ -87,7 +98,6 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
                   .toList();
             }
 
-            // ✅ تم حذف شرط (other) نهائياً وبقي الفلتر مباشر للوظيفة
             if (widget.filterRole != null) {
               requests = requests
                   .where((r) => r.targetRole == widget.filterRole)
@@ -102,12 +112,14 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
                     Icon(
                       Icons.inbox_outlined,
                       size: 60.sp,
-                      color: Colors.grey[300],
+                      // ✅ لون متكيف بدل grey[300]
+                      color: colorScheme.onSurfaceVariant.withOpacity(0.4),
                     ),
                     SizedBox(height: 10.h),
                     Text(
                       'judge_orders.no_requests'.tr(),
-                      style: TextStyle(color: Colors.grey[500]),
+                      // ✅ onSurfaceVariant بدل grey[500]
+                      style: TextStyle(color: colorScheme.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -132,6 +144,11 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
     BuildContext context,
     NominationRequestModel request,
   ) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+final isArabic = context.locale.languageCode == 'ar';
+
     final bool isEvaluated =
         request.status == NominationRequestModel.statusEvaluated ||
         request.status == NominationRequestModel.statusFinalApproved ||
@@ -141,16 +158,23 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
       margin: EdgeInsets.only(bottom: 20.h),
       padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 15.h),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // ✅ surface بدل Colors.white
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            // ✅ ظل متكيف
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.04),
             blurRadius: 15,
             offset: const Offset(0, 5),
           ),
         ],
-        border: Border.all(color: _primaryNavy.withOpacity(0.05), width: 1),
+        // ✅ حدود خفيفة في الثيم الداكن عشان الكروت تتفرق عن الخلفية
+        border: isDark
+            ? Border.all(color: colorScheme.outlineVariant.withOpacity(0.3), width: 1)
+            : Border.all(color: _primaryNavy.withOpacity(0.05), width: 1),
       ),
       child: Row(
         children: [
@@ -159,12 +183,12 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
             height: 70.h,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: _primaryNavy.withOpacity(0.05),
+              // ✅ لون الخلفية متكيف
+              color: _primaryNavy.withOpacity(isDark ? 0.2 : 0.05),
               border: Border.all(color: _goldAccent.withOpacity(0.3), width: 2),
             ),
             child: ClipOval(
-              child:
-                  request.doctorImageUrl != null &&
+              child: request.doctorImageUrl != null &&
                       request.doctorImageUrl!.isNotEmpty
                   ? CachedNetworkImage(
                       imageUrl: request.doctorImageUrl!,
@@ -198,7 +222,8 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    // ✅ onSurface بدل Colors.black87
+                    color: colorScheme.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -207,14 +232,14 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                   decoration: BoxDecoration(
-                    color: _goldAccent.withOpacity(0.1),
+                    color: _goldAccent.withOpacity(isDark ? 0 : 0.1),
                     borderRadius: BorderRadius.circular(8.r),
                   ),
                   child: Text(
                     request.targetRole.tr(),
                     style: TextStyle(
                       fontSize: 11.sp,
-                      color: _primaryNavy,
+                      color:isDark?Colors.white:const Color.fromARGB(255, 8, 8, 8),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -224,24 +249,37 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
           ),
           SizedBox(width: 10.w),
 
-          // ✅ الأزرار تنقل مباشرة لصفقة الطلبات حسب الحالة
           if (isEvaluated)
-            ElevatedButton.icon(
-              onPressed: () {
-                // ✅ استخدام الراوتر لضمان إخفاء بيانات الأدمن (isJudgeView: true)
-                context.push('/judge/evaluationScreen', extra: request);
-              },
-              icon: Icon(Icons.visibility, size: 18.sp, color: Colors.white),
-              label: Text('عرض', style: TextStyle(fontSize: 12.sp)),
+            Padding(
+              padding: EdgeInsets.only(
+                right: isArabic ? 20.w : 0,
+                left: isArabic ? 0 : 20.w,
+              ),
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  context.push('/judge/evaluationScreen', extra: request);
+                },
+                // ✅ شلنا color: Colors.white عشان foregroundColor يشتغل صح
+                icon: Icon(Icons.visibility, size: 18.sp),
+                // ✅ إصلاح علامة الاستفهام وإضافة بديل الإنجليزي
+                label: Text(
+                  isArabic ? 'عرض' : 'View',
+                  style: TextStyle(fontSize: 12.sp),
+                ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.grey.shade600,
-                foregroundColor: Colors.white,
+                // ✅ لون واضح للزر في الداكن
+                backgroundColor: isDark 
+                    ? colorScheme.surfaceContainerHighest 
+                    : Colors.grey.shade600,
+                foregroundColor: isDark 
+                    ? colorScheme.onSurface 
+                    : Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
                 elevation: 0,
-              ),
+              )),
             )
           else
             ElevatedButton.icon(

@@ -233,7 +233,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   Widget _buildSectionHeader(BuildContext context, String title) {
     final theme = Theme.of(context);
     final isAr = context.locale.languageCode == 'ar';
-
+    final isDark = theme.brightness == Brightness.dark; // ✅ ضيف السطر ده
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Row(
@@ -244,7 +244,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
           if (!isAr)
             Icon(
               Icons.label_important_outline,
-              color: theme.colorScheme.secondary,
+              color: isDark?Colors.white:Colors.black,
               size: 20.sp,
             ),
           if (!isAr) SizedBox(width: 8.w),

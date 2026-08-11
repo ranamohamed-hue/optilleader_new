@@ -1,0 +1,32 @@
+{
+  "employee_archieve": {
+    "appbar_title": "Upload Files",
+    "no_files_yet": "No files uploaded yet",
+    "untitled": "Untitled",
+    "upload.title": "Upload New File",
+    "upload.label_title": "File Title",
+    "upload.hint_title": "Enter file title",
+    "upload.label_desc": "Description",
+    "upload.hint_desc": "Enter optional description",
+    "upload.label_category": "Category",
+    "upload.hint_category": "Select category",
+    "upload.click_to_select": "Tap to select a file",
+    "upload.btn_upload": "Upload File",
+    "upload.file_upload_success": "File uploaded successfully",
+    "upload.unexpected_error": "An unexpected error occurred",
+    "upload.error_file_required": "Please select a file",
+    "upload.error_title_required": "Please enter a file title",
+    "archive.folders.certificates": "Certificates",
+    "archive.folders.id": "ID Cards",
+    "archive.folders.decisions": "Administrative Decisions",
+    "archive.folders.misc": "Miscellaneous Files",
+    "file_picker.select_file": "Select File",
+    "file_picker.image_or_pdf": "Images or PDFs",
+    "file_picker.image_only": "Images Only",
+    "file_picker.pdf_only": "PDFs Only",
+    "file_picker.choose_upload_method": "Choose Upload Method",
+    "file_picker.take_photo": "Take Photo",
+    "file_picker.choose_from_gallery": "Choose from Gallery",
+    "file_picker.choose_pdf": "Choose PDF File"
+  }
+}

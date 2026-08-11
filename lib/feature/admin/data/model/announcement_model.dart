@@ -25,6 +25,9 @@ class AnnouncementModel {
   String? adminSubDeptId;
   String? adminSubDeptName;
 
+  // ✅✅✅ مفاتيح المطابقة - يتم حسابها تلقائياً وحفظها في Firestore ✅✅✅
+  List<String> matchKeys;
+
   // ✅ تم تحديث القائمة لتشمل كل الأدوار الموجودة في المحرك
   static const List<String> targetRoleList = [
     'general',
@@ -37,11 +40,30 @@ class AnnouncementModel {
     'admin_manager', // مدير إداري
   ];
 
+  // ✅ أسماء الأدوار بالعربي (للعرض في الـ UI)
+  static const Map<String, String> targetRoleArNames = {
+    'general': 'عام (الجميع)',
+    'university_president': 'رئيس جامعة',
+    'vice_president': 'نائب رئيس جامعة',
+    'dean': 'عميد كلية',
+    'vice_dean': 'وكيل كلية',
+    'head_department': 'رئيس قسم',
+    'quality_manager': 'مدير الجودة',
+    'admin_manager': 'مدير إداري',
+  };
+
   // ✅ قائمة القطاعات الثابتة (حسب القانون)
+  static const Map<String, String> sectorArNames = {
+    'postgraduate': 'الدراسات العليا والبحوث',
+    'education': 'شؤون التعليم والطلاب',
+    'environment': 'خدمة المجتمع وتنمية البيئة',
+  };
+
+  // ✅✅✅ قائمة القطاعات (للفلترة في الـ UI) ✅✅✅
   static const List<String> sectorList = [
-    'postgraduate', // الدراسات العليا والبحوث
-    'education', // شؤون التعليم والطلاب
-    'environment', // خدمة المجتمع وتنمية البيئة
+    'postgraduate',
+    'education',
+    'environment',
   ];
 
   static const List<String> statusList = ['Active', 'Pending', 'Closed'];
@@ -66,15 +88,25 @@ class AnnouncementModel {
     this.adminSectorName,
     this.adminSubDeptId,
     this.adminSubDeptName,
+    this.matchKeys = const ['general'],
   });
 
-  // ✅✅✅ دالة أمان لتحويل أي نوع تاريخ لـ DateTime (مهمة جداً لتجنب Crash) ✅✅✅
+  // ✅✅✅ دالة أمان لتحويل أي نوع تاريخ لـ DateTime ✅✅✅
   static DateTime _safeParseDate(dynamic dateField) {
     if (dateField == null) return DateTime.now();
     if (dateField is Timestamp) return dateField.toDate();
     if (dateField is String) return DateTime.tryParse(dateField) ?? DateTime.now();
     if (dateField is DateTime) return dateField;
-    return DateTime.now(); // في حالة أي خطأ غير متوقع، نرجع تاريخ الآن عشان التطبيق ما يقعش
+    return DateTime.now();
+  }
+
+  // ✅✅✅ دالة أمان لتحويل match_keys من Firestore ✅✅✅
+  static List<String> _safeParseMatchKeys(dynamic raw) {
+    if (raw == null) return ['general'];
+    if (raw is List) {
+      return raw.map((e) => e.toString()).toList();
+    }
+    return ['general'];
   }
 
   factory AnnouncementModel.fromMap(
@@ -86,12 +118,10 @@ class AnnouncementModel {
       title: map['title'] ?? '',
       description: map['description'] ?? '',
       status: map['status'] ?? 'Active',
-      // ✅ استخدام الدالة الآمنة بدل as dynamic).toDate()
       deadline: _safeParseDate(map['deadline']),
       applicants: map['applicants'] ?? 0,
       imageUrl: map['imageUrl'],
       targetRole: map['targetRole'] ?? 'general',
-      // ✅ استخدام الدالة الآمنة هنا كمان
       createdAt: _safeParseDate(map['createdAt']),
       targetSector: map['targetSector'], 
       isResultAnnounced: map['isResultAnnounced'] ?? false,
@@ -103,6 +133,7 @@ class AnnouncementModel {
       adminSectorName: map['adminSectorName'],
       adminSubDeptId: map['adminSubDeptId'],
       adminSubDeptName: map['adminSubDeptName'],
+      matchKeys: _safeParseMatchKeys(map['match_keys']),
     );
   }
 
@@ -122,7 +153,121 @@ class AnnouncementModel {
       'departmentId': departmentId, 'departmentName': departmentName,
       'adminSectorId': adminSectorId, 'adminSectorName': adminSectorName,
       'adminSubDeptId': adminSubDeptId, 'adminSubDeptName': adminSubDeptName,
+      'match_keys': matchKeys,
     };
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ✅✅✅ حساب مفاتيح المطابقة بناءً على الاستهداف ✅✅✅
+  // ═══════════════════════════════════════════════════════
+  List<String> computeMatchKeys() {
+    final keys = <String>[];
+
+    switch (targetRole) {
+      case 'university_president':
+      case 'vice_president':
+      case 'vice_dean':
+      case 'quality_manager':
+        keys.add('doctor');
+        break;
+
+      case 'dean':
+        if (collegeName != null && collegeName!.isNotEmpty) {
+          keys.add('doctor:$collegeName');
+        } else {
+          keys.add('doctor');
+        }
+        break;
+
+      case 'head_department':
+        if (collegeName != null &&
+            collegeName!.isNotEmpty &&
+            departmentName != null &&
+            departmentName!.isNotEmpty) {
+          keys.add('doctor:$collegeName:$departmentName');
+        } else if (collegeName != null && collegeName!.isNotEmpty) {
+          keys.add('doctor:$collegeName');
+        } else {
+          keys.add('doctor');
+        }
+        break;
+
+      case 'admin_manager':
+        keys.add('role:admin_manager');
+        if (adminSectorName != null && adminSectorName!.isNotEmpty) {
+          keys.add('admin_manager:$adminSectorName');
+        }
+        break;
+
+      case 'general':
+      default:
+        keys.add('general');
+        break;
+    }
+
+    // ❌❌❌ امسح الخمس سطور دول كويس ❌❌❌
+    // if (!keys.contains('general')) {
+    //   keys.add('general');
+    // }
+
+    return keys;
+  }
+  // ═══════════════════════════════════════════════════════
+  // ✅✅✅ وصف من سيستلم الإعلان (لعرضه في الـ UI) ✅✅✅
+  // ═══════════════════════════════════════════════════════
+  String get targetDescription {
+    switch (targetRole) {
+      case 'general':
+        return 'جميع المستخدمين';
+      case 'university_president':
+        return 'جميع الدكاترة (للوظيفة: رئيس جامعة)';
+      case 'vice_president':
+        return 'جميع الدكاترة (للوظيفة: نائب رئيس جامعة)';
+      case 'vice_dean':
+        return 'جميع الدكاترة (للوظيفة: وكيل كلية)';
+      case 'quality_manager':
+        return 'جميع الدكاترة (للوظيفة: مدير جودة)';
+      case 'dean':
+        if (collegeName != null && collegeName!.isNotEmpty) {
+          return 'دكاترة $collegeName فقط';
+        }
+        return 'جميع الدكاترة (لم يتم تحديد كلية)';
+      case 'head_department':
+        if (collegeName != null && departmentName != null) {
+          return 'دكاترة $departmentName - $collegeName فقط';
+        } else if (collegeName != null) {
+          return 'دكاترة $collegeName فقط';
+        }
+        return 'جميع الدكاترة (لم يتم تحديد كلية وقسم)';
+      case 'admin_manager':
+        if (adminSectorName != null && adminSectorName!.isNotEmpty) {
+          return 'مديري قطاع $adminSectorName';
+        }
+        return 'جميع المديرين الإداريين';
+      default:
+        return 'جميع المستخدمين';
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ✅✅✅ هل يحتاج اختيار كلية؟ ✅✅✅
+  // ═══════════════════════════════════════════════════════
+  bool get requiresCollege {
+    return targetRole == 'dean' || targetRole == 'head_department';
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ✅✅✅ هل يحتاج اختيار قسم؟ ✅✅✅
+  // ═══════════════════════════════════════════════════════
+  bool get requiresDepartment {
+    return targetRole == 'head_department';
+  }
+
+  // ═══════════════════════════════════════════════════════
+  // ✅✅✅ هل يحتاج اختيار قطاع؟ ✅✅✅
+  // ═══════════════════════════════════════════════════════
+  bool get requiresSector {
+    return targetRole == 'admin_manager';
   }
 
   AnnouncementModel copyWith({
@@ -145,6 +290,7 @@ class AnnouncementModel {
     String? adminSectorName,
     String? adminSubDeptId,
     String? adminSubDeptName,
+    List<String>? matchKeys,
   }) {
     return AnnouncementModel(
       id: id ?? this.id,
@@ -166,6 +312,7 @@ class AnnouncementModel {
       adminSectorName: adminSectorName ?? this.adminSectorName,
       adminSubDeptId: adminSubDeptId ?? this.adminSubDeptId,
       adminSubDeptName: adminSubDeptName ?? this.adminSubDeptName,
+      matchKeys: matchKeys ?? this.matchKeys,
     );
   }
 }

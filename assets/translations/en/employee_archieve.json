@@ -1,0 +1,30 @@
+{
+  "appbar_title": "Archive & Documents",
+  "no_files_yet": "No files uploaded yet",
+  "untitled": "Untitled",
+  "upload": {
+    "title": "Upload New Document",
+    "subtitle": "Add file to archive",
+    "click_to_select": "Tap to select a file or drag and drop here",
+    "file_types": "Supported files: PDF, PNG, JPG (Max 10MB)",
+    "label_title": "File Title",
+    "hint_title": "e.g.: Master's Degree, National ID",
+    "label_category": "Category",
+    "hint_category": "Choose the appropriate folder",
+    "label_desc": "Additional description (optional)",
+    "hint_desc": "Write extra details about the file here...",
+    "btn_upload": "Save & Send to Archive",
+    "error_file_required": "Please select a file first",
+    "error_title_required": "Please enter the file title",
+    "file_upload_success": "File uploaded to archive successfully!",
+    "unexpected_error": "An unexpected error occurred during upload"
+  },
+  "archive": {
+    "folders": {
+      "certificates": "Certificates",
+      "id": "ID Cards",
+      "decisions": "Administrative Decisions",
+      "misc": "Miscellaneous Files"
+    }
+  }
+}

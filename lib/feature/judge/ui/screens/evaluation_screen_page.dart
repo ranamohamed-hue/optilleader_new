@@ -28,7 +28,6 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _timeController = TextEditingController();
 
-  // ✅ متغير واحد فقط بدل الـ 5 controllers القديمة
   late InterviewScoringModel _interviewModel;
 
   DateTime? _selectedInterviewDate;
@@ -37,7 +36,6 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
   @override
   void initState() {
     super.initState();
-    // تهيئة الاستبيان الفاضي بالمحاور الجديدة
     _interviewModel = InterviewScoringModel(
       interviewDate: widget.request.interviewDate ?? DateTime.now(),
     );
@@ -47,7 +45,6 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
   void _loadExistingEvaluation() {
     final evaluation = widget.request.interviewEvaluation;
     if (evaluation != null && evaluation is Map<String, dynamic>) {
-      // لو فيه تقييم قديم محفوظ، نحمله مباشرة
       _interviewModel = InterviewScoringModel.fromMap(evaluation);
       _notesController.text = _interviewModel.combinedNotes;
     }
@@ -97,9 +94,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     }
   }
 
-  // ✅ دالة تحديث درجة معينة من الـ Slider
   void _updateCriterionScore(int axisIndex, int critIndex, double newScore) {
-    // لأن givenScore مش final في الموديل، نقدر نعدلها مباشرة بدل ما نعمل copyWith
     switch (axisIndex) {
       case 0:
         _interviewModel.emotionalBalanceCriteria[critIndex].givenScore =
@@ -121,44 +116,44 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             newScore;
         break;
     }
-
-    // عمل rebuild للواجهة عشان الـ Slider والمجموع يتحدثوا
     setState(() {});
   }
-
-    //  بيانات المحاور الخمسة الجديدة للعرض (مترجمة)
+////////////////
+///////////////
+//////////////////
+///////////////
   List<Map<String, dynamic>> get _axesData => [
-    {
-      'title': 'evaluation.axes.axis1_title'.tr(),
-      'maxScore': 20.0,
-      'color': Colors.blue,
-      'criteria': _interviewModel.emotionalBalanceCriteria,
-    },
-    {
-      'title': 'evaluation.axes.axis2_title'.tr(),
-      'maxScore': 25.0,
-      'color': Colors.green,
-      'criteria': _interviewModel.strategicThinkingCriteria,
-    },
-    {
-      'title': 'evaluation.axes.axis3_title'.tr(),
-      'maxScore': 20.0,
-      'color': Colors.orange,
-      'criteria': _interviewModel.participatoryLeadershipCriteria,
-    },
-    {
-      'title': 'evaluation.axes.axis4_title'.tr(),
-      'maxScore': 20.0,
-      'color': Colors.purple,
-      'criteria': _interviewModel.legalAwarenessCriteria,
-    },
-    {
-      'title': 'evaluation.axes.axis5_title'.tr(),
-      'maxScore': 15.0,
-      'color': Colors.teal,
-      'criteria': _interviewModel.communityInteractionCriteria,
-    },
-  ];
+        {
+          'title': 'evaluation.axes.axis1_title'.tr(),
+          'maxScore': 20.0,
+          'color': Colors.blue,
+          'criteria': _interviewModel.emotionalBalanceCriteria,
+        },
+        {
+          'title': 'evaluation.axes.axis2_title'.tr(),
+          'maxScore': 25.0,
+          'color': Colors.green,
+          'criteria': _interviewModel.strategicThinkingCriteria,
+        },
+        {
+          'title': 'evaluation.axes.axis3_title'.tr(),
+          'maxScore': 20.0,
+          'color': Colors.orange,
+          'criteria': _interviewModel.participatoryLeadershipCriteria,
+        },
+        {
+          'title': 'evaluation.axes.axis4_title'.tr(),
+          'maxScore': 20.0,
+          'color': Colors.purple,
+          'criteria': _interviewModel.legalAwarenessCriteria,
+        },
+        {
+          'title': 'evaluation.axes.axis5_title'.tr(),
+          'maxScore': 15.0,
+          'color': Colors.teal,
+          'criteria': _interviewModel.communityInteractionCriteria,
+        },
+      ];
 
   void _scheduleInterview() {
     if (_selectedInterviewDate == null) {
@@ -181,11 +176,11 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     }
 
     context.read<NominationRequestCubit>().scheduleInterview(
-      request: widget.request,
-      interviewDate: _selectedInterviewDate!,
-      location: _locationController.text.trim(),
-      time: _timeController.text.trim(),
-    );
+          request: widget.request,
+          interviewDate: _selectedInterviewDate!,
+          location: _locationController.text.trim(),
+          time: _timeController.text.trim(),
+        );
   }
 
   void _submitEvaluation({bool isDraft = false}) {
@@ -196,11 +191,9 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
       return;
     }
 
-    // تحضير الموديل النهائي
     final model = _interviewModel.copyWith(
       interviewDate: _selectedInterviewDate!,
-      emotionalBalanceNotes:
-          _notesController.text, // نحفظ الملاحظات في أول محور كمرجع عام
+      emotionalBalanceNotes: _notesController.text,
       isDraft: isDraft,
     );
 
@@ -215,20 +208,24 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     }
 
     context.read<NominationRequestCubit>().submitInterviewEvaluation(
-      request: widget.request,
-      evaluationModel: model,
-    );
+          request: widget.request,
+          evaluationModel: model,
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    // ✅ تحديد إذا كان الثيم داكن
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       appBar: AppBar(
         title: Text('evaluation.title'.tr()),
         backgroundColor: colorScheme.primary,
+        // ✅ إضافة لون مناسب للنص في الـ AppBar
+        foregroundColor: colorScheme.onPrimary,
         centerTitle: true,
       ),
       body: BlocListener<NominationRequestCubit, NominationRequestState>(
@@ -258,10 +255,8 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             children: [
               _buildDoctorInfoCard(colorScheme),
               SizedBox(height: 20.h),
-              _buildScheduleCard(colorScheme),
+              _buildScheduleCard(colorScheme, isDark),
               SizedBox(height: 20.h),
-
-              // ✅ بناء كروت المحاور ديناميكياً من الـ Data
               ..._axesData.asMap().entries.map((entry) {
                 int axisIndex = entry.key;
                 var axis = entry.value;
@@ -273,17 +268,16 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
                     maxScore: axis['maxScore'],
                     color: axis['color'],
                     criteria: axis['criteria'],
+                    colorScheme: colorScheme,
+                    isDark: isDark,
                   ),
                 );
               }).toList(),
-
               SizedBox(height: 20.h),
-              _buildTotalCard(colorScheme),
+              _buildTotalCard(colorScheme, isDark),
               SizedBox(height: 20.h),
-              _buildNotesCard(colorScheme),
+              _buildNotesCard(colorScheme, isDark),
               SizedBox(height: 40.h),
-
-              // الأزرار
               Row(
                 children: [
                   Expanded(
@@ -292,10 +286,13 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
                       style: OutlinedButton.styleFrom(
                         side: BorderSide(color: colorScheme.primary),
                         padding: EdgeInsets.symmetric(vertical: 15.h),
+                        // ✅ لون النص في الزر
+                        foregroundColor: colorScheme.primary,
                       ),
                       child: Text(
                         'evaluation.actions.save_draft'.tr(),
-                        overflow: TextOverflow.ellipsis,
+                        overflow: TextOverflow.ellipsis,style: TextStyle(                color: isDark ?Colors.white:Colors.black,
+),
                       ),
                     ),
                   ),
@@ -306,11 +303,11 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
                       onPressed: () => _submitEvaluation(isDraft: false),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
                         padding: EdgeInsets.symmetric(vertical: 15.h),
                       ),
                       child: Text(
                         'evaluation.actions.approve'.tr(),
-                        style: TextStyle(color: Colors.white),
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
@@ -325,40 +322,55 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ كارت المحور الواحد (بيحتوي على المعايير الفرعية والـ Sliders)
+  // ✅ كارت المحور الواحد - مصلح للثيم الليلي
   Widget _buildAxisCard({
     required int axisIndex,
     required String title,
     required double maxScore,
     required Color color,
     required List<RubricCriterion> criteria,
+    required ColorScheme colorScheme,
+    required bool isDark,
   }) {
-    // حساب مجموع المحور
-    double axisTotal = criteria.fold(0.0, (sum, item) => sum + item.givenScore);
+    double axisTotal =
+        criteria.fold(0.0, (sum, item) => sum + item.givenScore);
 
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // ✅ استخدام surface بدل Colors.white
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12.r),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 5),
+          BoxShadow(
+            // ✅ ظل مناسب للثيم الليلي
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.05),
+            blurRadius: isDark ? 8 : 5,
+          ),
         ],
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(
+          color: color.withOpacity(isDark ? 0.5 : 0.3),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // هيدر المحور (الاسم + مجموعه)
           Row(
             children: [
               Container(
                 padding: EdgeInsets.all(6.w),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withOpacity(isDark ? 0.2 : 0.1),
                   borderRadius: BorderRadius.circular(8.r),
                 ),
-                child: Icon(Icons.star, color: color, size: 18.sp),
+                // ✅ الأيقونة بتاخد لون واضح
+                child: Icon(
+                  Icons.star,
+                  color: color,
+                  size: 18.sp,
+                ),
               ),
               SizedBox(width: 10.w),
               Expanded(
@@ -367,14 +379,16 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
                   style: TextStyle(
                     fontSize: 13.sp,
                     fontWeight: FontWeight.bold,
+                    // ✅ لون النص من colorScheme
                     color: color,
                   ),
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+                padding:
+                    EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withOpacity(isDark ? 0.2 : 0.1),
                   borderRadius: BorderRadius.circular(6.r),
                 ),
                 child: Text(
@@ -389,8 +403,6 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             ],
           ),
           SizedBox(height: 15.h),
-
-          // بناء Sliders للمعايير الفرعية
           ...criteria.asMap().entries.map((entry) {
             int critIndex = entry.key;
             var criterion = entry.value;
@@ -401,6 +413,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
               maxScore: criterion.maxScore,
               currentScore: criterion.givenScore,
               color: color,
+              colorScheme: colorScheme,
             );
           }).toList(),
         ],
@@ -408,7 +421,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ ويدجت الـ Slider للمعيار الفرعي
+  // ✅ ويدجت الـ Slider - مصلح للثيم الليلي
   Widget _buildCriterionSlider({
     required int axisIndex,
     required int critIndex,
@@ -416,6 +429,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     required double maxScore,
     required double currentScore,
     required Color color,
+    required ColorScheme colorScheme,
   }) {
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
@@ -428,9 +442,10 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
               Expanded(
                 child: Text(
                   title,
+                  // ✅ استخدام onSurfaceVariant بدل grey[800]
                   style: TextStyle(
                     fontSize: 11.sp,
-                    color: Colors.grey[800],
+                    color: colorScheme.onSurfaceVariant,
                     height: 1.3,
                   ),
                 ),
@@ -449,19 +464,20 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
           SliderTheme(
             data: SliderTheme.of(context).copyWith(
               activeTrackColor: color,
-              inactiveTrackColor: color.withOpacity(0.2),
+              inactiveTrackColor: color.withOpacity(0.3),
               thumbColor: color,
               thumbShape: RoundSliderThumbShape(enabledThumbRadius: 6.r),
-              overlayColor: color.withOpacity(0.1),
+              overlayColor: color.withOpacity(0.2),
               trackHeight: 3.h,
+              // ✅ إضافة مؤشرات واضحة
+              tickMarkShape: const RoundSliderTickMarkShape(),
             ),
             child: Slider(
               value: currentScore,
               min: 0,
               max: maxScore,
-              divisions: maxScore.toInt() * 2, // للسماح بنصف درجات (0.5)
+              divisions: maxScore.toInt() * 2,
               onChanged: (value) {
-                // تقريب لأقرب نصف درجة عشان ميبقىش رقم عشري طويل
                 double roundedValue = (value * 2).round() / 2;
                 _updateCriterionScore(axisIndex, critIndex, roundedValue);
               },
@@ -472,25 +488,33 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ كارت بيانات الدكتور
+  // ✅ كارت بيانات الدكتور - مصلح للثيم الليلي
   Widget _buildDoctorInfoCard(ColorScheme colorScheme) {
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.05),
+        // ✅ استخدام surfaceContainerHighest
+        color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+        border: Border.all(
+          color: colorScheme.primary.withOpacity(0.3),
+        ),
       ),
       child: Row(
         children: [
           CircleAvatar(
             radius: 25.r,
-            backgroundColor: colorScheme.primary.withOpacity(0.1),
+            backgroundColor: colorScheme.primary.withOpacity(0.2),
             backgroundImage: widget.request.doctorImageUrl != null
                 ? NetworkImage(widget.request.doctorImageUrl!)
                 : null,
+            // ✅ الأيقونة بلون واضح
             child: widget.request.doctorImageUrl == null
-                ? Icon(Icons.person, color: colorScheme.primary)
+                ? Icon(
+                    Icons.person,
+                    color: colorScheme.primary,
+                    size: 28.sp,
+                  )
                 : null,
           ),
           SizedBox(width: 12.w),
@@ -503,7 +527,8 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
                   style: TextStyle(
                     fontSize: 16.sp,
                     fontWeight: FontWeight.bold,
-                    color: colorScheme.primary,
+                    // ✅ لون واضح لاسم الدكتور
+                    color: colorScheme.onSurface,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -511,7 +536,11 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
                 SizedBox(height: 4.h),
                 Text(
                   '${'evaluation.doctor_info.job'.tr()}: ${widget.request.targetRole.tr()}',
-                  style: TextStyle(fontSize: 12.sp, color: Colors.grey[600]),
+                  // ✅ استخدام onSurfaceVariant بدل grey[600]
+                  style: TextStyle(
+                    fontSize: 12.sp,
+                    color: colorScheme.onSurfaceVariant,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -523,14 +552,23 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ كارت تحديد الموعد (بدون تغيير)
-  Widget _buildScheduleCard(ColorScheme colorScheme) {
+  // ✅ كارت تحديد الموعد - مصلح للثيم الليلي
+  Widget _buildScheduleCard(ColorScheme colorScheme, bool isDark) {
     return Container(
       padding: EdgeInsets.all(15.w),
       decoration: BoxDecoration(
-        color: Colors.white,
+        // ✅ استخدام surface بدل white
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12.r),
         border: Border.all(color: colorScheme.primary.withOpacity(0.3)),
+        boxShadow: [
+          BoxShadow(
+            color: isDark
+                ? Colors.black.withOpacity(0.3)
+                : Colors.black.withOpacity(0.05),
+            blurRadius: isDark ? 8 : 5,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -539,7 +577,8 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             children: [
               Icon(
                 Icons.event_available,
-                color: colorScheme.primary,
+                // ✅ لون واضح للأيقونة
+                color: isDark ?Colors.white:Colors.black,
                 size: 20.sp,
               ),
               SizedBox(width: 8.w),
@@ -548,7 +587,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
                 style: TextStyle(
                   fontSize: 15.sp,
                   fontWeight: FontWeight.bold,
-                  color: colorScheme.primary,
+                color: isDark ?Colors.white:Colors.black,
                 ),
               ),
             ],
@@ -559,9 +598,10 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             child: Container(
               padding: EdgeInsets.all(12.w),
               decoration: BoxDecoration(
-                color: Colors.grey.shade50,
+                // ✅ استخدام surfaceContainerHighest
+                color: colorScheme.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(8.r),
-                border: Border.all(color: Colors.grey.shade300),
+                border: Border.all(color: colorScheme.outline),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -569,14 +609,19 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
                   Text(
                     _selectedInterviewDate == null
                         ? 'evaluation.schedule.pick_date'.tr()
-                        : DateFormat(
-                            'yyyy-MM-dd',
-                          ).format(_selectedInterviewDate!),
-                    style: TextStyle(fontSize: 14.sp),
+                        : DateFormat('yyyy-MM-dd')
+                            .format(_selectedInterviewDate!),
+                    // ✅ لون النص واضح
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: _selectedInterviewDate == null
+                          ? colorScheme.onSurfaceVariant
+                          : colorScheme.onSurface,
+                    ),
                   ),
                   Icon(
                     Icons.calendar_today,
-                    color: colorScheme.primary,
+                color: isDark ?Colors.white:Colors.black,
                     size: 18.sp,
                   ),
                 ],
@@ -588,23 +633,63 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             controller: _timeController,
             readOnly: true,
             onTap: _pickTime,
+            style: TextStyle(
+              // ✅ لون النص في الـ TextField
+              color: colorScheme.onSurface,
+            ),
             decoration: InputDecoration(
               labelText: 'evaluation.schedule.time'.tr(),
-              prefixIcon: Icon(Icons.access_time, color: colorScheme.primary),
+              labelStyle: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              prefixIcon: Icon(
+                Icons.access_time,
+                color: isDark ?Colors.white:Colors.black,
+              ),
+              // ✅ تخصيص الـ border للثيم الليلي
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(color: colorScheme.outline),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(color: colorScheme.primary, width: 2),
+              ),
+              filled: true,
+              fillColor: colorScheme.surfaceContainerHighest,
             ),
           ),
           SizedBox(height: 12.h),
           TextField(
             controller: _locationController,
+            style: TextStyle(
+              color: colorScheme.onSurface,
+            ),
             decoration: InputDecoration(
               labelText: 'evaluation.schedule.location'.tr(),
-              prefixIcon: Icon(Icons.location_on, color: colorScheme.primary),
+              labelStyle: TextStyle(
+                color: colorScheme.onSurfaceVariant,
+              ),
+              prefixIcon: Icon(
+                Icons.location_on,
+                color: isDark ?Colors.white:Colors.black,
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.r),
               ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(color: colorScheme.outline),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.r),
+                borderSide: BorderSide(color: colorScheme.primary, width: 2),
+              ),
+              filled: true,
+              fillColor: colorScheme.surfaceContainerHighest,
             ),
           ),
           SizedBox(height: 15.h),
@@ -621,7 +706,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
-                foregroundColor: Colors.white,
+                foregroundColor: colorScheme.onPrimary,
                 padding: EdgeInsets.symmetric(vertical: 12.h),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.r),
@@ -634,21 +719,30 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ كارت المجموع الكلي (بيجمع المجموع من الموديل تلقائياً)
-  Widget _buildTotalCard(ColorScheme colorScheme) {
+  // ✅ كارت المجموع الكلي - مصلح للثيم الليلي
+  Widget _buildTotalCard(ColorScheme colorScheme, bool isDark) {
     return Container(
       padding: EdgeInsets.all(20.w),
       decoration: BoxDecoration(
-        color: colorScheme.primary.withOpacity(0.1),
+        // ✅ خلفية مناسبة للثيم الليلي
+        color: colorScheme.primary.withOpacity(isDark ? 0.2 : 0.1),
         borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: colorScheme.primary),
+        border: Border.all(
+          color: colorScheme.primary,
+          width: 2,
+        ),
       ),
       child: Row(
         children: [
           Expanded(
             child: Text(
               'evaluation.total'.tr(),
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16.sp,
+                // ✅ لون النص واضح
+                color: colorScheme.onSurface,
+              ),
             ),
           ),
           Text(
@@ -656,7 +750,7 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 20.sp,
-              color: colorScheme.primary,
+                color: isDark ?Colors.white:Colors.black,
             ),
           ),
         ],
@@ -664,26 +758,46 @@ class _InterviewEvaluationScreenState extends State<InterviewEvaluationScreen> {
     );
   }
 
-  // ✅ كارت الملاحظات
-  Widget _buildNotesCard(ColorScheme colorScheme) {
+  // ✅ كارت الملاحظات - مصلح للثيم الليلي
+  Widget _buildNotesCard(ColorScheme colorScheme, bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'evaluation.notes.label'.tr(),
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14.sp),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14.sp,
+            // ✅ لون العنوان واضح
+            color: colorScheme.onSurface,
+          ),
         ),
         SizedBox(height: 10.h),
         TextField(
           controller: _notesController,
           maxLines: 4,
+          style: TextStyle(
+            color: colorScheme.onSurface,
+          ),
           decoration: InputDecoration(
             hintText: 'evaluation.notes.hint'.tr(),
+            hintStyle: TextStyle(
+              color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
             ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: colorScheme.outline),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12.r),
+              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+            ),
             filled: true,
-            fillColor: Colors.grey.shade50,
+            // ✅ استخدام surfaceContainerHighest
+            fillColor: colorScheme.surfaceContainerHighest,
           ),
         ),
       ],

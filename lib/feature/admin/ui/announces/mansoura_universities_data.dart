@@ -241,7 +241,9 @@ class MansouraUniversitiesData {
         DepartmentData(id: 'edu_media', nameAr: 'الإعلام التربوي', nameEn: 'Educational Media'),
         DepartmentData(id: 'home_economics', nameAr: 'التربية الاقتصادية المنزلية', nameEn: 'Home Economics Education'),
         DepartmentData(id: 'theater_edu', nameAr: 'التربية المسرحية', nameEn: 'Theater Education'),
-        DepartmentData(id: 'tech_education', nameAr: 'التربية التكنولوجية', nameEn: 'Technology Education'),
+        DepartmentData(id: 'tech_education', nameAr: 'تكنولوجيا التعليم', nameEn: 'Technology Education'),
+        DepartmentData(id: 'com_education', nameAr: 'حاسب الي ', nameEn: 'Computer Education'),
+
       ],
     ),
 

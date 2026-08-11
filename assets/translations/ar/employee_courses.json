@@ -14,7 +14,7 @@
     "pick_camera": "الكاميرا",
     "success_added": "تم إضافة الدورة بنجاح وستتم مراجعتها",
     "error_upload": "حدث خطأ أثناء رفع البيانات",
-    "error_certificate_required": "يجب إرفاق صورة الشهادة",
+    "error_certificate_required": "يجب إرفاق شهادة إتمام الدورة",
     "add_new_title": "إضافة دورة جديدة",
     "error_delete": "فشل حذف الدورة",
     "status": {
@@ -23,10 +23,13 @@
       "rejected": "مرفوضة"
     },
     "types": {
-      "general": "عامة",
-      "specialized": "متخصصة",
-      "administrative": "إدارية",
-      "mandatory_leadership": "قيادية إجبارية"
+      "general_admin": "دورات إدارية عامة",
+      "leadership": "دورات تطوير القيادات",
+      "hr_management": "دورات إدارة الموارد البشرية",
+      "crisis_management": "دورات إدارة الأزمات",
+      "digital_transformation": "دورات التحول الرقمي",
+      "project_management": "دورات إدارة المشاريع",
+      "quality_assurance": "دورات جودة واعتماد"
     },
     "form": {
       "title": "اسم الدورة",
@@ -37,7 +40,7 @@
       "date": "تاريخ الإتمام",
       "hours": "عدد الساعات",
       "certificate": "شهادة إتمام الدورة",
-      "hint_certificate": "اضغط لاختيار صورة الشهادة",
+      "hint_certificate": "اضغط لاختيار الشهادة (صورة أو PDF)",
       "submit": "حفظ وإرسال للمراجعة",
       "required": "هذا الحقل مطلوب"
     }

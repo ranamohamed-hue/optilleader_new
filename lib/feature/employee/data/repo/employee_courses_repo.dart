@@ -1,92 +1,107 @@
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:optialeader/feature/employee/data/models/employee_course_model.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:path/path.dart' as p;
-
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:optialeader/feature/employee/data/models/employee_course_model.dart';
 
 class EmployeeCoursesRepo {
   final FirebaseFirestore _firestore;
-  final FirebaseStorage _storage;
 
-  EmployeeCoursesRepo({
-    FirebaseFirestore? firestore,
-    FirebaseStorage? storage,
-  })  : _firestore = firestore ?? FirebaseFirestore.instance,
-        _storage = storage ?? FirebaseStorage.instance;
+  EmployeeCoursesRepo({FirebaseFirestore? firestore})
+      : _firestore = firestore ?? FirebaseFirestore.instance;
 
-  // ✅ جلب الدورات كـ Stream (للتحديث اللحظي)
   Stream<QuerySnapshot> getCoursesStream(String uid) {
     return _firestore
-        .collection('employees')
+        .collection('users')
         .doc(uid)
         .collection('courses')
         .orderBy('createdAt', descending: true)
         .snapshots();
   }
 
-  // ✅ إضافة دورة جديدة مع رفع الملف
-  Future<void> addCourse({
+  Future<Either<String, Unit>> addCourse({
     required String uid,
     required EmployeeCourseModel course,
     required File certificateFile,
   }) async {
     try {
-      // 1. تحديد نوع الملف ومساره
       final String extension = p.extension(certificateFile.path).toLowerCase();
       final bool isPdf = extension == '.pdf';
-      
-      // ✅ المسار حسب نوع الملف (images/ أو files/)
-      final String folderPath = isPdf 
-          ? 'files/employees/$uid/courses' 
-          : 'images/employees/$uid/courses';
-      
+
+      // ✅ معالجة ذكية: ضغط الصور فقط، وقراءة الـ PDF كما هو
+      Uint8List? fileBytes;
+      if (isPdf) {
+        fileBytes = await certificateFile.readAsBytes();
+      } else {
+        fileBytes = await FlutterImageCompress.compressWithFile(
+          certificateFile.absolute.path,
+          minWidth: 1200,
+          minHeight: 1200,
+          quality: 80,
+        );
+      }
+
+      if (fileBytes == null) {
+        return left("فشل معالجة الملف");
+      }
+
+      // تحديد مسار التخزين
+      final String folderPath = 'employees/$uid/courses';
       final String fileName = '${DateTime.now().millisecondsSinceEpoch}$extension';
-      final ref = _storage.ref('$folderPath/$fileName');
+      final String storagePath = '$folderPath/$fileName';
 
-      // 2. رفع الملف
-      await ref.putFile(certificateFile);
-      final String fileUrl = await ref.getDownloadURL();
+      // رفع الملف على Supabase
+      await Supabase.instance.client.storage
+          .from('images') // تأكد أن الـ Bucket اسمه 'images'
+          .uploadBinary(
+            storagePath,
+            fileBytes,
+            fileOptions: const FileOptions(upsert: true),
+          );
 
-      // 3. تحديث الموديل بالرابط
+      final String fileUrl = Supabase.instance.client.storage
+          .from('images')
+          .getPublicUrl(storagePath);
+
+      // تحديث الموديل وحفظه
       course.certificateFileUrl = fileUrl;
       course.certificateFileType = isPdf ? 'pdf' : 'image';
 
-      // 4. حفظ البيانات في فايرستور
       await _firestore
-          .collection('employees')
+          .collection('users')
           .doc(uid)
           .collection('courses')
           .add(course.toMap());
+
+      return right(unit);
     } catch (e) {
-      rethrow;
+      return left("فشل إضافة الدورة: ${e.toString()}");
     }
   }
 
-  // ✅ حذف دورة مع حذف الملف من الـ Storage
-  Future<void> deleteCourse({
+  Future<Either<String, Unit>> deleteCourse({
     required String uid,
     required EmployeeCourseModel course,
   }) async {
     try {
-      // 1. حذف الملف من الـ Storage لو موجود
       if (course.certificateFileUrl != null && course.certificateFileUrl!.isNotEmpty) {
         try {
-          await _storage.refFromURL(course.certificateFileUrl!).delete();
-        } catch (_) {
-          // لو الملف مش موجود نتجاهل الخطأ ونكمل حذف الداتا
-        }
+          final uri = Uri.parse(course.certificateFileUrl!);
+          final pathSegments = uri.pathSegments;
+          if (pathSegments.length > 2) {
+            final filePath = pathSegments.sublist(2).join('/');
+            await Supabase.instance.client.storage.from('images').remove([filePath]);
+          }
+        } catch (_) {}
       }
 
-      // 2. حذف الداتا من فايرستور
-      await _firestore
-          .collection('employees')
-          .doc(uid)
-          .collection('courses')
-          .doc(course.id)
-          .delete();
+      await _firestore.collection('users').doc(uid).collection('courses').doc(course.id).delete();
+      return right(unit);
     } catch (e) {
-      rethrow;
+      return left("فشل حذف الدورة: ${e.toString()}");
     }
   }
 }

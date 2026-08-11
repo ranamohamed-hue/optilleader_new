@@ -8,6 +8,9 @@ abstract class IAnnouncementRepository {
 
   Stream<List<AnnouncementModel>> getAnnouncements();
 
+  // ✅✅✅ دالة جديدة: جلب كل الإعلانات بدون فلترة (للأدمن) ✅✅✅
+  Stream<List<AnnouncementModel>> getAllAnnouncements();
+
   Future<Either<String, Unit>> updateAnnouncement(
     AnnouncementModel announcement,
   );
@@ -18,8 +21,11 @@ abstract class IAnnouncementRepository {
 
   Future<void> deleteAnnouncementImage(String imageUrl);
 
-  // ✅✅✅ الدالة الجديدة اللي كانت ناقصة (لازم تضاف هنا)
   Future<Either<String, Unit>> autoCloseExpiredAnnouncements(
     List<AnnouncementModel> announcements,
   );
+
+  Future<Either<String, List<String>>> getTargetUserUids(AnnouncementModel announcement);
+  Future<Either<String, int>> migrateOldAnnouncements();
+  Future<Either<String, int>> migrateUserMatchKeys();
 }

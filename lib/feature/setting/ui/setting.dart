@@ -104,7 +104,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () => Navigator.pop(dialogContext),
               child: Text(
                 'settings.cancel'.tr(),
-                style: TextStyle(color: colorScheme.primary),
+                style: TextStyle(color: Colors.green),
               ),
             ),
             TextButton(
@@ -134,7 +134,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-
+    final isDark = theme.brightness == Brightness.dark; // ✅ ضيف السطر ده
     return BlocListener<SettingCubit, SettingState>(
       listener: (context, state) {
         if (!context.mounted) return;
@@ -270,7 +270,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             'settings.personal_info'.tr(),
                             style: theme.textTheme.titleLarge?.copyWith(
-                              color: colorScheme.primary,
+                              color: isDark ? Colors.white : Colors.black, // ✅ التعديل هنا
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -345,7 +345,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                           Text(
                             'settings.app_settings'.tr(),
                             style: theme.textTheme.titleLarge?.copyWith(
-                              color: colorScheme.primary,
+                              color: isDark ? Colors.white : Colors.black, // ✅ التعديل هنا
                               fontWeight: FontWeight.bold,
                             ),
                           ),

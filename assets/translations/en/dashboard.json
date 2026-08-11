@@ -39,7 +39,8 @@
       "university_president": "University President",
 "vice_university_president": "Vice University President",
  "error_message": "An error occurred while loading data",
-  "retry": "Retry"
+  "retry": "Retry",
+  "view":"View"
     }
   },
   "judge_orders": {

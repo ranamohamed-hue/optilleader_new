@@ -14,7 +14,7 @@
     "pick_camera": "Camera",
     "success_added": "Course added successfully and is pending review",
     "error_upload": "An error occurred while uploading data",
-    "error_certificate_required": "You must attach the certificate image",
+    "error_certificate_required": "You must attach the certificate",
     "add_new_title": "Add New Course",
     "error_delete": "Failed to delete course",
     "status": {
@@ -23,10 +23,13 @@
       "rejected": "Rejected"
     },
     "types": {
-      "general": "General",
-      "specialized": "Specialized",
-      "administrative": "Administrative",
-      "mandatory_leadership": "Mandatory Leadership"
+      "general_admin": "General Admin Courses",
+      "leadership": "Leadership Development",
+      "hr_management": "HR Management",
+      "crisis_management": "Crisis Management",
+      "digital_transformation": "Digital Transformation",
+      "project_management": "Quality Assurance",
+      "quality_assurance": "Quality & Accreditation"
     },
     "form": {
       "title": "Course Name",
@@ -37,7 +40,7 @@
       "date": "Completion Date",
       "hours": "Hours",
       "certificate": "Course Completion Certificate",
-      "hint_certificate": "Tap to choose certificate image",
+      "hint_certificate": "Tap to choose certificate (Image or PDF)",
       "submit": "Save & Submit for Review",
       "required": "This field is required"
     }

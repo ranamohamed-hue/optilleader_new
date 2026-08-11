@@ -141,4 +141,15 @@ class JudgeDataCubit extends Cubit<JudgeDataState> {
     _judgesSubscription?.cancel();
     return super.close();
   }
+    // ✅ دالة لاستدعاء العدد من الـ UI بسهولة
+  Future<int> getAnnouncementApplicantsCount(String announcementId) async {
+    final result = await judgeRepo.getAnnouncementApplicantsCount(announcementId);
+    return result.fold(
+      (error) {
+        print('Count Error: $error');
+        return 0; // لو حصل خطأ نرجع 0
+      },
+      (count) => count,
+    );
+  }
 }

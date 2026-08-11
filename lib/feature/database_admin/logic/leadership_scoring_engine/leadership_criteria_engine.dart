@@ -956,12 +956,17 @@ class CriterionStatus {
   final bool isMet;
   final bool isAutoChecked;
   final String? details;
-
+   final bool needsDocument;
+  final String? documentType;
+  final List<String> uploadedDocs;
   CriterionStatus({
     required this.titleAr,
     required this.titleEn,
     required this.isMet,
     this.isAutoChecked = true,
     this.details,
+    this.needsDocument = false,
+    this.documentType,
+    this.uploadedDocs = const [],
   });
 }

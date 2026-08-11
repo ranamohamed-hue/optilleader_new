@@ -14,14 +14,10 @@ import 'package:optialeader/feature/admin/ui/announces/competition_results_sheet
 
 Color getAnnouncementStatusColor(String status, ColorScheme colorScheme) {
   switch (status) {
-    case 'Active':
-      return Colors.blue;
-    case 'Pending':
-      return Colors.orange.shade700;
-    case 'Closed':
-      return colorScheme.error;
-    default:
-      return Colors.grey;
+    case 'Active': return Colors.blue;
+    case 'Pending': return Colors.orange.shade700;
+    case 'Closed': return colorScheme.error;
+    default: return Colors.grey;
   }
 }
 
@@ -38,39 +34,27 @@ class AnnouncementDetailsPage extends StatelessWidget {
         title: Text("announce.delete.confirm_title".tr()),
         content: Text("announce.delete.confirm_body".tr()),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text("common.cancel".tr()),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: Text("common.cancel".tr())),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(
-              "common.delete".tr(),
-              style: TextStyle(color: Theme.of(ctx).colorScheme.error),
-            ),
+            child: Text("common.delete".tr(), style: TextStyle(color: Theme.of(ctx).colorScheme.error)),
           ),
         ],
       ),
     );
 
     if (confirm == true && context.mounted) {
-      context.read<AnnouncementCubit>().deleteAnnouncement(
-        announcement.id!,
-        announcement.imageUrl,
-      );
+      context.read<AnnouncementCubit>().deleteAnnouncement(announcement.id!, announcement.imageUrl);
       context.pop();
     }
   }
 
-  // ✅ دالة فتح شيت النتائج
   void _showResultsSheet(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
       builder: (ctx) => CompetitionResultsSheet(
         announcementId: announcement.id!,
         announcementTitle: announcement.title,
@@ -84,21 +68,12 @@ class AnnouncementDetailsPage extends StatelessWidget {
     );
   }
 
-  // ✅ ويدجت زر إعلان النتائج
   Widget _buildAnnounceResultButton(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.amber.shade700, Colors.amber.shade500],
-        ),
+        gradient: LinearGradient(colors: [Colors.amber.shade700, Colors.amber.shade500]),
         borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.amber.withOpacity(0.3),
-            blurRadius: 12,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.amber.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 5))],
       ),
       child: Material(
         color: Colors.transparent,
@@ -112,14 +87,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
               children: [
                 Icon(Icons.emoji_events, color: Colors.white, size: 26),
                 SizedBox(width: 12),
-                Text(
-                  '🏆 عرض النتائج والإعلان',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
+                Text('🏆 عرض النتائج والإعلان', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ),
           ),
@@ -133,55 +101,27 @@ class AnnouncementDetailsPage extends StatelessWidget {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;
-    final statusColor = getAnnouncementStatusColor(
-      announcement.status,
-      colorScheme,
-    );
+    final statusColor = getAnnouncementStatusColor(announcement.status, colorScheme);
 
-    // ✅ شرط ذكي: إظهار زر الإعلان فقط إذا كان الإعلان مقفول ولم يتم الإعلان عنه مسبقاً
-    final bool canAnnounceResults =
-        announcement.status == 'Closed' &&
-        (announcement.isResultAnnounced == null ||
-            announcement.isResultAnnounced == false);
+    final bool canAnnounceResults = announcement.status == 'Closed' && (announcement.isResultAnnounced == null || announcement.isResultAnnounced == false);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () =>
-            context.push('/admin/edit-announcement', extra: announcement),
+        onPressed: () => context.push('/admin/edit-announcement', extra: announcement),
         elevation: 4,
         backgroundColor: colorScheme.primary,
         icon: Icon(Icons.edit_note_rounded, color: colorScheme.secondary),
-        label: Text(
-          "announce.details.edit_button".tr(),
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 14,
-          ),
-        ),
+        label: Text("announce.details.edit_button".tr(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
       ),
       body: BlocListener<NominationRequestCubit, NominationRequestState>(
-        // ✅ مستمع لنجاح الإعلان
         listener: (context, state) {
           if (state is NominationRequestActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.green,
-              ),
-            );
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: Colors.green));
             context.read<AnnouncementCubit>().fetchAnnouncements();
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (context.mounted) context.pop();
-            });
+            Future.delayed(const Duration(milliseconds: 500), () { if (context.mounted) context.pop(); });
           } else if (state is NominationRequestError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: Colors.red));
           }
         },
         child: CustomScrollView(
@@ -194,20 +134,10 @@ class AnnouncementDetailsPage extends StatelessWidget {
               backgroundColor: colorScheme.primary,
               elevation: 0,
               actions: [
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_sweep_outlined,
-                    color: Colors.white70,
-                  ),
-                  onPressed: () => _confirmDelete(context),
-                ),
+                IconButton(icon: const Icon(Icons.delete_sweep_outlined, color: Colors.white70), onPressed: () => _confirmDelete(context)),
                 const SizedBox(width: 10),
               ],
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(35),
-                ),
-              ),
+              shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(bottom: Radius.circular(35))),
               flexibleSpace: FlexibleSpaceBar(
                 collapseMode: CollapseMode.pin,
                 background: Stack(
@@ -217,15 +147,10 @@ class AnnouncementDetailsPage extends StatelessWidget {
                       CachedNetworkImage(
                         imageUrl: announcement.imageUrl!,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) =>
-                            Container(color: Colors.black12),
+                        placeholder: (context, url) => Container(color: Colors.black12),
                         errorWidget: (context, url, error) => Container(
                           color: colorScheme.primary.withOpacity(0.1),
-                          child: Icon(
-                            Icons.broken_image_outlined,
-                            color: colorScheme.primary,
-                            size: 40,
-                          ),
+                          child: Icon(Icons.broken_image_outlined, color: colorScheme.primary, size: 40),
                         ),
                       ),
                     Container(
@@ -234,12 +159,8 @@ class AnnouncementDetailsPage extends StatelessWidget {
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
                           colors: [
-                            Colors.black.withOpacity(
-                              announcement.imageUrl != null ? 0.3 : 0.0,
-                            ),
-                            colorScheme.primary.withOpacity(
-                              announcement.imageUrl != null ? 0.8 : 1.0,
-                            ),
+                            Colors.black.withOpacity(announcement.imageUrl != null ? 0.3 : 0.0),
+                            colorScheme.primary.withOpacity(announcement.imageUrl != null ? 0.8 : 1.0),
                           ],
                         ),
                       ),
@@ -249,32 +170,12 @@ class AnnouncementDetailsPage extends StatelessWidget {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          IconButton(
-                            icon: const Icon(
-                              Icons.arrow_back_ios_new,
-                              color: Colors.white,
-                              size: 22,
-                            ),
-                            onPressed: () => context.pop(),
-                          ),
+                          IconButton(icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 22), onPressed: () => context.pop()),
                           const SizedBox(width: 5),
                           Container(
                             padding: const EdgeInsets.all(2.5),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(
-                                color: colorScheme.secondary,
-                                width: 2,
-                              ),
-                            ),
-                            child: const CircleAvatar(
-                              radius: 26,
-                              backgroundColor: Colors.white24,
-                              child: Icon(
-                                Icons.admin_panel_settings,
-                                color: Colors.white,
-                              ),
-                            ),
+                            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: colorScheme.secondary, width: 2)),
+                            child: const CircleAvatar(radius: 26, backgroundColor: Colors.white24, child: Icon(Icons.admin_panel_settings, color: Colors.white)),
                           ),
                           const SizedBox(width: 15),
                           Expanded(
@@ -282,22 +183,8 @@ class AnnouncementDetailsPage extends StatelessWidget {
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  "announce.details.badge_title".tr(),
-                                  style: textTheme.titleMedium?.copyWith(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: 1.5,
-                                  ),
-                                ),
-                                Text(
-                                  "common.app_name".tr(),
-                                  style: textTheme.bodySmall?.copyWith(
-                                    color: colorScheme.secondary.withOpacity(
-                                      0.9,
-                                    ),
-                                  ),
-                                ),
+                                Text("announce.details.badge_title".tr(), style: textTheme.titleMedium?.copyWith(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+                                Text("common.app_name".tr(), style: textTheme.bodySmall?.copyWith(color: colorScheme.secondary.withOpacity(0.9))),
                               ],
                             ),
                           ),
@@ -312,16 +199,9 @@ class AnnouncementDetailsPage extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
                 delegate: SliverChildListDelegate([
-                  _buildAnnouncementDetailCard(
-                    context,
-                    announcement: announcement,
-                    statusColor: statusColor,
-                  ),
+                  _buildAnnouncementDetailCard(context, announcement: announcement, statusColor: statusColor),
                   const SizedBox(height: 20),
-
-                  // ✅ عرض الزر فقط إذا تحقق الشرط
                   if (canAnnounceResults) _buildAnnounceResultButton(context),
-
                   const SizedBox(height: 100),
                 ]),
               ),
@@ -332,49 +212,23 @@ class AnnouncementDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAnnouncementDetailCard(
-    BuildContext context, {
-    required AnnouncementModel announcement,
-    required Color statusColor,
-  }) {
+  Widget _buildAnnouncementDetailCard(BuildContext context, {required AnnouncementModel announcement, required Color statusColor}) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    final formattedDeadline = DateFormat(
-      'EEEE, d MMMM yyyy',
-      context.locale.languageCode,
-    ).format(announcement.deadline);
-    final postedDate = DateFormat(
-      'd MMM yyyy',
-      context.locale.languageCode,
-    ).format(announcement.createdAt);
+    final formattedDeadline = DateFormat('EEEE, d MMMM yyyy', context.locale.languageCode).format(announcement.deadline);
+    final postedDate = DateFormat('d MMM yyyy', context.locale.languageCode).format(announcement.createdAt);
 
-    // =============================================
-    // 🧠 تحديد ما يُعرض بناءً على نوع الإعلان (متوافق مع المحركين)
-    // =============================================
-    final bool showSector =
-        announcement.targetRole == 'vice_president' ||
-        announcement.targetRole == 'vice_dean';
-    final bool showCollege = MansouraUniversitiesData.targetRoleRequiresFaculty(
-      announcement.targetRole,
-    );
-    final bool showDepartment =
-        MansouraUniversitiesData.targetRoleRequiresDepartment(
-          announcement.targetRole,
-        );
+    final bool showSector = announcement.targetRole == 'vice_president' || announcement.targetRole == 'vice_dean';
+    final bool showCollege = MansouraUniversitiesData.targetRoleRequiresFaculty(announcement.targetRole);
+    final bool showDepartment = MansouraUniversitiesData.targetRoleRequiresDepartment(announcement.targetRole);
     final bool showAdminDept = announcement.targetRole == 'admin_manager';
 
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.primary.withOpacity(0.05),
-            blurRadius: 25,
-            offset: const Offset(0, 12),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: colorScheme.primary.withOpacity(0.05), blurRadius: 25, offset: const Offset(0, 12))],
       ),
       child: Stack(
         children: [
@@ -382,11 +236,7 @@ class AnnouncementDetailsPage extends StatelessWidget {
             right: context.locale.languageCode == 'ar' ? null : -15,
             left: context.locale.languageCode == 'ar' ? -15 : null,
             top: -15,
-            child: Icon(
-              Icons.campaign_rounded,
-              size: 130,
-              color: statusColor.withOpacity(0.04),
-            ),
+            child: Icon(Icons.campaign_rounded, size: 130, color: statusColor.withOpacity(0.04)),
           ),
           Padding(
             padding: const EdgeInsets.all(25),
@@ -395,157 +245,63 @@ class AnnouncementDetailsPage extends StatelessWidget {
               children: [
                 // ====== حالة الإعلان ======
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.12),
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  child: Text(
-                    "announce.${announcement.status.toLowerCase()}"
-                        .tr()
-                        .toUpperCase(),
-                    style: TextStyle(
-                      color: statusColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 11,
-                    ),
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(color: statusColor.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
+                  child: Text("announce.${announcement.status.toLowerCase()}".tr().toUpperCase(), style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 11)),
                 ),
                 const SizedBox(height: 25),
 
                 // ====== العنوان ======
-                Text(
-                  announcement.title,
-                  style: theme.textTheme.headlineSmall?.copyWith(
-                    color: colorScheme.primary,
-                    fontWeight: FontWeight.bold,
-                    height: 1.3,
-                  ),
-                ),
+                Text(announcement.title, style: theme.textTheme.headlineSmall?.copyWith(color: colorScheme.primary, fontWeight: FontWeight.bold, height: 1.3)),
                 const SizedBox(height: 18),
 
                 // ====== الوصف ======
-                Text(
-                  announcement.description,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: Colors.black87.withOpacity(0.7),
-                    height: 1.7,
-                    fontSize: 15,
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 30),
-                  child: Divider(thickness: 0.8),
-                ),
+                Text(announcement.description, style: theme.textTheme.bodyLarge?.copyWith(color: Colors.black87.withOpacity(0.7), height: 1.7, fontSize: 15)),
+                
+                const Padding(padding: EdgeInsets.symmetric(vertical: 25), child: Divider(thickness: 0.8)),
+
+                // ✅✅✅ بطاقة الفئة المستهدفة (تعمل بشكل ذكي) ✅✅✅
+                _buildTargetAudienceCard(context, colorScheme),
+                const SizedBox(height: 15),
 
                 // ====== نوع الوظيفة المستهدفة ======
-                _buildInfoRow(
-                  context,
-                  Icons.military_tech,
-                  "announce.details.target_role".tr(),
-                  announcement.targetRole.tr(),
-                  colorScheme.secondary,
-                ),
+                _buildInfoRow(context, Icons.military_tech, "announce.details.target_role".tr(), announcement.targetRole.tr(), colorScheme.secondary),
                 const SizedBox(height: 20),
 
-                // ✅ ====== القطاع (لنائب الرئيس ووكيل الكلية) ======
                 if (showSector && announcement.targetSector != null) ...[
-                  _buildInfoRow(
-                    context,
-                    Icons.account_tree_outlined,
-                    "edit_announcement.field_sector".tr(),
-                    "sectors.${announcement.targetSector}".tr(),
-                    Colors.deepOrange,
-                  ),
+                  _buildInfoRow(context, Icons.account_tree_outlined, "edit_announcement.field_sector".tr(), "sectors.${announcement.targetSector}".tr(), Colors.deepOrange),
                   const SizedBox(height: 20),
                 ],
 
                 // ====== عدد المتقدمين ======
-                _buildInfoRow(
-                  context,
-                  Icons.groups_rounded,
-                  "announce.details.applicants_label".tr(),
-                  "${announcement.applicants} ${'announce.details.person_unit'.tr()}",
-                  statusColor,
-                ),
+                _buildInfoRow(context, Icons.groups_rounded, "announce.details.applicants_label".tr(), "${announcement.applicants} ${'announce.details.person_unit'.tr()}", statusColor),
                 const SizedBox(height: 20),
 
                 // ====== الموعد النهائي ======
-                _buildInfoRow(
-                  context,
-                  Icons.timer_outlined,
-                  "announce.details.deadline_label".tr(),
-                  formattedDeadline,
-                  colorScheme.primary,
-                ),
+                _buildInfoRow(context, Icons.timer_outlined, "announce.details.deadline_label".tr(), formattedDeadline, colorScheme.primary),
                 const SizedBox(height: 20),
 
                 // ====== تاريخ النشر ======
-                _buildInfoRow(
-                  context,
-                  Icons.calendar_today_rounded,
-                  "announce.details.posted_label".tr(),
-                  postedDate,
-                  Colors.blueGrey,
-                ),
+                _buildInfoRow(context, Icons.calendar_today_rounded, "announce.details.posted_label".tr(), postedDate, Colors.blueGrey),
 
-                // =============================================
-                // 🏛️ الكلية (لـ dean, vice_dean, head_department, quality_manager)
-                // =============================================
                 if (showCollege && announcement.collegeName != null) ...[
                   const SizedBox(height: 20),
-                  _buildInfoRow(
-                    context,
-                    Icons.domain,
-                    "announce.details.college".tr(),
-                    announcement.collegeName!,
-                    Colors.deepPurple,
-                  ),
+                  _buildInfoRow(context, Icons.domain, "announce.details.college".tr(), announcement.collegeName!, Colors.deepPurple),
                 ],
 
-                // =============================================
-                // 🏢 القسم الأكاديمي (لـ head_department فقط)
-                // =============================================
                 if (showDepartment && announcement.departmentName != null) ...[
                   const SizedBox(height: 20),
-                  _buildInfoRow(
-                    context,
-                    Icons.meeting_room,
-                    "announce.details.department".tr(),
-                    announcement.departmentName!,
-                    Colors.teal,
-                  ),
+                  _buildInfoRow(context, Icons.meeting_room, "announce.details.department".tr(), announcement.departmentName!, Colors.teal),
                 ],
 
-                // =============================================
-                // 📋 القطاع / الإدارة العامة (لـ admin_manager فقط)
-                // =============================================
                 if (showAdminDept && announcement.adminSectorName != null) ...[
                   const SizedBox(height: 20),
-                  _buildInfoRow(
-                    context,
-                    Icons.account_balance,
-                    "announce.details.admin_sector".tr(),
-                    announcement.adminSectorName!,
-                    Colors.indigo,
-                  ),
+                  _buildInfoRow(context, Icons.account_balance, "announce.details.admin_sector".tr(), announcement.adminSectorName!, Colors.indigo),
                 ],
 
-                // =============================================
-                // 📁 الإدارة الفرعية (لـ admin_manager فقط)
-                // =============================================
                 if (showAdminDept && announcement.adminSubDeptName != null) ...[
                   const SizedBox(height: 20),
-                  _buildInfoRow(
-                    context,
-                    Icons.corporate_fare,
-                    "announce.details.admin_sub_dept".tr(),
-                    announcement.adminSubDeptName!,
-                    Colors.amber.shade800,
-                  ),
+                  _buildInfoRow(context, Icons.corporate_fare, "announce.details.admin_sub_dept".tr(), announcement.adminSubDeptName!, Colors.amber.shade800),
                 ],
               ],
             ),
@@ -555,39 +311,55 @@ class AnnouncementDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoRow(
-    BuildContext context,
-    IconData icon,
-    String label,
-    String value,
-    Color color,
-  ) {
+  // ✅✅✅ ويدجت بطاقة الفئة المستهدفة ✅✅✅
+  Widget _buildTargetAudienceCard(BuildContext context, ColorScheme colorScheme) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.campaign_outlined, color: colorScheme.primary, size: 26),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'الفئة المستهدفة:',
+                  style: TextStyle(fontSize: 12, color: colorScheme.primary.withOpacity(0.7), fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  announcement.targetDescription, // ✅ يستخدم الدالة الذكية من الموديل
+                  style: TextStyle(fontSize: 14, color: colorScheme.primary, fontWeight: FontWeight.bold, height: 1.4),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(BuildContext context, IconData icon, String label, String value, Color color) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
+          decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
           child: Icon(icon, size: 20, color: color),
         ),
         const SizedBox(width: 15),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              label,
-              style: TextStyle(color: Colors.grey[500], fontSize: 12),
-            ),
-            Text(
-              value,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 14,
-                color: Colors.black87,
-              ),
-            ),
+            Text(label, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.black87)),
           ],
         ),
       ],

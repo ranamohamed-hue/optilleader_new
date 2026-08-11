@@ -1,18 +1,22 @@
 {
   "add_employee": {
     "title": "Add Administrative Employee",
-    "edit_title":"Edting Employee Data",
-   "view_title":"View Data ",
-   "update_data":"Update Data",
+    "edit_title": "Editing Employee Data",
+    "view_title": "View Data",
     "save_data": "Save Data",
+    "update_success": "Update Success",
     "success_message": "Employee added successfully",
+        "update_data":"تحديث البيانات",
+
     "sections": {
       "identity": "Identity Data",
       "contact": "Contact Data",
       "job": "Job Data",
       "sector": "Sector & Sub-Department",
       "qualification": "Qualifications & Experience",
-      "eligibility": "Eligibility & Conduct"
+      "eligibility": "Eligibility & Conduct",
+      "update_success": "Update Success",
+      "eligibility_docs": "Eligibility & Supporting Documents"
     },
     "fields": {
       "name_ar": "Name (Arabic)",
@@ -36,11 +40,17 @@
       "party_position": "Holds a party position",
       "disciplinary_clearance": "Has disciplinary penalties (not cleared)",
       "excellent_reports": "Excellent rating in the last 4 reports"
+    },
+    "cond": {
+      "admin_exp": "Documented Administrative Experience",
+      "icdl": "ICDL Certificate",
+      "perf": "Excellent Performance Reports (Last 4 Years)",
+      "participation": "Participation in Admin Development",
+      "training": "Administrative Training Courses",
+      "health": "Health Certificate"
     }
   },
   "validation": {
     "required": "This field is required"
-    
   }
-
 }

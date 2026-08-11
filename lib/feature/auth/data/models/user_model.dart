@@ -47,6 +47,7 @@ class UserModel extends Equatable {
 
   ///  تحويل String → Enum
     /// تحويل String → Enum
+   /// تحويل String → Enum
   static UserRole _mapRole(String? role) {
     switch (role) {
       case 'database_admin':
@@ -55,13 +56,12 @@ class UserModel extends Equatable {
         return UserRole.admin;
       case 'judge':
         return UserRole.judge;
-      case 'employee': 
+      case 'admin_manager': // ✅ أضف السطر الناقص ده
         return UserRole.admin_manager;
       default:
         return UserRole.user;
     }
   }
-
   ///  تحويل Enum → String
   String get roleString {
     switch (role) {
@@ -74,7 +74,7 @@ class UserModel extends Equatable {
       case UserRole.user:
         return 'user';
         case UserRole.admin_manager:
-        return 'employee';
+        return 'adminManager';
     }
   }
 

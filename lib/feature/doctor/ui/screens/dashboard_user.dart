@@ -5,14 +5,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-
 import 'package:optialeader/core/routing/routes.dart';
+import 'package:optialeader/feature/admin/data/repo/announcement_repos/announcement_repo_impl.dart';
 import 'package:optialeader/feature/database_admin/data/models/doctor_profile_model.dart';
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_state.dart';
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_cubit.dart';
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_state.dart';
-
+import 'package:optialeader/feature/notification/data/repo/notification_repo.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:optialeader/feature/notification/data/repo/notification_repo_impl.dart';
 class DashboardUserPage extends StatefulWidget {
   const DashboardUserPage({super.key});
 
@@ -28,8 +30,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         context.read<DoctorDataCubit>().getDoctorProfile(uid);
-        // ✅ جلب الإعلانات عشان تظهر في الداشبورد مع شارة النتائج
-        context.read<AnnouncementCubit>().fetchAnnouncements();
+        // ❌❌❌ شيلنا السطر ده لأن الكيوبت الجديد هيشتغل لوحده في الـ BlocProvider ❌❌❌
       }
       _checkAndShowWelcomeDialog();
     });
@@ -108,280 +109,254 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
 
   @override
   Widget build(BuildContext context) {
-    
     final theme = Theme.of(context);
     final primaryNavy = theme.colorScheme.primary;
     final goldAccent = theme.colorScheme.secondary;
     final scaffoldBg = theme.scaffoldBackgroundColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return BlocBuilder<DoctorDataCubit, DoctorDataState>(
-      builder: (context, state) {
-        if (state is DoctorInitial || state is DoctorLoading) {
-          return Scaffold(
-            backgroundColor: scaffoldBg,
-            body: Center(child: CircularProgressIndicator(color: goldAccent)),
-          );
-        }
+    // ✅ اعمل Instance مباشرة
+return BlocProvider(
+  create: (context) => AnnouncementCubit(
+    AnnouncementRepositoryImpl(FirebaseFirestore.instance),
+    NotificationRepoImpl(),
+    isAdmin: false,
+  ),
+      
+      child: BlocBuilder<DoctorDataCubit, DoctorDataState>(
+        builder: (context, state) {
+          if (state is DoctorInitial || state is DoctorLoading) {
+            return Scaffold(
+              backgroundColor: scaffoldBg,
+              body: Center(child: CircularProgressIndicator(color: goldAccent)),
+            );
+          }
 
-        if (state is DoctorLoaded) {
-          final doctor = state.doctor;
-          final String uid =
-              doctor?.uid ?? FirebaseAuth.instance.currentUser?.uid ?? '';
-          final String role = doctor?.role ?? 'doctor';
+          if (state is DoctorLoaded) {
+            final doctor = state.doctor;
+            final String uid =
+                doctor?.uid ?? FirebaseAuth.instance.currentUser?.uid ?? '';
+            final String role = doctor?.role ?? 'doctor';
 
-          return Scaffold(
-            backgroundColor: scaffoldBg,
-            appBar: AppBar(
-              backgroundColor: primaryNavy,
-              elevation: 0,
-              toolbarHeight: 80.h,
-              centerTitle: false,
-              titleSpacing: 20,
-              automaticallyImplyLeading: false,
-              title: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  
-                  Text(
-                    context.locale.languageCode == 'ar'
-                        ? (doctor?.nameAr ??
-                              'dashboard_user.doctor_default'.tr())
-                        : (doctor?.nameEn ??
-                              'dashboard_user.doctor_default'.tr()),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-
-
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 6,),
- Text(
-                    context.locale.languageCode == 'ar'
-                        ? (doctor?.currentJobAr??
-                              'dashboard_user.doctor_default'.tr())
-                        : (doctor?.currentJobEn ??
-                              'dashboard_user.doctor_default'.tr()),
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 15.sp,
-                      fontWeight: FontWeight.bold,
-                    ),
-
-
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                ],
-              ),
-              actions: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12.w),
-                  child: _buildProfileAvatar(goldAccent, doctor?.profileImage),
-                ),
-              ],
-              bottom: PreferredSize(
-                preferredSize: Size.fromHeight(3.h),
-                child: Container(color: goldAccent, height: 3.h),
-              ),
-            ),
-            body: RefreshIndicator(
-              onRefresh: () async {
-                if (uid.isNotEmpty) {
-                  await context.read<DoctorDataCubit>().getDoctorProfile(uid);
-                }
-              },
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
-                padding: EdgeInsets.all(16.w),
-                child: Column(
+            return Scaffold(
+              backgroundColor: scaffoldBg,
+              appBar: AppBar(
+                backgroundColor: primaryNavy,
+                elevation: 0,
+                toolbarHeight: 80.h,
+                centerTitle: false,
+                titleSpacing: 20,
+                automaticallyImplyLeading: false,
+                title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    GridView.count(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12.w,
-                      mainAxisSpacing: 12.h,
-                      childAspectRatio: 1.15,
-                      children: [
-                        _buildStatCard(
-                          'dashboard_user.achievements'.tr(),
-                          Icons.emoji_events_outlined,
-                          goldAccent,
-                          'dashboard_user.achievements_msg'.tr(
-                            args: ['${doctor?.totalAchievements ?? 0}'],
-                          ),
-                          primaryNavy,
-                          onTap: () => context.push(
-                            '${Routes.archievementPage}?uid=$uid',
-                          ),
-                        ),
-                        _buildStatCard(
-                          'dashboard_user.academic_data'.tr(),
-                          Icons.school_outlined,
-                          goldAccent,
-                          (doctor?.academicHistory != null &&
-                                  doctor!.academicHistory.isNotEmpty)
-                              ? (doctor.academicHistory.first['degree'] ??
-                                    'dashboard_user.no_credentials'.tr())
-                              : 'dashboard_user.no_credentials'.tr(),
-                          primaryNavy,
-                          onTap: () =>
-                              context.push('${Routes.acadiminData}?uid=$uid'),
-                        ),
-                                                                     _buildStatusCard(
-                          'dashboard_user.requests_status'.tr(),
-                          '${doctor?.totalPendingAchievements ?? 0}',
-                          'dashboard_user.pending'.tr(),
-                          Colors.red.shade50,
-                          Colors.red.shade900,
-                          onTap: () {
-                            if (doctor != null) {
-                              // ✅ استخدام الثابت اللي عرفناه في Routes
-                              context.push(Routes.doctorRequestsStatus, extra: doctor);
-                            }
-                          },
-                        ),
-                        _buildProgressCard(
-                          'dashboard_user.career_path'.tr(),
-                          _calculateCareerProgress(doctor),
-                          primaryNavy,
-                          goldAccent,
-                          onTap: () =>
-                              context.push('${Routes.careerInfo}?uid=$uid'),
-                        ),
-                      ],
+                    Text(
+                      context.locale.languageCode == 'ar'
+                          ? (doctor?.nameAr ?? 'dashboard_user.doctor_default'.tr())
+                          : (doctor?.nameEn ?? 'dashboard_user.doctor_default'.tr()),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 25.h),
-                    _buildSectionTitle(
-                      primaryNavy,
-                      goldAccent,
-                      'dashboard_user.latest_opportunities'.tr(),
+                    SizedBox(height: 6.h),
+                    Text(
+                      context.locale.languageCode == 'ar'
+                          ? (doctor?.currentJobAr ?? 'dashboard_user.doctor_default'.tr())
+                          : (doctor?.currentJobEn ?? 'dashboard_user.doctor_default'.tr()),
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15.sp,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    SizedBox(height: 10.h),
+                  ],
+                ),
+                actions: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 12.w),
+                    child: _buildProfileAvatar(goldAccent, doctor?.profileImage),
+                  ),
+                ],
+                bottom: PreferredSize(
+                  preferredSize: Size.fromHeight(3.h),
+                  child: Container(color: goldAccent, height: 3.h),
+                ),
+              ),
+              body: RefreshIndicator(
+                onRefresh: () async {
+                  if (uid.isNotEmpty) {
+                    await context.read<DoctorDataCubit>().getDoctorProfile(uid);
+                  }
+                },
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
+                  padding: EdgeInsets.all(16.w),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 12.w,
+                        mainAxisSpacing: 12.h,
+                        childAspectRatio: 1.15,
+                        children: [
+                          _buildStatCard(
+                            'dashboard_user.achievements'.tr(),
+                            Icons.emoji_events_outlined,
+                            goldAccent,
+                            'dashboard_user.achievements_msg'.tr(
+                              args: ['${doctor?.totalAchievements ?? 0}'],
+                            ),
+                            primaryNavy,
+                            onTap: () => context.push(
+                              '${Routes.archievementPage}?uid=$uid',
+                            ),
+                          ),
+                          _buildStatCard(
+                            'dashboard_user.academic_data'.tr(),
+                            Icons.school_outlined,
+                            goldAccent,
+                            (doctor?.academicHistory != null && doctor!.academicHistory.isNotEmpty)
+                                ? (doctor.academicHistory.first['degree'] ?? 'dashboard_user.no_credentials'.tr())
+                                : 'dashboard_user.no_credentials'.tr(),
+                            primaryNavy,
+                            onTap: () => context.push('${Routes.acadiminData}?uid=$uid'),
+                          ),
+                          _buildStatusCard(
+                            'dashboard_user.requests_status'.tr(),
+                            '${doctor?.totalPendingAchievements ?? 0}',
+                            'dashboard_user.pending'.tr(),
+                            Colors.red.shade50,
+                            Colors.red.shade900,
+                            onTap: () {
+                              if (doctor != null) {
+                                context.push(Routes.doctorRequestsStatus, extra: doctor);
+                              }
+                            },
+                          ),
+                          _buildProgressCard(
+                            'dashboard_user.career_path'.tr(),
+                            _calculateCareerProgress(doctor),
+                            primaryNavy,
+                            goldAccent,
+                            onTap: () => context.push('${Routes.careerInfo}?uid=$uid'),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 25.h),
+                      _buildSectionTitle(
+                        primaryNavy,
+                        goldAccent,
+                        'dashboard_user.latest_opportunities'.tr(),
+                      ),
+                      SizedBox(height: 10.h),
 
-                    // ✅ إظهار الإعلانات مع شارة النتائج
-                    BlocBuilder<AnnouncementCubit, AnnouncementState>(
-                      builder: (context, announceState) {
-                        if (announceState is AnnouncementLoaded) {
-                          if (announceState.announcements.isEmpty) {
-                            return Center(
-                              child: Padding(
-                                padding: EdgeInsets.symmetric(vertical: 20.h),
-                                child: Text(
-                                  'dashboard_user.no_opportunities'.tr(),
-                                  style: TextStyle(
-                                    color: Colors.grey.shade500,
-                                    fontSize: 13.sp,
+                      BlocBuilder<AnnouncementCubit, AnnouncementState>(
+                        builder: (context, announceState) {
+                          if (announceState is AnnouncementLoaded) {
+                            if (announceState.announcements.isEmpty) {
+                              return Center(
+                                child: Padding(
+                                  padding: EdgeInsets.symmetric(vertical: 20.h),
+                                  child: Text(
+                                    'dashboard_user.no_opportunities'.tr(),
+                                    style: TextStyle(
+                                      color: Colors.grey.shade500,
+                                      fontSize: 13.sp,
+                                    ),
                                   ),
                                 ),
-                              ),
+                              );
+                            }
+
+                            final displayAnnouncements = announceState.announcements.take(3).toList();
+
+                            return Column(
+                              children: displayAnnouncements.map((ann) {
+                                final bool hasResults = ann.isResultAnnounced == true;
+
+                                return Padding(
+                                  padding: EdgeInsets.only(bottom: 10.h),
+                                  child: _buildOpportunityItem(
+                                    title: ann.title.isNotEmpty ? ann.title : 'إعلان جديد',
+                                    subtitle: ann.description.isNotEmpty ? ann.description : '',
+                                    icon: hasResults ? Icons.emoji_events_outlined : Icons.campaign_outlined,
+                                    iconBg: hasResults ? Colors.amber.shade50 : primaryNavy.withOpacity(0.05),
+                                    navy: primaryNavy,
+                                    gold: goldAccent,
+                                    showResultsBadge: hasResults,
+                                    onTap: () {
+                                      if (hasResults) {
+                                        context.push(
+                                          Routes.competitionResultsView,
+                                          extra: {
+                                            'announcementId': ann.id,
+                                            'currentDoctorId': uid,
+                                          },
+                                        );
+                                      } else {
+                                        context.push(
+                                          '${Routes.announcementsDetailsDoctor}?id=${ann.id}',
+                                        );
+                                      }
+                                    },
+                                  ),
+                                );
+                              }).toList(),
                             );
                           }
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                      SizedBox(height: 20.h),
+                    ],
+                  ),
+                ),
+              ),
+              bottomNavigationBar: _buildBottomNav(primaryNavy, goldAccent, uid, role),
+            );
+          } // ✅✅✅ القوس الناقص ده اللي اتنسي ✅✅✅
 
-                          final displayAnnouncements = announceState
-                              .announcements
-                              .take(3)
-                              .toList();
-
-                          return Column(
-                            children: displayAnnouncements.map((ann) {
-                              final bool hasResults =
-                                  ann.isResultAnnounced == true;
-
-                              return Padding(
-                                padding: EdgeInsets.only(bottom: 10.h),
-                                child: _buildOpportunityItem(
-                                  title: ann.title.isNotEmpty
-                                      ? ann.title
-                                      : 'إعلان جديد',
-                                  subtitle: ann.description.isNotEmpty
-                                      ? ann.description
-                                      : '',
-                                  icon: hasResults
-                                      ? Icons.emoji_events_outlined
-                                      : Icons.campaign_outlined,
-                                  iconBg: hasResults
-                                      ? Colors.amber.shade50
-                                      : primaryNavy.withOpacity(0.05),
-                                  navy: primaryNavy,
-                                  gold: goldAccent,
-                                  showResultsBadge: hasResults,
-                                  onTap: () {
-                                    if (hasResults) {
-                                      // ✅ التوجيه الصحيح لصفحة النتائج
-                                      context.push(
-                                        Routes.competitionResultsView,
-                                        extra: {
-                                          'announcementId': ann.id,
-                                          'currentDoctorId': uid,
-                                        },
-                                      );
-                                    } else {
-                                      context.push(
-                                        '${Routes.announcementsDetailsDoctor}?id=${ann.id}',
-                                      );
-                                    }
-                                  },
-                                ),
-                              );
-                            }).toList(),
-                          );
-                        }
-                        return const SizedBox.shrink();
-                      },
+          if (state is DoctorError) {
+            return Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.error_outline, color: Colors.red, size: 48.sp),
+                    SizedBox(height: 16.h),
+                    Text(
+                      state.error ?? 'dashboard_user.error_message'.tr(),
+                      style: TextStyle(color: Colors.red, fontSize: 14.sp),
                     ),
-
                     SizedBox(height: 20.h),
+                    ElevatedButton(
+                      onPressed: () {
+                        final uid = FirebaseAuth.instance.currentUser?.uid;
+                        if (uid != null) {
+                          context.read<DoctorDataCubit>().getDoctorProfile(uid);
+                        }
+                      },
+                      child: Text('retry'.tr()),
+                    ),
                   ],
                 ),
               ),
-            ),
-            bottomNavigationBar: _buildBottomNav(
-              primaryNavy,
-              goldAccent,
-              uid,
-              role,
-            ),
-          );
-        }
-
-        if (state is DoctorError) {
-          return Scaffold(
-            body: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 48.sp),
-                  SizedBox(height: 16.h),
-                  Text(
-                    state.error ?? 'dashboard_user.error_message'.tr(),
-                    style: TextStyle(color: Colors.red, fontSize: 14.sp),
-                  ),
-                  SizedBox(height: 20.h),
-                  ElevatedButton(
-                    onPressed: () {
-                      final uid = FirebaseAuth.instance.currentUser?.uid;
-                      if (uid != null) {
-                        context.read<DoctorDataCubit>().getDoctorProfile(uid);
-                      }
-                    },
-                    child: Text('retry'.tr()),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
-      },
-    );
+            );
+          }
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        },
+      ), // ✅ قوس الـ BlocBuilder
+    ); // ✅ قوف الـ BlocProvider
   }
 
   Widget _buildProfileAvatar(Color gold, String? imageUrl) {
@@ -394,12 +369,8 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
       child: CircleAvatar(
         radius: 35.r,
         backgroundColor: Colors.white10,
-        backgroundImage: (imageUrl != null && imageUrl.isNotEmpty)
-            ? CachedNetworkImageProvider(imageUrl)
-            : null,
-        child: (imageUrl == null || imageUrl.isEmpty)
-            ? Icon(Icons.person, color: gold, size: 24.sp)
-            : null,
+        backgroundImage: (imageUrl != null && imageUrl.isNotEmpty) ? CachedNetworkImageProvider(imageUrl) : null,
+        child: (imageUrl == null || imageUrl.isEmpty) ? Icon(Icons.person, color: gold, size: 24.sp) : null,
       ),
     );
   }
@@ -413,19 +384,12 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
             Container(
               width: 4.w,
               height: 16.h,
-              decoration: BoxDecoration(
-                color: gold,
-                borderRadius: BorderRadius.circular(2.r),
-              ),
+              decoration: BoxDecoration(color: gold, borderRadius: BorderRadius.circular(2.r)),
             ),
             SizedBox(width: 8.w),
             Text(
               title,
-              style: TextStyle(
-                fontSize: 15.sp,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+              style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold, color: Colors.white),
             ),
           ],
         ),
@@ -433,25 +397,14 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
           onPressed: () {},
           child: Text(
             'dashboard_user.view_all'.tr(),
-            style: TextStyle(
-              color: gold,
-              fontWeight: FontWeight.bold,
-              fontSize: 11.sp,
-            ),
+            style: TextStyle(color: gold, fontWeight: FontWeight.bold, fontSize: 11.sp),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildStatCard(
-    String title,
-    IconData icon,
-    Color gold,
-    String content,
-    Color navy, {
-    VoidCallback? onTap,
-  }) {
+  Widget _buildStatCard(String title, IconData icon, Color gold, String content, Color navy, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(15.r),
@@ -461,9 +414,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
           color: Colors.white,
           borderRadius: BorderRadius.circular(15.r),
           border: Border.all(color: gold.withOpacity(0.3), width: 1.2),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8),
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.02), blurRadius: 8)],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -473,43 +424,19 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
                 Icon(icon, color: gold, size: 16.sp),
                 SizedBox(width: 5.w),
                 Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: navy,
-                      fontSize: 11.sp,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  child: Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: navy, fontSize: 11.sp), overflow: TextOverflow.ellipsis),
                 ),
               ],
             ),
             const Spacer(),
-            Text(
-              content,
-              style: TextStyle(
-                color: Colors.grey.shade700,
-                fontSize: 10.sp,
-                height: 1.3,
-              ),
-              maxLines: 3,
-              overflow: TextOverflow.ellipsis,
-            ),
+            Text(content, style: TextStyle(color: Colors.grey.shade700, fontSize: 10.sp, height: 1.3), maxLines: 3, overflow: TextOverflow.ellipsis),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStatusCard(
-    String title,
-    String count,
-    String label,
-    Color bgColor,
-    Color textColor, {
-    VoidCallback? onTap,
-  }) {
+  Widget _buildStatusCard(String title, String count, String label, Color bgColor, Color textColor, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(15.r),
@@ -523,14 +450,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: textColor,
-                fontSize: 11.sp,
-              ),
-            ),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: textColor, fontSize: 11.sp)),
             const Spacer(),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -538,25 +458,11 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      count,
-                      style: TextStyle(
-                        fontSize: 18.sp,
-                        fontWeight: FontWeight.bold,
-                        color: textColor,
-                      ),
-                    ),
-                    Text(
-                      label,
-                      style: TextStyle(color: textColor, fontSize: 9.sp),
-                    ),
+                    Text(count, style: TextStyle(fontSize: 18.sp, fontWeight: FontWeight.bold, color: textColor)),
+                    Text(label, style: TextStyle(color: textColor, fontSize: 9.sp)),
                   ],
                 ),
-                Icon(
-                  Icons.notifications_active_outlined,
-                  color: textColor.withOpacity(0.4),
-                  size: 20.sp,
-                ),
+                Icon(Icons.notifications_active_outlined, color: textColor.withOpacity(0.4), size: 20.sp),
               ],
             ),
           ],
@@ -565,13 +471,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
     );
   }
 
-  Widget _buildProgressCard(
-    String title,
-    double progress,
-    Color navy,
-    Color gold, {
-    VoidCallback? onTap,
-  }) {
+  Widget _buildProgressCard(String title, double progress, Color navy, Color gold, {VoidCallback? onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(15.r),
@@ -585,14 +485,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: navy,
-                fontSize: 11.sp,
-              ),
-            ),
+            Text(title, style: TextStyle(fontWeight: FontWeight.bold, color: navy, fontSize: 11.sp)),
             const Spacer(),
             ClipRRect(
               borderRadius: BorderRadius.circular(10.r),
@@ -605,14 +498,8 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
             ),
             SizedBox(height: 6.h),
             Text(
-              'dashboard_user.completed_percent'.tr(
-                args: ['${(progress * 100).toInt()}%'],
-              ),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 10.sp,
-                color: navy,
-              ),
+              'dashboard_user.completed_percent'.tr(args: ['${(progress * 100).toInt()}%']),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 10.sp, color: navy),
             ),
           ],
         ),
@@ -639,9 +526,7 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
           color: showResultsBadge ? Colors.amber.shade50 : Colors.white,
           borderRadius: BorderRadius.circular(15.r),
           border: Border.all(
-            color: showResultsBadge
-                ? Colors.amber.shade300
-                : gold.withOpacity(0.15),
+            color: showResultsBadge ? Colors.amber.shade300 : gold.withOpacity(0.15),
             width: showResultsBadge ? 1.5 : 1,
           ),
         ),
@@ -649,78 +534,36 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
           children: [
             Container(
               padding: EdgeInsets.all(8.w),
-              decoration: BoxDecoration(
-                color: iconBg,
-                borderRadius: BorderRadius.circular(10.r),
-              ),
-              child: Icon(
-                icon,
-                color: showResultsBadge ? Colors.amber.shade700 : navy,
-                size: 20.sp,
-              ),
+              decoration: BoxDecoration(color: iconBg, borderRadius: BorderRadius.circular(10.r)),
+              child: Icon(icon, color: showResultsBadge ? Colors.amber.shade700 : navy, size: 20.sp),
             ),
             SizedBox(width: 12.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13.sp,
-                      color: showResultsBadge ? Colors.amber.shade900 : navy,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13.sp, color: showResultsBadge ? Colors.amber.shade900 : navy), maxLines: 1, overflow: TextOverflow.ellipsis),
                   SizedBox(height: 2.h),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      color: showResultsBadge
-                          ? Colors.amber.shade700
-                          : Colors.grey,
-                      fontSize: 10.sp,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                  Text(subtitle, style: TextStyle(color: showResultsBadge ? Colors.amber.shade700 : Colors.grey, fontSize: 10.sp), maxLines: 1, overflow: TextOverflow.ellipsis),
                 ],
               ),
             ),
-
-                      if (showResultsBadge) ...[
+            if (showResultsBadge) ...[
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                decoration: BoxDecoration(
-                  color: Colors.amber.shade600,
-                  borderRadius: BorderRadius.circular(8.r),
-                ),
+                decoration: BoxDecoration(color: Colors.amber.shade600, borderRadius: BorderRadius.circular(8.r)),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.emoji_events, size: 12.sp, color: Colors.white),
                     SizedBox(width: 3.w),
-                    Text(
-                      'dashboard_user.results_badge'.tr(), 
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 9.sp,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                    Text('dashboard_user.results_badge'.tr(), style: TextStyle(color: Colors.white, fontSize: 9.sp, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
               SizedBox(width: 8.w),
             ],
-
-            Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 12.sp,
-              color: showResultsBadge ? Colors.amber.shade600 : gold,
-            ),
+            Icon(Icons.arrow_forward_ios_rounded, size: 12.sp, color: showResultsBadge ? Colors.amber.shade600 : gold),
           ],
         ),
       ),
@@ -753,22 +596,10 @@ class _DashboardUserPageState extends State<DashboardUserPage> {
         }
       },
       items: [
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.settings_outlined),
-          label: 'dashboard_user.nav.settings'.tr(),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.notifications_none),
-          label: 'dashboard_user.nav.notifications'.tr(),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.folder_open_outlined),
-          label: 'dashboard_user.nav.files'.tr(),
-        ),
-        BottomNavigationBarItem(
-          icon: const Icon(Icons.home_filled),
-          label: 'dashboard_user.nav.home'.tr(),
-        ),
+        BottomNavigationBarItem(icon: const Icon(Icons.settings_outlined), label: 'dashboard_user.nav.settings'.tr()),
+        BottomNavigationBarItem(icon: const Icon(Icons.notifications_none), label: 'dashboard_user.nav.notifications'.tr()),
+        BottomNavigationBarItem(icon: const Icon(Icons.folder_open_outlined), label: 'dashboard_user.nav.files'.tr()),
+        BottomNavigationBarItem(icon: const Icon(Icons.home_filled), label: 'dashboard_user.nav.home'.tr()),
       ],
     );
   }

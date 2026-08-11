@@ -7,12 +7,13 @@ import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_cubit.dart';
 import 'package:intl/intl.dart';
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_state.dart';
-
+import 'package:optialeader/feature/admin/data/repo/announcement_repos/announcement_repo_impl.dart';
 // ✅ استدعاءات إضافية مطلوبة للقطاعات وزر النتائج
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomination_request_cubit.dart';
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomonation_request_state.dart';
 import 'package:optialeader/feature/admin/ui/announces/competition_results_sheet.dart';
 import 'package:optialeader/feature/admin/ui/announces/mansoura_universities_data.dart';
+import 'package:optialeader/feature/notification/data/repo/notification_repo.dart';
 
 Color getAnnouncementStatusColor(String status, ColorScheme colorScheme) {
   switch (status) {
@@ -33,23 +34,32 @@ class AnnouncementsPage extends StatelessWidget {
   const AnnouncementsPage({super.key, this.onBack});
 
   @override
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
 
-    return Scaffold(
-      body: BlocBuilder<AnnouncementCubit, AnnouncementState>(
-        builder: (context, state) {
-          return CustomScrollView(
-            physics: const BouncingScrollPhysics(),
-            slivers: [
-              _buildHeader(context, colorScheme, theme),
-              ..._buildBodyBasedOnState(state, theme),
-            ],
-          );
-        },
+    // ✅ الـ BlocProvider بره الـ Scaffold
+    return BlocProvider(
+      create: (context) => AnnouncementCubit(
+        context.read<AnnouncementRepositoryImpl>(),
+        context.read<NotificationRepo>(),
+        isAdmin: true, // ✅✅✅ صح لأن دي صفحة الأدمن
       ),
-      floatingActionButton: _buildFAB(context, colorScheme),
+      child: Scaffold(
+        body: BlocBuilder<AnnouncementCubit, AnnouncementState>(
+          builder: (context, state) {
+            return CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                _buildHeader(context, colorScheme, theme),
+                ..._buildBodyBasedOnState(state, theme),
+              ],
+            );
+          },
+        ),
+        floatingActionButton: _buildFAB(context, colorScheme),
+      ),
     );
   }
 

@@ -6,10 +6,10 @@ class EmployeeCourseModel {
   String organization;
   String date;
   String? durationHours;
-  String courseType; // general, specialized, administrative, mandatory_leadership
+  String courseType; 
   String? certificateFileUrl;
-  String? certificateFileType; // image, pdf
-  String status; // pending, approved, rejected
+  String? certificateFileType; 
+  String status; 
   DateTime createdAt;
   String? rejectionReason;
 
@@ -38,9 +38,7 @@ class EmployeeCourseModel {
       certificateFileUrl: map['certificateFileUrl'],
       certificateFileType: map['certificateFileType'],
       status: map['status'] ?? 'pending',
-      createdAt: (map['createdAt'] != null)
-          ? (map['createdAt'] as dynamic).toDate()
-          : DateTime.now(),
+      createdAt: (map['createdAt'] != null) ? (map['createdAt'] as dynamic).toDate() : DateTime.now(),
       rejectionReason: map['rejectionReason'],
     );
   }

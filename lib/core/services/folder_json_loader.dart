@@ -40,7 +40,9 @@ class FolderJsonLoader extends AssetLoader {
     'pending_details',
     'evaluator_review', 
     'employee_review_scren',
-    'notification'
+    'notification',
+    'employee_archive',
+    'employee_archieve'
   ];
 
   @override
