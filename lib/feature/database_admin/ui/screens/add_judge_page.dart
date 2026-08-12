@@ -42,16 +42,21 @@ class _AddJudgePageState extends State<AddJudgePage> {
 
   bool _isReadOnly = true;
   String _currentImageUrl = '';
+bool _isProfileLoaded = false;
+ @override
+void initState() {
+  super.initState();
 
-  @override
-  void initState() {
-    super.initState();
-    _isReadOnly = widget.isViewMode;
-    if (isEditing) {
-      context.read<JudgeDataCubit>().getJudgeProfile(widget.existingUid!);
-    }
+  _isReadOnly = widget.isViewMode;
+
+  if (isEditing) {
+    context.read<JudgeDataCubit>().getJudgeProfile(
+      widget.existingUid!,
+    );
+  } else {
+    _isProfileLoaded = true;
   }
-
+}
   void _showDeleteConfirmationDialog() {
     showDialog(
       context: context,
@@ -197,8 +202,18 @@ class _AddJudgePageState extends State<AddJudgePage> {
           current is JudgeLoaded,
       listener: (context, state) {
         if (state is JudgeLoaded) {
-          _populateFields(state.judge!);
-        } else if (state is JudgeSuccess) {
+  debugPrint('✅ AddJudgePage received JudgeLoaded');
+
+  if (state.judge != null) {
+    _populateFields(state.judge!);
+
+    if (mounted) {
+      setState(() {
+        _isProfileLoaded = true;
+      });
+    }
+  }
+}else if (state is JudgeSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -261,38 +276,51 @@ class _AddJudgePageState extends State<AddJudgePage> {
           children: [
             BlocBuilder<JudgeDataCubit, JudgeDataState>(
               builder: (context, state) {
-                if (isEditing &&
-                    state is! JudgeLoaded &&
-                    state is! JudgeError) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: AppColors.darkGold),
-                  );
-                }
-                // ✅ إضافة شاشة الخطأ زي الدكتور
-                if (isEditing && state is JudgeError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.error_outline, size: 60.sp, color: AppColors.error),
-                        SizedBox(height: 16.h),
-                        Text(
-                          state.error,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: isDark ? Colors.white : AppColors.navyDark,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 16.h),
-                        ElevatedButton(
-                          onPressed: () => context.read<JudgeDataCubit>().getJudgeProfile(widget.existingUid!),
-                          child: Text("retry".tr()),
-                        ),
-                      ],
-                    ),
-                  );
-                }
+               if (isEditing && !_isProfileLoaded) {
+  if (state is JudgeError) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            size: 60.sp,
+            color: AppColors.error,
+          ),
+          SizedBox(height: 16.h),
+          Text(
+            state.error,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: isDark
+                  ? Colors.white
+                  : AppColors.navyDark,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: 16.h),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                _isProfileLoaded = false;
+              });
 
+              context
+                  .read<JudgeDataCubit>()
+                  .getJudgeProfile(widget.existingUid!);
+            },
+            child: Text("retry".tr()),
+          ),
+        ],
+      ),
+    );
+  }
+
+  return const Center(
+    child: CircularProgressIndicator(
+      color: AppColors.darkGold,
+    ),
+  );
+}
                 return SingleChildScrollView(
                   padding: EdgeInsets.all(20.w),
                   physics: const BouncingScrollPhysics(), // ✅ إضافة السكرول

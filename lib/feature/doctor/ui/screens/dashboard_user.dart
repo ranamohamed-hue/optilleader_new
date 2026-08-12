@@ -12,7 +12,6 @@ import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_state.dart';
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_cubit.dart';
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_state.dart';
-import 'package:optialeader/feature/notification/data/repo/notification_repo.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:optialeader/feature/notification/data/repo/notification_repo_impl.dart';
 class DashboardUserPage extends StatefulWidget {
@@ -586,7 +585,7 @@ return BlocProvider(
             context.push(Routes.settings, extra: {'uid': uid, 'role': role});
             break;
           case 1:
-            context.push(Routes.notification);
+            context.push(Routes.notification,  extra: uid,);
             break;
           case 2:
             context.push('${Routes.digitalArchieve}?uid=$uid');

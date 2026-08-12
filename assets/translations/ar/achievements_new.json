@@ -88,6 +88,8 @@
     "mandatory_course_3": "دورة بناء القدرات الإدارية",
     "mandatory_course_4": "دورة إدارة الأزمات",
     "mandatory_course_5": "دورة القيادة الاستراتيجية",
+    "mandatory_course_6":"دورة الجودة ",
+    "mandatory_course_7":"دورة المجلس الأعلي للجامعات",
     "error_mandatory_without_graded": "لا يمكنك حفظ الدورات التأهيلية وحدها. يرجى إضافة نشاط عادي (مؤتمر أو دورة) أيضاً.",
     "normal_activity_section": "نشاط عادي (مؤتمر / دورة تقييمية)",
     "exhibitionWorksHint": "في حالة المحافل الدولية يجب ألا تقل عن 5 أعمال"

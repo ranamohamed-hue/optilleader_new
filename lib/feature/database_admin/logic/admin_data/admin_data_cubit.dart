@@ -16,24 +16,46 @@ class AdminDataCubit extends Cubit<AdminDataState> {
   AdminDataCubit(this.adminRepo) : super(AdminInitial());
 
   // جلب بيانات أدمن معين
-  Future<void> getAdminProfile(String uid) async {
+ Future<void> getAdminProfile(String uid) async {
+  try {
+    print('========== CUBIT GET ADMIN ==========');
+    print('UID: $uid');
+
     emit(AdminLoading());
+
     final result = await adminRepo.getAdminProfile(uid);
-    
-    result.fold(
-      (error) => emit(AdminError(error: error)),
+
+    await result.fold(
+      (error) async {
+        print('PROFILE ERROR: $error');
+        emit(AdminError(error: error));
+      },
       (admin) async {
+        print('Admin profile loaded: ${admin.nameAr}');
+
         final counts = await adminRepo.getAdminDashboardCounts();
-        
-        emit(AdminLoaded(
-          admin: admin,
-          newRequestsCount: counts['newRequests'] ?? 0,
-          underReviewCount: counts['underReview'] ?? 0,
-        ));
+
+        print('Dashboard counts: $counts');
+
+        emit(
+          AdminLoaded(
+            admin: admin,
+            newRequestsCount: counts['newRequests'] ?? 0,
+            underReviewCount: counts['underReview'] ?? 0,
+          ),
+        );
+
+        print('AdminLoaded emitted successfully');
       },
     );
-  }
+  } catch (e, stackTrace) {
+    print('========== CUBIT GET ADMIN ERROR ==========');
+    print('ERROR: $e');
+    print('STACK TRACE: $stackTrace');
 
+    emit(AdminError(error: e.toString()));
+  }
+}
   // حفظ وتحديث بيانات الادمن
   Future<void> saveAdminData(AdminProfileModel admin) async {
     emit(AdminLoading());

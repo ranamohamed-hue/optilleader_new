@@ -1,9 +1,20 @@
+import 'package:optialeader/core/services/criteria/dean_criteria_calculator.dart';
 import 'package:optialeader/feature/database_admin/data/models/doctor_profile_model.dart';
+import 'package:optialeader/feature/database_admin/data/models/employee_model.dart';
 import 'package:optialeader/feature/doctor/data/model/verefication_status.dart';
-/// محرك فحص شروط الترشح للوظائف القيادية
-/// ============================================================
+import 'package:optialeader/core/services/criteria/vice_dean_criteria_calculator.dart';
+import 'package:optialeader/core/services/criteria/vice_president_criteria_calculator.dart';
+import 'package:optialeader/core/services/criteria/university_president_criteria_calculator.dart';
+import 'package:optialeader/core/services/criteria/common_criteria_calculator.dart';
+import 'package:optialeader/core/services/criteria/head_department_criteria_calculator.dart';
+import 'package:optialeader/core/services/criteria/quality_manager_criteria_calculator.dart';
+import 'package:optialeader/core/services/criteria/admin_manager_criteria.dart';
+
 class LeadershipCriteriaEngine {
-  /// الدالة الرئيسية لتقييم الشروط
+  // ============================================================
+  // شروط القيادات الأكاديمية
+  // ============================================================
+
   static List<CriterionStatus> checkMandatoryCriteria({
     required DoctorProfileModel doctor,
     required String targetRole,
@@ -12,25 +23,21 @@ class LeadershipCriteriaEngine {
   }) {
     final List<CriterionStatus> criteria = [];
 
-    // 1. الشروط الأساسية المشتركة
+    // الشروط العامة
     criteria.addAll(_getCommonCriteria(doctor));
 
-    // 2. الشروط الخاصة بالوظيفة
+    // شروط الوظيفة
     switch (targetRole) {
       case 'university_president':
         criteria.addAll(_getUniversityPresidentCriteria(doctor));
         break;
 
       case 'vice_president':
-        criteria.addAll(
-          _getVicePresidentCriteria(doctor, sector ?? ''),
-        );
+        criteria.addAll(_getVicePresidentCriteria(doctor, sector ?? ''));
         break;
 
       case 'vice_dean':
-        criteria.addAll(
-          _getViceDeanCriteria(doctor, sector ?? ''),
-        );
+        criteria.addAll(_getViceDeanCriteria(doctor, sector ?? ''));
         break;
 
       case 'dean':
@@ -38,20 +45,11 @@ class LeadershipCriteriaEngine {
         break;
 
       case 'head_department':
-        criteria.addAll(
-          _getHeadDepartmentCriteria(
-            doctor,
-            departmentDoctors,
-          ),
-        );
+        criteria.addAll(_getHeadDepartmentCriteria(doctor, departmentDoctors));
         break;
 
       case 'quality_manager':
         criteria.addAll(_getQualityManagerCriteria(doctor));
-        break;
-
-      case 'admin_manager':
-        criteria.addAll(_getAdminManagerCriteria(doctor));
         break;
     }
 
@@ -59,307 +57,469 @@ class LeadershipCriteriaEngine {
   }
 
   // ============================================================
-  // (1) الشروط المشتركة
+  // الشروط العامة للدكتور
   // ============================================================
 
-  static List<CriterionStatus> _getCommonCriteria(
-    DoctorProfileModel doctor,
-  ) {
+  static List<CriterionStatus> _getCommonCriteria(DoctorProfileModel doctor) {
     return [
+      // ========================================================
+      // 1. الجنسية المصرية
+      // ========================================================
       CriterionStatus(
         titleAr: 'أن يكون مصري الجنسية',
-        titleEn: 'Must be of Egyptian nationality',
-        isMet: _isEgyptian(doctor),
+        titleEn: 'Egyptian nationality',
+        isMet: CommonCriteriaCalculator.isEgyptian(doctor),
         isAutoChecked: true,
+        details: CommonCriteriaCalculator.getNationalityDetails(doctor),
       ),
 
+      // ========================================================
+      // 2. عدم وجود حكم بجناية
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'ألا يكون سبق الحكم عليه بعقوبة جناية أو مخلة بالشرف أو الأمانة',
-        titleEn:
-            'Must not have been convicted of a felony or a crime involving dishonor or breach of trust',
-        isMet: !doctor.hasCriminalRecord,
+        titleAr: 'ألا يكون سبق الحكم عليه بعقوبة جناية',
+        titleEn: 'No felony convictions',
+        isMet: CommonCriteriaCalculator.hasNoCriminalRecord(doctor),
         isAutoChecked: true,
+        details: CommonCriteriaCalculator.getCriminalRecordDetails(doctor),
       ),
 
+      // ========================================================
+      // 3. عدم وجود جزاء تأديبي
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'ألا يكون قد وقع عليه جزاء تأديبي ما لم يكن قد تم محوه قانوناً',
-        titleEn:
-            'Must have a clean disciplinary record unless legally expunged',
-        isMet: doctor.disciplinaryClearance,
+        titleAr: 'ألا يكون قد وقع عليه جزاء تأديبي',
+        titleEn: 'Clean disciplinary record',
+        isMet: CommonCriteriaCalculator.hasCleanDisciplinaryRecord(doctor),
         isAutoChecked: true,
+        details: CommonCriteriaCalculator.getDisciplinaryDetails(doctor),
       ),
 
+      // ========================================================
+      // 4. عدم شغل منصب حزبي
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'ألا يكون متولياً لأي منصب حزبي وقت الترشح وطوال فترة المنصب',
-        titleEn:
-            'Must not hold any political party position during nomination or tenure',
-        isMet: !doctor.holdsPartyPosition,
+        titleAr: 'ألا يكون متولياً لأي منصب حزبي',
+        titleEn: 'No political party position',
+        isMet: CommonCriteriaCalculator.hasNoPartyPosition(doctor),
         isAutoChecked: true,
+        details: CommonCriteriaCalculator.getPartyPositionDetails(doctor),
       ),
 
+      // ========================================================
+      // 5. ICDL
+      // ========================================================
       CriterionStatus(
-        titleAr: 'إجادة التعامل مع الحاسب الآلي ICDL أو ما يعادلها',
-        titleEn:
-            'Proficiency in computer skills (ICDL or equivalent)',
-        isMet: doctor.hasICDL,
+        titleAr: 'إجادة التعامل مع الحاسب الآلي ICDL',
+        titleEn: 'ICDL or equivalent',
+        isMet: CommonCriteriaCalculator.hasICDL(doctor),
         isAutoChecked: true,
+        details: CommonCriteriaCalculator.getICDLDetails(doctor),
       ),
 
+      // ========================================================
+      // 6. دورتان في القيادة والتأهيل
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'إتمام دورتين تدريبيتين على الأقل في مجالات القيادة والإدارة',
-        titleEn:
-            'Completion of at least 2 training courses in leadership and management',
-        isMet: _hasRequiredLeadershipCourses(doctor),
+        titleAr: 'إتمام دورتين تدريبيتين في القيادة والتأهيل',
+        titleEn: '2 leadership and qualification courses',
+        isMet: CommonCriteriaCalculator.hasRequiredLeadershipCourses(doctor),
         isAutoChecked: true,
+        details: CommonCriteriaCalculator.getLeadershipCoursesDetails(doctor),
       ),
     ];
   }
 
   // ============================================================
-  // (2) رئيس الجامعة
+  // شروط الموظفين
+  // ============================================================
+
+  static List<CriterionStatus> checkEmployeeMandatoryCriteria({
+    required EmployeeModel employee,
+    required String targetRole,
+  }) {
+    final List<CriterionStatus> criteria = [];
+
+    // الشروط العامة للموظف
+    criteria.addAll(_getEmployeeCommonCriteria(employee));
+
+    // شروط الوظيفة
+    switch (targetRole) {
+      case 'admin_manager':
+        criteria.addAll(_getAdminManagerCriteria(employee));
+        break;
+    }
+
+    return criteria;
+  }
+
+  // ============================================================
+  // الشروط العامة للموظف
+  // ============================================================
+
+  static List<CriterionStatus> _getEmployeeCommonCriteria(
+    EmployeeModel employee,
+  ) {
+    return [
+      // ========================================================
+      // 1. الجنسية المصرية
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'أن يكون مصري الجنسية',
+        titleEn: 'Egyptian nationality',
+        isMet: _isEgyptianEmployee(employee),
+        isAutoChecked: true,
+        details: _getNationalityDetails(employee),
+      ),
+
+      // ========================================================
+      // 2. عدم وجود حكم بجناية
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'ألا يكون سبق الحكم عليه بعقوبة جناية',
+        titleEn: 'No felony convictions',
+        isMet: !employee.hasCriminalRecord,
+        isAutoChecked: true,
+        details: employee.hasCriminalRecord
+            ? 'يوجد حكم جنائي مسجل'
+            : 'لا يوجد حكم جنائي مسجل',
+      ),
+
+      // ========================================================
+      // 3. عدم وجود جزاء تأديبي
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'ألا يكون قد وقع عليه جزاء تأديبي',
+        titleEn: 'Clean disciplinary record',
+        isMet: employee.disciplinaryClearance,
+        isAutoChecked: true,
+        details: employee.disciplinaryClearance
+            ? 'السجل خالٍ من الجزاءات التأديبية'
+            : 'يوجد جزاء تأديبي مسجل',
+      ),
+
+      // ========================================================
+      // 4. عدم شغل منصب حزبي
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'ألا يكون متولياً لأي منصب حزبي',
+        titleEn: 'No political party position',
+        isMet: !employee.holdsPartyPosition,
+        isAutoChecked: true,
+        details: employee.holdsPartyPosition
+            ? 'يشغل منصبًا حزبيًا'
+            : 'لا يشغل أي منصب حزبي',
+      ),
+
+      // ========================================================
+      // 5. ICDL
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'إجادة التعامل مع الحاسب الآلي ICDL',
+        titleEn: 'ICDL or equivalent',
+        isMet: employee.hasICDL == true,
+        isAutoChecked: true,
+        details: employee.hasICDL == true
+            ? 'حاصل على شهادة ICDL'
+            : 'لا توجد شهادة ICDL',
+      ),
+
+      // ========================================================
+      // 6. دورتان في القيادة والتأهيل
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'إتمام دورتين تدريبيتين في القيادة والتأهيل',
+        titleEn: '2 leadership and qualification courses',
+        isMet: employee.hasAdminTraining == true,
+        isAutoChecked: true,
+        details: employee.hasAdminTraining == true
+            ? 'مستوفٍ للدورات التدريبية المطلوبة'
+            : 'لم يتم تسجيل الدورات التدريبية المطلوبة',
+      ),
+    ];
+  }
+
+  // ============================================================
+  // التحقق من الجنسية للموظف
+  // ============================================================
+
+  static bool _isEgyptianEmployee(EmployeeModel employee) {
+    final nationality = _norm(
+      employee.nationalityAr.isNotEmpty
+          ? employee.nationalityAr
+          : employee.nationalityEn,
+    ).toLowerCase();
+
+    return nationality == 'مصر' ||
+        nationality == 'مصري' ||
+        nationality == 'egyptian' ||
+        nationality.contains('مصر') ||
+        nationality.contains('egypt');
+  }
+
+  static String _getNationalityDetails(EmployeeModel employee) {
+    final nationality = employee.nationalityAr.isNotEmpty
+        ? employee.nationalityAr
+        : employee.nationalityEn;
+
+    if (nationality.trim().isEmpty) {
+      return 'لم يتم تسجيل الجنسية';
+    }
+
+    return _isEgyptianEmployee(employee)
+        ? 'الجنسية: $nationality'
+        : 'الجنسية ليست مصرية: $nationality';
+  }
+
+  // ============================================================
+  // رئيس الجامعة
   // ============================================================
 
   static List<CriterionStatus> _getUniversityPresidentCriteria(
     DoctorProfileModel doctor,
   ) {
-    final yearsAsProf =
-        _calculateYearsSince(doctor.professorRankDate);
-
-    final yearsOnDuty =
-        _calculateYearsSince(doctor.activeDutySinceDate);
-
     return [
+      // ========================================================
+      // 1. أستاذ عامل تحت سن الستين
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'أن يكون من الأساتذة العاملين تحت سن الستين',
-        titleEn:
-            'Must be a working Professor under 60 years of age',
+        titleAr: 'أستاذ عامل تحت سن الستين',
+        titleEn: 'Active Professor under 60',
         isMet:
-            _hasProfessorDegree(doctor) &&
-            _isUnder60(doctor),
+            UniversityPresidentCriteriaCalculator.isActiveProfessor(doctor) &&
+            UniversityPresidentCriteriaCalculator.isAgeRequirementMet(doctor),
         isAutoChecked: true,
         details:
-            'العمر: ${_calculateAge(doctor.birthDate)} سنة',
+            '${UniversityPresidentCriteriaCalculator.getAgeDetails(doctor)} - '
+            '${UniversityPresidentCriteriaCalculator.getActiveProfessorDetails(doctor)}',
       ),
 
+      // ========================================================
+      // 2. أستاذ لمدة 5 سنوات على الأقل
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'أن يكون قد شغل وظيفة أستاذ لمدة 5 سنوات على الأقل',
-        titleEn:
-            'Must have held the rank of Professor for at least 5 years',
-        isMet:
-            _hasProfessorDegree(doctor) &&
-            yearsAsProf >= 5,
-        isAutoChecked: true,
-        details:
-            'عدد السنوات: $yearsAsProf سنة',
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'التواجد على رأس العمل بالجامعة لمدة سنتين متصلتين على الأقل قبل الترشح',
-        titleEn:
-            'Must have been actively on duty at the university for at least 2 consecutive years',
-        isMet:
-            !_isOnLeaveOrSeconded(doctor) &&
-            yearsOnDuty >= 2,
-        isAutoChecked: true,
-        details:
-            'مدة التواجد الفعلي: $yearsOnDuty سنة',
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'ألا يكون سبق له شغل المنصب لأكثر من دورة واحدة',
-        titleEn:
-            'Must not have served in this position for more than one term',
-        isMet: !_hasExceededTermLimits(
+        titleAr: 'أستاذ لمدة 5 سنوات على الأقل',
+        titleEn: 'Professor for at least 5 years',
+        isMet: UniversityPresidentCriteriaCalculator.isProfessorRequirementMet(
           doctor,
-          'university_president',
-          maxTerms: 1,
         ),
         isAutoChecked: true,
+        details: UniversityPresidentCriteriaCalculator.getProfessorDetails(
+          doctor,
+        ),
       ),
 
+      // ========================================================
+      // 3. التواجد على رأس العمل لمدة سنتين متصلتين
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'إتمام الدورة التدريبية الإلزامية المعتمدة من المجلس الأعلى للجامعات',
-        titleEn:
-            'Completion of the mandatory training approved by the Supreme Council of Universities',
-        isMet:
-            doctor.hasSupremeCouncilTraining ?? false,
+        titleAr: 'التواجد على رأس العمل لمدة سنتين متصلتين',
+        titleEn: 'Active duty for 2 years',
+        isMet: UniversityPresidentCriteriaCalculator.isActiveDutyRequirementMet(
+          doctor,
+        ),
         isAutoChecked: true,
+        details: UniversityPresidentCriteriaCalculator.getActiveDutyDetails(
+          doctor,
+        ),
       ),
 
+      // ========================================================
+      // 4. ألا يشغل منصب رئيس الجامعة لأكثر من دورة واحدة
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'تقديم خطة عمل متكاملة لتطوير الجامعة ومعتمدة',
-        titleEn:
-            'Submission of an approved comprehensive development plan',
-        isMet: _hasApprovedWorkPlan(doctor),
+        titleAr: 'ألا يشغل منصب رئيس الجامعة لأكثر من دورة واحدة',
+        titleEn: 'Maximum one term as University President',
+        isMet:
+            UniversityPresidentCriteriaCalculator.isPresidentTermRequirementMet(
+              doctor,
+            ),
+        isAutoChecked: true,
+        details: UniversityPresidentCriteriaCalculator.getPresidentTermsDetails(
+          doctor,
+        ),
+      ),
+
+      // ========================================================
+      // 5. دورة المجلس الأعلى للجامعات
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'إتمام دورة المجلس الأعلى للجامعات',
+        titleEn: 'Supreme Council of Universities training',
+        isMet: UniversityPresidentCriteriaCalculator.hasSupremeCouncilTraining(
+          doctor,
+        ),
+        isAutoChecked: true,
+        details:
+            UniversityPresidentCriteriaCalculator.getSupremeCouncilTrainingDetails(
+              doctor,
+            ),
+      ),
+
+      // ========================================================
+      // 6. خطة العمل
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'تقديم خطة عمل معتمدة',
+        titleEn: 'Approved work plan',
+        isMet: false,
         isAutoChecked: false,
-        details: _getWorkPlanDetails(doctor),
+        details: UniversityPresidentCriteriaCalculator.getWorkPlanDetails(
+          doctor,
+        ),
       ),
     ];
   }
 
   // ============================================================
-  // (3) نائب رئيس الجامعة
+  // نائب رئيس الجامعة
   // ============================================================
 
   static List<CriterionStatus> _getVicePresidentCriteria(
     DoctorProfileModel doctor,
     String sector,
   ) {
-    final yearsAsProf =
-        _calculateYearsSince(doctor.professorRankDate);
+    final hasLeadershipTraining =
+        VicePresidentCriteriaCalculator.hasSectorLeadershipTraining(doctor);
 
     return [
+      // ========================================================
+      // 1. السن أقل من 60 سنة
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'أن يكون من الأساتذة العاملين بالجامعة تحت سن الستين',
-        titleEn:
-            'Must be a working Professor at the university under 60',
-        isMet:
-            _hasProfessorDegree(doctor) &&
-            _isUnder60(doctor),
+        titleAr: 'أساتذة تحت سن الستين',
+        titleEn: 'Professor under 60',
+        isMet: VicePresidentCriteriaCalculator.isAgeRequirementMet(doctor),
         isAutoChecked: true,
+        details: VicePresidentCriteriaCalculator.getAgeDetails(doctor),
       ),
 
+      // ========================================================
+      // 2. أستاذ لمدة 5 سنوات
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'أن يكون قد شغل وظيفة أستاذ لمدة 5 سنوات على الأقل',
-        titleEn:
-            'Must have held the rank of Professor for at least 5 years',
-        isMet:
-            _hasProfessorDegree(doctor) &&
-            yearsAsProf >= 5,
-        isAutoChecked: true,
-        details:
-            'عدد السنوات: $yearsAsProf سنة',
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'التواجد الفعلي على رأس العمل وقت التقدم',
-        titleEn:
-            'Must be actively on duty at the time of application',
-        isMet: !_isOnLeaveOrSeconded(doctor),
-        isAutoChecked: true,
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'ألا يكون قد شغل نفس القطاع لأكثر من مرتين متتاليتين',
-        titleEn:
-            'Must not have served the same sector for more than two consecutive terms',
-        isMet: !_hasExceededSectorTermLimits(
+        titleAr: 'أستاذ لمدة 5 سنوات',
+        titleEn: 'Professor for 5 years',
+        isMet: VicePresidentCriteriaCalculator.isProfessorRequirementMet(
           doctor,
-          'vice_president',
-          sector,
-          maxTerms: 2,
         ),
         isAutoChecked: true,
+        details: VicePresidentCriteriaCalculator.getProfessorDetails(doctor),
       ),
 
+      // ========================================================
+      // 3. التواجد الفعلي على رأس العمل
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'إتمام الدورة التدريبية الإلزامية لقيادة القطاعات',
-        titleEn:
-            'Completion of the mandatory sectoral leadership training',
-        isMet:
-            doctor.hasSupremeCouncilTraining ?? false,
+        titleAr: 'التواجد الفعلي على رأس العمل',
+        titleEn: 'Actively on duty',
+        isMet: VicePresidentCriteriaCalculator.isActivelyOnDuty(doctor),
         isAutoChecked: true,
+        details: VicePresidentCriteriaCalculator.getActiveDutyDetails(doctor),
       ),
 
+      // ========================================================
+      // 4. مدة شغل نائب رئيس الجامعة أقل من سنتين
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'تقديم خطة عمل وتصور لتطوير القطاع المستهدف',
-        titleEn:
-            'Submission of an approved development plan for the targeted sector',
-        isMet: _hasApprovedWorkPlan(doctor),
+        titleAr: 'ألا يشغل وظيفة نائب رئيس الجامعة لمدة سنتين أو أكثر',
+        titleEn: 'Less than 2 years as Vice President',
+        isMet:
+            VicePresidentCriteriaCalculator.isVicePresidentYearsRequirementMet(
+              doctor,
+            ),
+        isAutoChecked: true,
+        details: VicePresidentCriteriaCalculator.getVicePresidentYearsDetails(
+          doctor,
+        ),
+      ),
+
+      // ========================================================
+      // 5. دورة قيادة القطاعات
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'الدورة التدريبية لقيادة القطاعات',
+        titleEn: 'Sectoral leadership training',
+        isMet: hasLeadershipTraining,
+        isAutoChecked: true,
+        details: VicePresidentCriteriaCalculator.getLeadershipTrainingDetails(
+          doctor,
+        ),
+      ),
+
+      // ========================================================
+      // 6. خطة عمل لتطوير القطاع
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'خطة عمل لتطوير القطاع',
+        titleEn: 'Sector development plan',
+        isMet: false,
         isAutoChecked: false,
-        details: _getWorkPlanDetails(doctor),
+        details: VicePresidentCriteriaCalculator.getSectorPlanDetails(doctor),
       ),
     ];
   }
 
   // ============================================================
-  // (4) وكيل الكلية
+  // نائب العميد
   // ============================================================
 
   static List<CriterionStatus> _getViceDeanCriteria(
     DoctorProfileModel doctor,
     String sector,
   ) {
-    final yearsAsProf =
-        _calculateYearsSince(doctor.professorRankDate);
-
     return [
       CriterionStatus(
-        titleAr:
-            'أن يكون من الأساتذة العاملين بالكلية تحت سن الستين',
-        titleEn:
-            'Must be a working Professor at the faculty under 60',
-        isMet:
-            _hasProfessorDegree(doctor) &&
-            _isUnder60(doctor),
+        titleAr: 'أساتذة بالكلية تحت سن الستين',
+        titleEn: 'Faculty Prof under 60',
+        isMet: ViceDeanCriteriaCalculator.isAgeRequirementMet(doctor),
         isAutoChecked: true,
+        details: ViceDeanCriteriaCalculator.getAgeDetails(doctor),
       ),
 
       CriterionStatus(
-        titleAr:
-            'أن يكون قد شغل وظيفة أستاذ لمدة سنة واحدة على الأقل',
-        titleEn:
-            'Must have held the rank of Professor for at least 1 year',
-        isMet:
-            _hasProfessorDegree(doctor) &&
-            yearsAsProf >= 1,
+        titleAr: 'أستاذ لمدة سنة على الأقل',
+        titleEn: 'Professor for 1 year',
+        isMet: ViceDeanCriteriaCalculator.isProfessorRequirementMet(doctor),
         isAutoChecked: true,
-        details:
-            'عدد السنوات: $yearsAsProf سنة',
+        details: ViceDeanCriteriaCalculator.getProfessorDetails(doctor),
       ),
 
       CriterionStatus(
-        titleAr:
-            'أن يكون قائماً على رأس العمل ومقيداً بقسمه العلمي بصفة فعلية',
-        titleEn:
-            'Must be actively on duty and officially assigned to their department',
-        isMet: !_isOnLeaveOrSeconded(doctor),
+        titleAr: 'قائماً على رأس العمل',
+        titleEn: 'Actively on duty',
+        isMet: ViceDeanCriteriaCalculator.isActiveOnDuty(doctor),
         isAutoChecked: true,
+        details: ViceDeanCriteriaCalculator.getActiveDutyDetails(doctor),
       ),
 
       CriterionStatus(
-        titleAr:
-            'ألا يكون قد شغل المنصب لمدة تزيد عن 6 سنوات متصلة',
-        titleEn:
-            'Must not have served for more than 6 consecutive years',
-        isMet: !_hasExceededTermLimits(
-          doctor,
-          'vice_dean',
-          maxTerms: 2,
-        ),
+        titleAr: 'ألا يشغل المنصب لأكثر من 6 سنوات',
+        titleEn: 'Max 6 years as Vice Dean',
+        isMet: ViceDeanCriteriaCalculator.isViceDeanMaximumYearsMet(doctor),
         isAutoChecked: true,
+        details: ViceDeanCriteriaCalculator.getViceDeanYearsDetails(doctor),
       ),
 
       CriterionStatus(
-        titleAr:
-            'إتمام الدورات الإدارية والقانونية بمركز تنمية قدرات أعضاء هيئة التدريس FLDC',
-        titleEn:
-            'Completion of administrative training at FLDC',
-        isMet: doctor.hasFLDCTraining ?? false,
+        titleAr: 'ألا يشغل المنصب لأكثر من دورتين كاملتين',
+        titleEn: 'Maximum two full terms',
+        isMet: ViceDeanCriteriaCalculator.isViceDeanMaximumTwoTermsMet(doctor),
         isAutoChecked: true,
+        details: ViceDeanCriteriaCalculator.getViceDeanTermsDetails(doctor),
       ),
 
       CriterionStatus(
-        titleAr:
-            'تقديم تصور ومقترح إداري مصغر لتطوير القطاع المستهدف',
-        titleEn:
-            'Submission of an approved mini-administrative proposal',
+        titleAr: 'دورات FLDC',
+        titleEn: 'FLDC training',
+        isMet: ViceDeanCriteriaCalculator.isFLDCRequirementMet(doctor),
+        isAutoChecked: true,
+        details: ViceDeanCriteriaCalculator.getFLDCDetails(doctor),
+      ),
+
+      CriterionStatus(
+        titleAr: 'مقترح إداري مصغر',
+        titleEn: 'Mini proposal',
         isMet: _hasApprovedWorkPlan(doctor),
         isAutoChecked: false,
         details: _getWorkPlanDetails(doctor),
@@ -368,481 +528,326 @@ class LeadershipCriteriaEngine {
   }
 
   // ============================================================
-  // (5) العميد
+  // العميد
   // ============================================================
 
-  static List<CriterionStatus> _getDeanCriteria(
-    DoctorProfileModel doctor,
-  ) {
-    final yearsAsProf =
-        _calculateYearsSince(doctor.professorRankDate);
-
+  static List<CriterionStatus> _getDeanCriteria(DoctorProfileModel doctor) {
     return [
       CriterionStatus(
-        titleAr:
-            'أن يكون في منصب أستاذ لمدة 3 سنوات على الأقل',
-        titleEn:
-            'Must have held the rank of Professor for at least 3 years',
-        isMet:
-            _hasProfessorDegree(doctor) &&
-            yearsAsProf >= 3,
+        titleAr: 'أستاذ لمدة 3 سنوات على الأقل',
+        titleEn: 'Professor for at least 3 years',
+        isMet: DeanCriteriaCalculator.isDeanProfessorRequirementMet(doctor),
         isAutoChecked: true,
-        details:
-            'عدد السنوات: $yearsAsProf سنة',
+        details: DeanCriteriaCalculator.getDeanProfessorDetails(doctor),
       ),
 
       CriterionStatus(
         titleAr: 'الحصول على درجة الدكتوراه',
-        titleEn: 'Must hold a Ph.D. degree',
-        isMet: _hasPhdDegree(doctor),
+        titleEn: 'Hold a Ph.D.',
+        isMet: DeanCriteriaCalculator.isDeanPhdRequirementMet(doctor),
         isAutoChecked: true,
+        details: DeanCriteriaCalculator.getDeanPhdDetails(doctor),
       ),
 
       CriterionStatus(
-        titleAr:
-            'ألا يكون سبق له شغل الوظيفة لمدتين كاملتين',
-        titleEn:
-            'Must not have served in this position for two full terms',
-        isMet: !_hasExceededTermLimits(
-          doctor,
-          'dean',
-          maxTerms: 2,
-        ),
+        titleAr: 'ألا يشغل العميد لأكثر من 8 سنوات',
+        titleEn: 'Maximum 8 years as Dean',
+        isMet: DeanCriteriaCalculator.isDeanMaximumEightYearsMet(doctor),
         isAutoChecked: true,
+        details: DeanCriteriaCalculator.getDeanYearsDetails(doctor),
       ),
 
       CriterionStatus(
-        titleAr:
-            'التمتع بالسلامة الصحية والقدرة على التحمل لساعات العمل الطويلة',
-        titleEn:
-            'Must possess good health and ability to endure long working hours',
-        isMet:
-            doctor.hasHealthCertificate ?? false,
+        titleAr: 'ألا يشغل الوظيفة لمدتين كاملتين',
+        titleEn: 'Maximum two full terms',
+        isMet: DeanCriteriaCalculator.isDeanMaximumTwoTermsMet(doctor),
         isAutoChecked: true,
+        details: DeanCriteriaCalculator.getDeanTermsDetails(doctor),
+      ),
+
+      CriterionStatus(
+        titleAr: 'ألا يشغل منصبًا حزبيًا',
+        titleEn: 'Must not hold a party position',
+        isMet: DeanCriteriaCalculator.isDeanPartyPositionRequirementMet(doctor),
+        isAutoChecked: true,
+        details: DeanCriteriaCalculator.getDeanPartyPositionDetails(doctor),
+      ),
+
+      CriterionStatus(
+        titleAr: 'السلامة الصحية والتحمل',
+        titleEn: 'Good health',
+        isMet: DeanCriteriaCalculator.isDeanHealthRequirementMet(doctor),
+        isAutoChecked: true,
+        details: DeanCriteriaCalculator.getDeanHealthDetails(doctor),
       ),
     ];
   }
 
   // ============================================================
-  // (6) رئيس القسم
+  // رئيس القسم
   // ============================================================
 
   static List<CriterionStatus> _getHeadDepartmentCriteria(
     DoctorProfileModel doctor,
     List<DoctorProfileModel> departmentDoctors,
   ) {
-    bool isTop3 = false;
-    String? details;
-
-    if (departmentDoctors.isNotEmpty) {
-      final top3Uids =
-          DoctorProfileModel.getTop3SeniorInDepartment(
-        doctors: departmentDoctors,
-        departmentAr: doctor.departmentAr,
-      );
-print('====================================');
-print('الدكتور الحالي: ${doctor.uid}');
-print('اسم الدكتور: ${doctor.nameAr}');
-print('القسم: ${doctor.departmentAr}');
-print('عدد دكاترة القسم: ${departmentDoctors.length}');
-print('Top 3 UIDs: $top3Uids');
-print('هل الدكتور ضمن Top 3؟ ${top3Uids.contains(doctor.uid)}');
-print('====================================');
-      isTop3 =
-          doctor.uid != null &&
-          top3Uids.contains(doctor.uid);
-
-      details = isTop3
-          ? 'يقع ضمن أقدم 3 أساتذة بالقسم حسب تاريخ الحصول على درجة الأستاذ'
-          : 'غير ضمن أقدم 3 أساتذة بالقسم';
-    } else {
-      isTop3 = doctor.isTop3Senior ?? false;
-      details =
-          'لم يتم توفير قائمة الدكاترة، يعتمد على البيانات المسجلة';
-    }
+    final isTop3 = HeadDepartmentCriteriaCalculator.isTop3SeniorProfessor(
+      doctor: doctor,
+      doctors: departmentDoctors,
+      facultyAr: doctor.facultyAr,
+      departmentAr: doctor.departmentAr,
+    );
 
     return [
+      // ========================================================
+      // 1. أقدم 3 أساتذة في نفس الكلية والقسم
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'أن يكون ضمن أقدم 3 أساتذة بالقسم',
-        titleEn:
-            'Must be among the top 3 senior Professors in the department',
+        titleAr: 'ضمن أقدم 3 أساتذة في نفس الكلية والقسم',
+        titleEn: 'Among the top 3 senior professors',
         isMet: isTop3,
         isAutoChecked: true,
-        details: details,
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'ألا يكون سبق له شغل رئاسة القسم لأكثر من دورة واحدة',
-        titleEn:
-            'Must not have served as Department Head for more than one term',
-        isMet: !_hasExceededTermLimits(
-          doctor,
-          'head_department',
-          maxTerms: 1,
+        details: HeadDepartmentCriteriaCalculator.getTop3Details(
+          doctor: doctor,
+          doctors: departmentDoctors,
+          facultyAr: doctor.facultyAr,
+          departmentAr: doctor.departmentAr,
         ),
-        isAutoChecked: true,
       ),
 
+      // ========================================================
+      // 2. ألا يشغل رئاسة القسم لأكثر من دورة
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'المشاركة الفعلية في اللجان الداخلية بالجامعة أو الكلية',
-        titleEn:
-            'Active participation in internal committees',
-        isMet: _hasInternalCommittees(doctor),
+        titleAr: 'ألا يشغل رئاسة القسم لأكثر من دورة',
+        titleEn: 'Maximum one term as Head of Department',
+        isMet:
+            HeadDepartmentCriteriaCalculator.isDepartmentHeadTermRequirementMet(
+              doctor,
+            ),
         isAutoChecked: true,
+        details: HeadDepartmentCriteriaCalculator.getDepartmentHeadTermsDetails(
+          doctor,
+        ),
+      ),
+
+      // ========================================================
+      // 3. المشاركة في اللجان الداخلية
+      // ========================================================
+      CriterionStatus(
+        titleAr: 'المشاركة في اللجان الداخلية',
+        titleEn: 'Participation in internal committees',
+        isMet: HeadDepartmentCriteriaCalculator.hasInternalCommittees(doctor),
+        isAutoChecked: true,
+        details: HeadDepartmentCriteriaCalculator.getInternalCommitteesDetails(
+          doctor,
+        ),
       ),
     ];
   }
 
   // ============================================================
-  // (7) مدير وحدة ضمان الجودة
+  // مدير الجودة
   // ============================================================
 
   static List<CriterionStatus> _getQualityManagerCriteria(
     DoctorProfileModel doctor,
   ) {
-    final qualityTraining =
-        _hasQualityTraining(doctor);
-
     return [
+      // ========================================================
+      // 1. مدرس / أستاذ مساعد / أستاذ على رأس العمل
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'أن يشغل وظيفة مدرس أو أستاذ مساعد أو أستاذ وقائماً على رأس عمله',
-        titleEn:
-            'Must hold Lecturer, Assistant Professor, or Professor rank and be actively on duty',
+        titleAr: 'مدرس/أستاذ مساعد/أستاذ على رأس العمل',
+        titleEn: 'Lecturer/Assistant Professor/Professor',
         isMet:
-            _hasQualityManagerRank(doctor) &&
-            !_isOnLeaveOrSeconded(doctor),
+            QualityManagerCriteriaCalculator.isCurrentAcademicRankRequirementMet(
+              doctor,
+            ),
         isAutoChecked: true,
-        details: _getCurrentRankName(doctor),
+        details: QualityManagerCriteriaCalculator.getAcademicRankDetails(
+          doctor,
+        ),
       ),
 
+      // ========================================================
+      // 2. دورات معتمدة في الجودة
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'الحصول على دورات تدريبية معتمدة في مجال الجودة',
-        titleEn:
-            'Must hold approved training in Quality',
-        isMet: qualityTraining,
+        titleAr: 'دورات معتمدة في الجودة',
+        titleEn: 'Quality training',
+        isMet: QualityManagerCriteriaCalculator.hasQualityTraining(doctor),
         isAutoChecked: true,
-        details: qualityTraining
-            ? 'يوجد دورات معتمدة'
-            : 'لم يتم العثور على دورات مطابقة',
+        details: QualityManagerCriteriaCalculator.getQualityTrainingDetails(
+          doctor,
+        ),
       ),
 
+      // ========================================================
+      // 3. مهارات التواصل والقيادة
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'امتلاك مهارات التواصل الفعال والقدرة على قيادة فريق العمل',
-        titleEn:
-            'Must possess effective communication and team leadership skills',
-        isMet: true,
+        titleAr: 'مهارات تواصل وقيادة',
+        titleEn: 'Communication and leadership skills',
+        isMet: false,
         isAutoChecked: false,
         details:
-            'يتطلب تقييم الأدمن أو المقابلة الشخصية',
+            QualityManagerCriteriaCalculator.getCommunicationAndLeadershipDetails(
+              doctor,
+            ),
       ),
 
+      // ========================================================
+      // 4. ICDL
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'المهارات التقنية اللازمة للتعامل مع أنظمة تكنولوجيا المعلومات',
-        titleEn:
-            'Technical skills required for IT systems and digital transformation',
-        isMet: doctor.hasICDL,
+        titleAr: 'مهارات تقنية ICDL',
+        titleEn: 'IT skills',
+        isMet: QualityManagerCriteriaCalculator.isICDLRequirementMet(doctor),
         isAutoChecked: true,
+        details: QualityManagerCriteriaCalculator.getICDLDetails(doctor),
       ),
 
+      // ========================================================
+      // 5. إعداد دراسات تقييم ذاتي
+      // ========================================================
       CriterionStatus(
-        titleAr:
-            'القدرة على إعداد دراسات التقييم الذاتي والمشاركة الفعالة في الأنشطة',
-        titleEn:
-            'Ability to prepare self-assessment studies',
-        isMet: true,
+        titleAr: 'إعداد دراسات تقييم ذاتي',
+        titleEn: 'Assessment studies',
+        isMet: false,
         isAutoChecked: false,
         details:
-            'يتطلب تقييم الأدمن بناءً على السيرة الذاتية',
+            QualityManagerCriteriaCalculator.getSelfAssessmentStudiesDetails(
+              doctor,
+            ),
       ),
     ];
   }
 
   // ============================================================
-  // (8) القيادات الإدارية
+  // مدير الإدارة
   // ============================================================
 
   static List<CriterionStatus> _getAdminManagerCriteria(
-    DoctorProfileModel doctor,
+    EmployeeModel employee,
   ) {
-    final adminTraining =
-        _hasAdminTraining(doctor);
-
-    return [
-      CriterionStatus(
-        titleAr:
-            'خبرة موثقة في مجال العمل الإداري بالجامعات',
-        titleEn:
-            'Documented experience in university administrative work',
-        isMet:
-            doctor.hasAdminExperience ?? false,
-        isAutoChecked: false,
-        details: 'يتطلب مراجعة السيرة الذاتية',
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'إجادة التعامل المحترف مع برمجيات الحاسب الآلي ونظم التحول الرقمي',
-        titleEn:
-            'Professional proficiency in computer software',
-        isMet: doctor.hasICDL,
-        isAutoChecked: true,
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'الحصول على مؤهل جامعي عالٍ مناسب لطبيعة الوظيفة',
-        titleEn:
-            'Must hold an appropriate higher university degree',
-        isMet: true,
-        isAutoChecked: true,
-        details: 'مستوفي - عضو هيئة تدريس',
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'تقدير امتياز في تقارير تقييم الأداء عن آخر 4 سنوات',
-        titleEn:
-            'Excellent rating in performance reports for the last 4 years',
-        isMet:
-            doctor.hasExcellentPerformanceReports ?? false,
-        isAutoChecked: true,
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'خلو السجل الوظيفي من أي جزاءات تأديبية',
-        titleEn:
-            'Clean disciplinary record',
-        isMet: doctor.disciplinaryClearance,
-        isAutoChecked: true,
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'مشاركة إيجابية في تطوير منظومة العمل الإداري خلال آخر 3 سنوات',
-        titleEn:
-            'Positive participation in developing the administrative system over the last 3 years',
-        isMet: true,
-        isAutoChecked: false,
-        details:
-            'يتطلب تقديم أوراق ثبوتية للأدمن',
-      ),
-
-      CriterionStatus(
-        titleAr:
-            'دورات تدريبية متخصصة في الإدارة الحديثة وحل الأزمات والموارد البشرية',
-        titleEn:
-            'Specialized training in modern management, crisis management, and HR',
-        isMet: adminTraining,
-        isAutoChecked: true,
-        details: adminTraining
-            ? 'يوجد دورات مطابقة'
-            : 'لم يتم العثور على دورات مطابقة',
-      ),
-    ];
+    return AdminManagerCriteriaCalculator.getCriteria(employee);
   }
 
   // ============================================================
-  // الدوال المساعدة
+  // حساب عدد الدورات من JobHistory
   // ============================================================
 
-  static bool _isUnder60(
+  static int _getTermsCountFromHistory(
     DoctorProfileModel doctor,
+    String keywordAr,
   ) {
-    return _calculateAge(doctor.birthDate) < 60;
-  }
-
-  static int _calculateAge(DateTime? birthDate) {
-    if (birthDate == null) return 100;
-
-    final today = DateTime.now();
-
-    int age = today.year - birthDate.year;
-
-    if (today.month < birthDate.month ||
-        (today.month == birthDate.month &&
-            today.day < birthDate.day)) {
-      age--;
+    if (doctor.jobHistory.isEmpty) {
+      return 0;
     }
 
-    return age;
+    final roleJobs = doctor.jobHistory
+        .where((job) => job.jobTitleAr.contains(keywordAr))
+        .toList();
+
+    if (roleJobs.isEmpty) {
+      return 0;
+    }
+
+    roleJobs.sort((a, b) => a.startDate.compareTo(b.startDate));
+
+    int terms = 1;
+
+    for (int i = 1; i < roleJobs.length; i++) {
+      final prevEnd = roleJobs[i - 1].endDate ?? DateTime.now();
+
+      if (roleJobs[i].startDate.difference(prevEnd).inDays > 180) {
+        terms++;
+      }
+    }
+
+    return terms;
   }
 
-  static bool _isOnLeaveOrSeconded(
+  // ============================================================
+  // التحقق من تجاوز عدد الدورات
+  // ============================================================
+
+  static bool _checkTermsExceeded(
     DoctorProfileModel doctor,
-  ) {
-    return (doctor.isOnSecondment ?? false) ||
-        (doctor.isOnUnpaidLeave ?? false) ||
-        doctor.isOnVacation;
+    String keywordAr,
+    String roleCode, {
+    int maxTerms = 2,
+  }) {
+    if (doctor.jobHistory.isNotEmpty) {
+      final historyTerms = _getTermsCountFromHistory(doctor, keywordAr);
+
+      if (historyTerms >= maxTerms) {
+        return true;
+      }
+    }
+
+    final count = doctor.previousLeadershipRoles
+        .where((r) => r.trim().toLowerCase() == roleCode.trim().toLowerCase())
+        .length;
+
+    return count >= maxTerms;
   }
 
-  static bool _hasApprovedWorkPlan(
+  // ============================================================
+  // تفاصيل الدورات السابقة
+  // ============================================================
+
+  static String _getTermsDetails(
     DoctorProfileModel doctor,
+    String keywordAr,
+    String roleCode,
   ) {
+    if (doctor.jobHistory.isNotEmpty) {
+      final terms = _getTermsCountFromHistory(doctor, keywordAr);
+
+      final years = doctor.calculateYearsInPosition(keywordAr);
+
+      if (years > 0) {
+        return 'السجل الوظيفي: $years سنة ($terms دورة)';
+      }
+    }
+
+    final count = doctor.previousLeadershipRoles
+        .where((r) => r.trim().toLowerCase() == roleCode.trim().toLowerCase())
+        .length;
+
+    return count > 0 ? 'مُسجل كدورات: $count' : 'لا توجد دورات سابقة';
+  }
+
+  // ============================================================
+  // خطة العمل
+  // ============================================================
+
+  static bool _hasApprovedWorkPlan(DoctorProfileModel doctor) {
     return doctor.workPlanFileUrl != null &&
         doctor.workPlanFileUrl!.trim().isNotEmpty &&
-        doctor.workPlanStatus ==
-            VerificationStatus.approved;
+        doctor.workPlanStatus == VerificationStatus.approved;
   }
 
-  static String _getWorkPlanDetails(
-    DoctorProfileModel doctor,
-  ) {
+  static String _getWorkPlanDetails(DoctorProfileModel doctor) {
     if (doctor.workPlanFileUrl == null ||
         doctor.workPlanFileUrl!.trim().isEmpty) {
       return 'لم يتم رفع الخطة';
     }
 
-    switch (doctor.workPlanStatus) {
-      case VerificationStatus.approved:
-        return 'معتمدة';
-
-      case VerificationStatus.pending:
-        return 'قيد المراجعة';
-
-      case VerificationStatus.rejected:
-        return 'مرفوضة';
-
-      default:
-        return 'لم يتم التحديد';
-    }
+    return doctor.workPlanStatus == VerificationStatus.approved
+        ? 'معتمدة'
+        : doctor.workPlanStatus == VerificationStatus.pending
+        ? 'قيد المراجعة'
+        : 'مرفوضة';
   }
 
-  static bool _hasExceededTermLimits(
-    DoctorProfileModel doctor,
-    String role, {
-    int maxTerms = 2,
-  }) {
-    final count = doctor.previousLeadershipRoles
-        .where(
-          (r) =>
-              r.toString().trim().toLowerCase() ==
-              role.trim().toLowerCase(),
-        )
-        .length;
+  // ============================================================
+  // Normalize Arabic text
+  // ============================================================
 
-    return count >= maxTerms;
-  }
-
-  static bool _hasExceededSectorTermLimits(
-    DoctorProfileModel doctor,
-    String baseRole,
-    String sector, {
-    int maxTerms = 2,
-  }) {
-    final sectorRole =
-        '${baseRole}_$sector'.trim().toLowerCase();
-
-    final count = doctor.previousLeadershipRoles
-        .where(
-          (r) =>
-              r.toString().trim().toLowerCase() ==
-              sectorRole,
-        )
-        .length;
-
-    return count >= maxTerms;
-  }
-
-  static bool _isEgyptian(
-    DoctorProfileModel doctor,
-  ) {
-    final natAr =
-        _normalizeArabic(
-          doctor.nationalityAr.toLowerCase(),
-        );
-
-    final natEn =
-        doctor.nationalityEn.toLowerCase().trim();
-
-    return natAr.contains('مصري') ||
-        natAr.contains('مصر') ||
-        natEn.contains('egyptian') ||
-        natEn == 'egypt';
-  }
-
-  static bool _hasRequiredLeadershipCourses(
-    DoctorProfileModel doctor,
-  ) {
-    final count = doctor.courses
-        .where(
-          (course) =>
-              course.isMandatory &&
-              course.status ==
-                  VerificationStatus.approved,
-        )
-        .length;
-
-    return count >= 2;
-  }
-
-  static bool _hasInternalCommittees(
-    DoctorProfileModel doctor,
-  ) {
-    return doctor.internalCommittees.isNotEmpty;
-  }
-
-  static bool _hasProfessorDegree(
-    DoctorProfileModel doctor,
-  ) {
-    return doctor.academicHistory.any((h) {
-      final degree =
-          (h['degree'] ?? '').toString();
-
-      final normalized =
-          _normalizeArabic(degree.toLowerCase());
-
-      return normalized == 'استاذ' ||
-          normalized == 'بروفيسور' ||
-          normalized == 'professor';
-    });
-  }
-
-  static bool _hasPhdDegree(
-    DoctorProfileModel doctor,
-  ) {
-    return doctor.academicHistory.any((h) {
-      final degree =
-          (h['degree'] ?? '').toString();
-
-      final normalized =
-          _normalizeArabic(degree.toLowerCase());
-
-      return normalized.contains('دكتوراه') ||
-          normalized.contains('phd') ||
-          normalized.contains('doctor of philosophy');
-    });
-  }
-
-  static int _calculateYearsSince(
-    DateTime? startDate,
-  ) {
-    if (startDate == null) return 0;
-
-    final now = DateTime.now();
-
-    int years =
-        now.year - startDate.year;
-
-    if (now.month < startDate.month ||
-        (now.month == startDate.month &&
-            now.day < startDate.day)) {
-      years--;
-    }
-
-    return years < 0 ? 0 : years;
-  }
-
-  static String _normalizeArabic(
-    String text,
-  ) {
+  static String _norm(String text) {
     return text
         .replaceAll('أ', 'ا')
         .replaceAll('إ', 'ا')
@@ -854,101 +859,11 @@ print('====================================');
         .replaceAll('ـ', '')
         .trim();
   }
-
-  static bool _hasQualityManagerRank(
-    DoctorProfileModel doctor,
-  ) {
-    return doctor.academicHistory.any((h) {
-      final degree =
-          (h['degree'] ?? '').toString();
-
-      final normalized =
-          _normalizeArabic(degree.toLowerCase());
-
-      return normalized == 'مدرس' ||
-          normalized == 'lecturer' ||
-          normalized == 'استاذ مساعد' ||
-          normalized == 'بروفيسور مساعد' ||
-          normalized == 'associate professor' ||
-          normalized == 'استاذ' ||
-          normalized == 'بروفيسور' ||
-          normalized == 'professor';
-    });
-  }
-
-  static String _getCurrentRankName(
-    DoctorProfileModel doctor,
-  ) {
-    for (final h in doctor.academicHistory) {
-      final type =
-          (h['type'] ?? '').toString();
-
-      if (h['degree'] != null &&
-          (type == 'promotion' ||
-              type == 'degree')) {
-        return h['degree'].toString();
-      }
-    }
-
-    return 'غير محدد';
-  }
-
-  static bool _hasQualityTraining(
-    DoctorProfileModel doctor,
-  ) {
-    return doctor.courses.any((course) {
-      if (course.status !=
-          VerificationStatus.approved) {
-        return false;
-      }
-
-      final title =
-          _normalizeArabic(
-            course.title.toLowerCase(),
-          );
-
-      return title.contains('جوده') ||
-          title.contains('تخطيط استراتيجي') ||
-          title.contains('اعتماد') ||
-          title.contains('هيئه قوميه') ||
-          title.contains('توصيف مقررات') ||
-          title.contains('quality') ||
-          title.contains('strategic planning') ||
-          title.contains('accreditation');
-    });
-  }
-
-  static bool _hasAdminTraining(
-    DoctorProfileModel doctor,
-  ) {
-    return doctor.courses.any((course) {
-      if (course.status !=
-          VerificationStatus.approved) {
-        return false;
-      }
-
-      final title =
-          _normalizeArabic(
-            course.title.toLowerCase(),
-          );
-
-      return title.contains('اداره') ||
-          title.contains('قياده') ||
-          title.contains('موارد بشريه') ||
-          title.contains('حل ازمات') ||
-          title.contains('تحول رقمي') ||
-          title.contains('management') ||
-          title.contains('leadership') ||
-          title.contains('crisis') ||
-          title == 'hr' ||
-          title.contains('human resources');
-    });
-  }
 }
 
-/// ============================================================
-/// موديل حالة الشرط
-/// ============================================================
+// ============================================================
+// Criterion Status
+// ============================================================
 
 class CriterionStatus {
   final String titleAr;
@@ -956,9 +871,11 @@ class CriterionStatus {
   final bool isMet;
   final bool isAutoChecked;
   final String? details;
-   final bool needsDocument;
+
+  final bool needsDocument;
   final String? documentType;
   final List<String> uploadedDocs;
+
   CriterionStatus({
     required this.titleAr,
     required this.titleEn,

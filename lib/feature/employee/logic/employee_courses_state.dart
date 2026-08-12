@@ -1,27 +1,79 @@
+import 'package:equatable/equatable.dart';
+
 import 'package:optialeader/feature/employee/data/models/employee_course_model.dart';
 
-abstract class EmployeeCoursesState {}
+abstract class EmployeeCoursesState extends Equatable {
+  const EmployeeCoursesState();
 
-class EmployeeCoursesInitial extends EmployeeCoursesState {}
+  @override
+  List<Object?> get props => [];
+}
 
-class EmployeeCoursesLoading extends EmployeeCoursesState {}
+// ============================================================
+// Initial
+// ============================================================
 
-class EmployeeCoursesUploading extends EmployeeCoursesState {}
+class EmployeeCoursesInitial
+    extends EmployeeCoursesState {}
 
-class EmployeeCoursesLoaded extends EmployeeCoursesState {
+// ============================================================
+// Loading
+// ============================================================
+
+class EmployeeCoursesLoading
+    extends EmployeeCoursesState {}
+
+// ============================================================
+// Loaded
+// ============================================================
+
+class EmployeeCoursesLoaded
+    extends EmployeeCoursesState {
   final List<EmployeeCourseModel> courses;
 
-  EmployeeCoursesLoaded(this.courses);
+  const EmployeeCoursesLoaded(
+    this.courses,
+  );
+
+  @override
+  List<Object?> get props => [courses];
 }
 
-class EmployeeCoursesActionSuccess extends EmployeeCoursesState {
+// ============================================================
+// Uploading
+// ============================================================
+
+class EmployeeCoursesUploading
+    extends EmployeeCoursesState {}
+
+// ============================================================
+// Action Success
+// ============================================================
+
+class EmployeeCoursesActionSuccess
+    extends EmployeeCoursesState {
   final String message;
 
-  EmployeeCoursesActionSuccess(this.message);
+  const EmployeeCoursesActionSuccess(
+    this.message,
+  );
+
+  @override
+  List<Object?> get props => [message];
 }
 
-class EmployeeCoursesError extends EmployeeCoursesState {
-  final String error;
+// ============================================================
+// Error
+// ============================================================
 
-  EmployeeCoursesError(this.error);
+class EmployeeCoursesError
+    extends EmployeeCoursesState {
+  final String message;
+
+  const EmployeeCoursesError(
+    this.message,
+  );
+
+  @override
+  List<Object?> get props => [message];
 }

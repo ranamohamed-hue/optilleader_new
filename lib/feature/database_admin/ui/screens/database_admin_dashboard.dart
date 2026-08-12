@@ -106,17 +106,24 @@ class _DatabaseAdminDashboardState extends State<DatabaseAdminDashboard> {
     );
   }
 
-  final List<Widget> _tabs = const [
-    _HomeTab(),
-    _NotificationsTab(),
-    _SettingsTab(),
-  ];
+
 
   @override
   Widget build(BuildContext context) {
+    final tabs = [
+    const _HomeTab(),
+    const _NotificationsTab(),
+    _SettingsTab(
+      onBack: () {
+        setState(() {
+          _currentIndex = 0;
+        });
+      },
+    ),
+  ];
     print("DatabaseAdminDashboard build");
     return Scaffold(
-      body: IndexedStack(index: _currentIndex, children: _tabs),
+      body: IndexedStack(index: _currentIndex, children: tabs),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -523,13 +530,28 @@ class _NotificationsTab extends StatelessWidget {
 
 // تبويب الإعدادات
 class _SettingsTab extends StatelessWidget {
-  const _SettingsTab();
+  final VoidCallback onBack;
+
+  const _SettingsTab({
+    required this.onBack,
+  });
+
   @override
   Widget build(BuildContext context) {
     final state = context.watch<DatabseAdminCubit>().state;
+
     if (state is DatabaseAdminSuccess) {
-      return SettingsScreen(uid: state.profile.uid, role: 'database_admin');
+      return SettingsScreen(
+        uid: state.profile.uid,
+        role: 'database_admin',
+        onBack: onBack,
+      );
     }
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+
+    return const Scaffold(
+      body: Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
   }
 }

@@ -15,7 +15,7 @@ import 'package:optialeader/feature/notification/logic/app_notification_cubit.da
 import 'package:optialeader/feature/notification/logic/app_notification_state.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
+  final String? uid;  const NotificationsScreen({super.key,    this.uid,});
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();

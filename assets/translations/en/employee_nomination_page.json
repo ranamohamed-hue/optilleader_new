@@ -1,0 +1,20 @@
+{"employee_nomination_page":{
+      "nomination": {
+      "title": "Nomination Application",
+      "applicant_data": "Applicant Information",
+      "name": "Name",
+      "current_job": "Current Job",
+      "sector": "Sector",
+      "department": "Department",
+      "job_applied_for": "Applied Position",
+      "job_title": "Job Title",
+      "target_role": "Target Role",
+      "development_vision": "Your Development Vision (Optional)",
+      "vision_hint": "Write your vision and suggestions for developing the work...",
+      "info_message": "Your nomination application will be sent to the administration for review and approval.",
+      "submit": "Submit Application",
+      "success": "Nomination application submitted successfully",
+      "error": "An error occurred while submitting the application",
+      "not_authenticated": "You must be logged in first"
+    }
+}}

@@ -5,42 +5,31 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:intl/intl.dart';
-
 import 'package:optialeader/core/routing/routes.dart';
-import 'package:optialeader/feature/database_admin/data/models/doctor_profile_model.dart';
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data_state.dart';
 
 class DoctorProfileDataPage extends StatefulWidget {
   final String doctorUid;
 
-  const DoctorProfileDataPage({super.key, required this.doctorUid});
+  const DoctorProfileDataPage({
+    super.key,
+    required this.doctorUid,
+  });
 
   @override
-  State<DoctorProfileDataPage> createState() => _DoctorProfileDataPageState();
+  State<DoctorProfileDataPage> createState() =>
+      _DoctorProfileDataPageState();
 }
 
 class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
-  // ✅ متغيرات جلب بيانات أقدم 3 (بدل FutureBuilder)
-  List<DoctorProfileModel> _allDoctors = [];
-  bool _isLoadingTop3 = true;
-
   @override
   void initState() {
     super.initState();
-    context.read<DoctorDataCubit>().getDoctorProfile(widget.doctorUid);
-    _fetchTop3Data(); // ✅ جلب البيانات مرة واحدة فقط
-  }
 
-  // ✅ دالة الجلب في الخلفية
-  Future<void> _fetchTop3Data() async {
-    final doctors = await context.read<DoctorDataCubit>().getAllDoctorsOnce();
-    if (mounted) {
-      setState(() {
-        _allDoctors = doctors;
-        _isLoadingTop3 = false;
-      });
-    }
+    context
+        .read<DoctorDataCubit>()
+        .getDoctorProfile(widget.doctorUid);
   }
 
   @override
@@ -51,12 +40,22 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
 
     return BlocBuilder<DoctorDataCubit, DoctorDataState>(
       builder: (context, state) {
+        // ============================================================
+        // LOADING
+        // ============================================================
+
         if (state is DoctorLoading) {
           return Scaffold(
             backgroundColor: theme.scaffoldBackgroundColor,
-            body: const Center(child: CircularProgressIndicator()),
+            body: const Center(
+              child: CircularProgressIndicator(),
+            ),
           );
         }
+
+        // ============================================================
+        // LOADED
+        // ============================================================
 
         if (state is DoctorLoaded && state.doctor != null) {
           final doctor = state.doctor!;
@@ -66,12 +65,17 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
             body: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
+                // ==================================================
+                // APP BAR
+                // ==================================================
+
                 SliverAppBar(
                   automaticallyImplyLeading: false,
                   expandedHeight: 100.0.h,
                   pinned: true,
                   backgroundColor: colorScheme.primary,
                   elevation: 0,
+
                   flexibleSpace: FlexibleSpaceBar(
                     background: Container(
                       decoration: BoxDecoration(
@@ -84,11 +88,23 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                           ],
                         ),
                       ),
+
                       child: Padding(
-                        padding: EdgeInsets.fromLTRB(10.w, 10.h, 10.w, 0),
+                        padding: EdgeInsets.fromLTRB(
+                          10.w,
+                          10.h,
+                          10.w,
+                          0,
+                        ),
+
                         child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                          crossAxisAlignment:
+                              CrossAxisAlignment.center,
                           children: [
+                            // ==============================
+                            // BACK BUTTON
+                            // ==============================
+
                             IconButton(
                               icon: Icon(
                                 Icons.arrow_back_ios_new,
@@ -103,29 +119,44 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                                 }
                               },
                             ),
+
                             SizedBox(width: 15.w),
+
+                            // ==============================
+                            // NAME + JOB
+                            // ==============================
+
                             Expanded(
                               child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.center,
+                                crossAxisAlignment:
+                                    CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    isArabic ? doctor.nameAr : doctor.nameEn,
-                                    style: theme.textTheme.titleMedium
+                                    isArabic
+                                        ? doctor.nameAr
+                                        : doctor.nameEn,
+                                    style: theme
+                                        .textTheme.titleMedium
                                         ?.copyWith(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18.sp,
-                                        ),
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 18.sp,
+                                    ),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                   ),
+
                                   SizedBox(height: 7.h),
+
                                   Text(
                                     isArabic
                                         ? doctor.currentJobAr
                                         : doctor.currentJobEn,
-                                    style: theme.textTheme.bodySmall?.copyWith(
+                                    style: theme
+                                        .textTheme.bodySmall
+                                        ?.copyWith(
                                       color: Colors.white70,
                                       fontSize: 18.sp,
                                     ),
@@ -134,7 +165,13 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                                 ],
                               ),
                             ),
+
                             SizedBox(width: 15.w),
+
+                            // ==============================
+                            // PROFILE IMAGE
+                            // ==============================
+
                             Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
@@ -143,22 +180,26 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                                   width: 2.w,
                                 ),
                               ),
+
                               child: CircleAvatar(
                                 radius: 35.r,
                                 backgroundColor: Colors.white12,
+
                                 backgroundImage:
-                                    (doctor.profileImage.isNotEmpty)
-                                    ? CachedNetworkImageProvider(
-                                        doctor.profileImage,
-                                      )
-                                    : null,
-                                child: (doctor.profileImage.isEmpty)
-                                    ? Icon(
-                                        Icons.person,
-                                        color: colorScheme.secondary,
-                                        size: 40.sp,
-                                      )
-                                    : null,
+                                    doctor.profileImage.isNotEmpty
+                                        ? CachedNetworkImageProvider(
+                                            doctor.profileImage,
+                                          )
+                                        : null,
+
+                                child:
+                                    doctor.profileImage.isEmpty
+                                        ? Icon(
+                                            Icons.person,
+                                            color: colorScheme.secondary,
+                                            size: 40.sp,
+                                          )
+                                        : null,
                               ),
                             ),
                           ],
@@ -167,110 +208,203 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                     ),
                   ),
                 ),
+
+                // ==================================================
+                // BODY
+                // ==================================================
+
                 SliverList(
                   delegate: SliverChildListDelegate([
                     SizedBox(height: 10.h),
 
-                    // ===== قسم البيانات الشخصية =====
+                    // ==================================================
+                    // البيانات الشخصية
+                    // ==================================================
+
                     _buildSectionCard(
                       context,
                       icon: Icons.badge_outlined,
-                      title: "acadimic_Data.academicData.personal_section".tr(),
+                      title:
+                          "acadimic_Data.academicData.personal_section"
+                              .tr(),
                       children: [
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.name".tr(),
-                          value: isArabic ? doctor.nameAr : doctor.nameEn,
+                          label:
+                              "acadimic_Data.academicData.name".tr(),
+                          value: isArabic
+                              ? doctor.nameAr
+                              : doctor.nameEn,
                         ),
+
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.phone".tr(),
+                          label:
+                              "acadimic_Data.academicData.phone".tr(),
                           value: doctor.phone,
                         ),
+
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.social_status"
-                              .tr(),
+                          label:
+                              "acadimic_Data.academicData.social_status"
+                                  .tr(),
                           value: isArabic
                               ? doctor.socialStatusAr
                               : doctor.socialStatusEn,
                         ),
+
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.status".tr(),
-                          value: (doctor.isActive)
+                          label:
+                              "acadimic_Data.academicData.status".tr(),
+                          value: doctor.isActive
                               ? "acadimic_Data.statuses.active".tr()
                               : "acadimic_Data.statuses.inactive".tr(),
-                          valueColor: (doctor.isActive)
+                          valueColor: doctor.isActive
                               ? Colors.green
                               : Colors.orange,
                         ),
+
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.birth_date".tr(),
+                          label:
+                              "acadimic_Data.academicData.birth_date"
+                                  .tr(),
                           value: doctor.birthDate != null
-                              ? DateFormat(
-                                  'yyyy-MM-dd',
-                                ).format(doctor.birthDate!)
+                              ? DateFormat('yyyy-MM-dd')
+                                  .format(doctor.birthDate!)
                               : '-',
                         ),
                       ],
                     ),
 
-                    // ===== قسم البيانات الأكاديمية =====
+                    // ==================================================
+                    // البيانات الأكاديمية
+                    // ==================================================
+
                     _buildSectionCard(
                       context,
                       icon: Icons.school_outlined,
-                      title: "acadimic_Data.academicData.academic_section".tr(),
+                      title:
+                          "acadimic_Data.academicData.academic_section"
+                              .tr(),
                       children: [
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.add_doctor.university".tr(),
+                          label:
+                              "acadimic_Data.add_doctor.university"
+                                  .tr(),
                           value: isArabic
                               ? doctor.universityAr
                               : doctor.universityEn,
                         ),
+
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.add_doctor.faculty".tr(),
-                          value: isArabic ? doctor.facultyAr : doctor.facultyEn,
+                          label:
+                              "acadimic_Data.add_doctor.faculty".tr(),
+                          value: isArabic
+                              ? doctor.facultyAr
+                              : doctor.facultyEn,
                         ),
+
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.add_doctor.department".tr(),
+                          label:
+                              "acadimic_Data.add_doctor.department"
+                                  .tr(),
                           value: isArabic
                               ? doctor.departmentAr
                               : doctor.departmentEn,
                         ),
+
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.job".tr(),
+                          label:
+                              "acadimic_Data.academicData.job".tr(),
                           value: isArabic
                               ? doctor.currentJobAr
                               : doctor.currentJobEn,
                         ),
+
+                        // ==============================
+                        // تاريخ التعيين
+                        // ==============================
+
+                        _buildInfoRow(
+                          context,
+                          label: "تاريخ التعيين",
+                          value: doctor.hiringDate != null
+                              ? DateFormat('yyyy-MM-dd')
+                                  .format(doctor.hiringDate!)
+                              : '-',
+                        ),
+
+                        // ==============================
+                        // تاريخ الأستاذية
+                        // ==============================
+
+                        _buildInfoRow(
+                          context,
+                          label: "تاريخ الأستاذية",
+                          value: doctor.professorRankDate != null
+                              ? DateFormat('yyyy-MM-dd')
+                                  .format(
+                                  doctor.professorRankDate!,
+                                )
+                              : '-',
+                        ),
                       ],
                     ),
 
-                    // ===== قسم القيادات والأهلية =====
-                // ===== قسم بيانات التواصل =====
+                    // ==================================================
+                    // بيانات التواصل
+                    // ==================================================
+
                     _buildSectionCard(
                       context,
                       icon: Icons.contact_mail_outlined,
-                      title: "acadimic_Data.academicData.contact_section".tr(),
+                      title:
+                          "acadimic_Data.academicData.contact_section"
+                              .tr(),
                       children: [
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.email".tr(),
+                          label:
+                              "acadimic_Data.academicData.email".tr(),
                           value: doctor.email,
                         ),
+
                         _buildInfoRow(
                           context,
-                          label: "acadimic_Data.academicData.address".tr(),
-                          value: isArabic ? doctor.addressAr : doctor.addressEn,
+                          label:
+                              "acadimic_Data.academicData.address".tr(),
+                          value: isArabic
+                              ? doctor.addressAr
+                              : doctor.addressEn,
                         ),
                       ],
                     ),
+
+                    // ==================================================
+                    // اللجان الداخلية
+                    // ==================================================
+
+                    _buildSectionCard(
+                      context,
+                      icon: Icons.groups_outlined,
+                      title:
+                          "acadimic_Data.add_doctor.internal_committees"
+                              .tr(),
+                      children: [
+                        _buildCommitteesWidget(
+                          context,
+                          doctor.internalCommittees,
+                        ),
+                      ],
+                    ),
+
                     SizedBox(height: 40.h),
                   ]),
                 ),
@@ -279,25 +413,46 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
           );
         }
 
+        // ============================================================
+        // ERROR
+        // ============================================================
+
         if (state is DoctorError) {
           return Scaffold(
+            backgroundColor: theme.scaffoldBackgroundColor,
             body: Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, color: Colors.red, size: 48.sp),
+                  Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 48.sp,
+                  ),
+
                   SizedBox(height: 16.h),
+
                   Text(
-                    state.error ?? 'acadimic_Data.error_message'.tr(),
-                    style: TextStyle(color: Colors.red, fontSize: 14.sp),
+                    state.error ??
+                        'acadimic_Data.error_message'.tr(),
+                    style: TextStyle(
+                      color: Colors.red,
+                      fontSize: 14.sp,
+                    ),
                     textAlign: TextAlign.center,
                   ),
+
                   SizedBox(height: 20.h),
+
                   ElevatedButton(
-                    onPressed: () => context
-                        .read<DoctorDataCubit>()
-                        .getDoctorProfile(widget.doctorUid),
-                    child: Text('acadimic_Data.retry'.tr()),
+                    onPressed: () {
+                      context
+                          .read<DoctorDataCubit>()
+                          .getDoctorProfile(widget.doctorUid);
+                    },
+                    child: Text(
+                      'acadimic_Data.retry'.tr(),
+                    ),
                   ),
                 ],
               ),
@@ -305,133 +460,25 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
           );
         }
 
-        return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        return const Scaffold(
+          body: Center(
+            child: CircularProgressIndicator(),
+          ),
+        );
       },
     );
   }
 
   // ============================================================
-  // التحقق من درجة الأستاذية
+  // COMMITTEES
   // ============================================================
-  bool _hasProfessorDegree(DoctorProfileModel doctor) {
-    return doctor.academicHistory.any((item) {
-      final degree = (item['degree'] ?? '').toString().toLowerCase();
-      final normalized = _normalizeArabic(degree);
-      return normalized.contains('استاذ') || degree.contains('professor');
-    });
-  }
 
-  String _normalizeArabic(String text) {
-    return text
-        .replaceAll('أ', 'ا')
-        .replaceAll('إ', 'ا')
-        .replaceAll('آ', 'ا')
-        .replaceAll('ة', 'ه')
-        .replaceAll('ى', 'ي');
-  }
-
-  // ============================================================
-  //  ويدجت التحقق الديناميكي لأقدم 3 (بدون FutureBuilder)
-  // ============================================================
-  Widget _buildTop3DynamicCheck(
+  Widget _buildCommitteesWidget(
     BuildContext context,
-    DoctorProfileModel doctor,
+    List<String> committees,
   ) {
-    if (_isLoadingTop3) {
-      return Padding(
-        padding: EdgeInsets.all(10.h),
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
-    }
-
-    bool isTop3 = false;
-    String details = "acadimic_Data.validation_checks.top3_error".tr();
-
-    if (_allDoctors.isNotEmpty) {
-      final top3Uids = DoctorProfileModel.getTop3SeniorInDepartment(
-        doctors: _allDoctors,
-        departmentAr: doctor.departmentAr,
-      );
-      isTop3 = top3Uids.contains(doctor.uid);
-      details = isTop3
-          ? "acadimic_Data.validation_checks.top3_met".tr()
-          : "acadimic_Data.validation_checks.top3_unmet".tr();
-    }
-
-    return _buildValidationCard(
-      context,
-      label: "acadimic_Data.validation_checks.top3_label".tr(),
-      isMet: isTop3,
-      details: details,
-    );
-  }
-
-  // ============================================================
-  // ويدجت كارت التحقق (أخضر/برتقالي)
-  // ============================================================
-  Widget _buildValidationCard(
-    BuildContext context, {
-    required String label,
-    required bool isMet,
-    required String details,
-  }) {
     final theme = Theme.of(context);
-    return Container(
-      margin: EdgeInsets.only(bottom: 10.h),
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: isMet
-            ? Colors.green.withOpacity(0.08)
-            : Colors.orange.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(10.r),
-        border: Border.all(
-          color: isMet ? Colors.green : Colors.orange,
-          width: 1.5,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isMet ? Icons.check_circle : Icons.cancel_outlined,
-            color: isMet ? Colors.green : Colors.orange,
-            size: 22.sp,
-          ),
-          SizedBox(width: 10.w),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.grey.shade700,
-                    fontSize: 11.sp,
-                  ),
-                ),
-                SizedBox(height: 2.h),
-                Text(
-                  details,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: isMet
-                        ? Colors.green.shade800
-                        : Colors.orange.shade800,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13.sp,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  // ============================================================
-  // ويدجت اللجان الداخلية
-  // ============================================================
-  Widget _buildCommitteesWidget(BuildContext context, List<String> committees) {
-    final theme = Theme.of(context);
     return Padding(
       padding: EdgeInsets.only(bottom: 15.h),
       child: Column(
@@ -440,16 +487,22 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
           Text(
             "acadimic_Data.add_doctor.internal_committees".tr(),
             style: theme.textTheme.labelMedium?.copyWith(
-              color: theme.colorScheme.primary.withOpacity(0.7),
+              color:
+                  theme.colorScheme.primary.withOpacity(0.7),
               fontWeight: FontWeight.w600,
               fontSize: 11.sp,
             ),
           ),
+
           SizedBox(height: 8.h),
+
           if (committees.isEmpty)
             Text(
               "acadimic_Data.add_doctor.no_committees".tr(),
-              style: TextStyle(color: Colors.grey, fontSize: 13.sp),
+              style: TextStyle(
+                color: Colors.grey,
+                fontSize: 13.sp,
+              ),
             )
           else
             Wrap(
@@ -462,25 +515,34 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                     vertical: 6.h,
                   ),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.secondary.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(8.r),
+                    color: theme.colorScheme.secondary
+                        .withOpacity(0.1),
+                    borderRadius:
+                        BorderRadius.circular(8.r),
                     border: Border.all(
-                      color: theme.colorScheme.secondary.withOpacity(0.3),
+                      color: theme.colorScheme.secondary
+                          .withOpacity(0.3),
                     ),
                   ),
+
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         Icons.check_circle_outline,
                         size: 14.sp,
-                        color: theme.colorScheme.secondary,
+                        color:
+                            theme.colorScheme.secondary,
                       ),
+
                       SizedBox(width: 4.w),
+
                       Text(
                         name,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(
+                          color:
+                              theme.colorScheme.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -489,16 +551,22 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
                 );
               }).toList(),
             ),
+
           SizedBox(height: 10.h),
-          Divider(height: 1, color: theme.dividerColor.withOpacity(0.2)),
+
+          Divider(
+            height: 1,
+            color: theme.dividerColor.withOpacity(0.2),
+          ),
         ],
       ),
     );
   }
 
   // ============================================================
-  // ويدجت كارت القسم
+  // SECTION CARD
   // ============================================================
+
   Widget _buildSectionCard(
     BuildContext context, {
     required IconData icon,
@@ -507,11 +575,19 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
   }) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark =
+        theme.brightness == Brightness.dark;
+
     return Container(
-      margin: EdgeInsets.symmetric(horizontal: 20.w, vertical: 10.h),
+      margin: EdgeInsets.symmetric(
+        horizontal: 20.w,
+        vertical: 10.h,
+      ),
+
       decoration: BoxDecoration(
         color: theme.cardTheme.color ?? Colors.white,
         borderRadius: BorderRadius.circular(15.r),
+
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
@@ -520,26 +596,47 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
           ),
         ],
       ),
+
       child: Padding(
         padding: EdgeInsets.all(20.w),
+
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment:
+              CrossAxisAlignment.start,
+
           children: [
             Row(
               children: [
-                Icon(icon, color: colorScheme.secondary, size: 22.sp),
+                Icon(
+                  icon,
+                  color: colorScheme.secondary,
+                  size: 22.sp,
+                ),
+
                 SizedBox(width: 10.w),
-                Text(
-                  title,
-                  style: theme.textTheme.titleSmall?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14.sp,
+
+                Expanded(
+                  child: Text(
+                    title,
+                    style:
+                        theme.textTheme.titleSmall?.copyWith(
+                      color: isDark
+                          ? Colors.white
+                          : Colors.black,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14.sp,
+                    ),
                   ),
                 ),
               ],
             ),
-            Divider(height: 30.h, color: colorScheme.primary.withOpacity(0.1)),
+
+            Divider(
+              height: 30.h,
+              color:
+                  colorScheme.primary.withOpacity(0.1),
+            ),
+
             ...children,
           ],
         ),
@@ -548,8 +645,9 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
   }
 
   // ============================================================
-  // ويدجت صف المعلومات
+  // INFO ROW
   // ============================================================
+
   Widget _buildInfoRow(
     BuildContext context, {
     required String label,
@@ -557,30 +655,48 @@ class _DoctorProfileDataPageState extends State<DoctorProfileDataPage> {
     Color? valueColor,
   }) {
     final theme = Theme.of(context);
+
     return Padding(
       padding: EdgeInsets.only(bottom: 15.h),
+
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment:
+            CrossAxisAlignment.start,
+
         children: [
           Text(
             label,
-            style: theme.textTheme.labelMedium?.copyWith(
-              color: Colors.white,
+            style:
+                theme.textTheme.labelMedium?.copyWith(
+              color: theme.brightness ==
+                      Brightness.dark
+                  ? Colors.white70
+                  : theme.colorScheme.primary,
               fontWeight: FontWeight.w600,
               fontSize: 11.sp,
             ),
           ),
+
           SizedBox(height: 4.h),
+
           Text(
             value.isEmpty ? '-' : value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: valueColor ?? theme.colorScheme.onSurface,
+            style:
+                theme.textTheme.bodyMedium?.copyWith(
+              color: valueColor ??
+                  theme.colorScheme.onSurface,
               fontSize: 14.sp,
               fontWeight: FontWeight.w500,
             ),
           ),
+
           SizedBox(height: 10.h),
-          Divider(height: 1, color: theme.dividerColor.withOpacity(0.2)),
+
+          Divider(
+            height: 1,
+            color:
+                theme.dividerColor.withOpacity(0.2),
+          ),
         ],
       ),
     );

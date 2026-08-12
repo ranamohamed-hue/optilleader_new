@@ -1,10 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:optialeader/feature/database_admin/data/models/job_history_model.dart'; // ✅ الملف الجديد
 import 'package:optialeader/feature/doctor/data/model/conferance_model.dart';
 import 'package:optialeader/feature/doctor/data/model/courses_model.dart';
 import 'package:optialeader/feature/doctor/data/model/exhibition_venue_model.dart';
 import 'package:optialeader/feature/doctor/data/model/research_paper_model.dart';
 import 'package:optialeader/feature/doctor/data/model/academic_activity_model.dart';
 import 'package:optialeader/feature/doctor/data/model/verefication_status.dart';
+import 'package:optialeader/core/services/DateCalculation/date_calculation_model.dart';
+
 
 class DoctorProfileModel {
   final String? uid;
@@ -25,8 +28,6 @@ class DoctorProfileModel {
   final DateTime? birthDate;
   final String profileImage;
 
-  
-
   // البيانات الأكاديمية والوظيفية
   final String universityAr;
   final String universityEn;
@@ -41,8 +42,15 @@ class DoctorProfileModel {
   // القيادات الأكاديمية
   final DateTime? professorRankDate;
   final List<String> previousLeadershipRoles;
+  
+  // ✅ التاريخ الوظيفي المتسلسل (بياجي من الملف اللي استوردناه فوق)
+  final List<JobHistory> jobHistory;
+
   final bool hasCriminalRecord;
   final bool holdsPartyPosition;
+
+  // ✅ سنوات شغل منصب العميد
+  final int? yearsAsDean;
 
   // بيانات التواصل
   final String email;
@@ -115,13 +123,14 @@ class DoctorProfileModel {
     this.facultyEn = '',
     this.departmentAr = '',
     this.departmentEn = '',
-  
     this.hiringDate,
     this.activeDutySinceDate,
     this.professorRankDate,
     this.previousLeadershipRoles = const [],
+    this.jobHistory = const [],
     this.hasCriminalRecord = false,
     this.holdsPartyPosition = false,
+    this.yearsAsDean,
     required this.email,
     required this.phone,
     required this.addressAr,
@@ -142,20 +151,19 @@ class DoctorProfileModel {
     this.courses = const [],
     this.academicActivities,
     this.internalCommittees = const [],
-   this.hasHealthCertificate = false,
-this.hasCommitteeMembership = false,
-this.hasSelfEvaluationReport = false,
-this.hasArbitrationPlan = false,
-this.hasAdminExperience = false,
-this.hasExcellentPerformanceReports = false,
-this.isTop3Senior = false,
-this.hasSupremeCouncilTraining = false,
-this.hasFLDCTraining = false,
+    this.hasHealthCertificate = false,
+    this.hasCommitteeMembership = false,
+    this.hasSelfEvaluationReport = false,
+    this.hasArbitrationPlan = false,
+    this.hasAdminExperience = false,
+    this.hasExcellentPerformanceReports = false,
+    this.isTop3Senior = false,
+    this.hasSupremeCouncilTraining = false,
+    this.hasFLDCTraining = false,
     this.workPlanFileUrl,
     this.workPlanStatus,
   });
 
-  // ✅✅✅ دالة موحدة وآمنة لتحويل أي نوع تاريخ لـ DateTime ✅✅✅
   static DateTime? normalizeDate(dynamic value) {
     if (value == null) return null;
     DateTime? date;
@@ -171,7 +179,6 @@ this.hasFLDCTraining = false,
   }
 
   factory DoctorProfileModel.fromJson(Map<String, dynamic> json, String id) {
-    // ✅ دالة مساعدة لتحويل String إلى Enum بأمان
     VerificationStatus? parseStatus(String? statusString) {
       if (statusString == null) return null;
       return VerificationStatus.values.firstWhere(
@@ -183,29 +190,21 @@ this.hasFLDCTraining = false,
     List<ResearchPaperModel> parseResearchPapers(List<dynamic>? list) {
       if (list == null) return [];
       return list
-          .map(
-            (item) =>
-                ResearchPaperModel.fromJson(Map<String, dynamic>.from(item)),
-          )
+          .map((item) => ResearchPaperModel.fromJson(Map<String, dynamic>.from(item)))
           .toList();
     }
 
     List<ConferenceModel> parseConferences(List<dynamic>? list) {
       if (list == null) return [];
       return list
-          .map(
-            (item) => ConferenceModel.fromJson(Map<String, dynamic>.from(item)),
-          )
+          .map((item) => ConferenceModel.fromJson(Map<String, dynamic>.from(item)))
           .toList();
     }
 
     List<ArtExhibitionModel> parseExhibitions(List<dynamic>? list) {
       if (list == null) return [];
       return list
-          .map(
-            (item) =>
-                ArtExhibitionModel.fromJson(Map<String, dynamic>.from(item)),
-          )
+          .map((item) => ArtExhibitionModel.fromJson(Map<String, dynamic>.from(item)))
           .toList();
     }
 
@@ -217,11 +216,20 @@ this.hasFLDCTraining = false,
     }
 
     final profile = json['profile'] as Map<String, dynamic>? ?? {};
-    final scientificWork =
-        json['scientific_work'] as Map<String, dynamic>? ?? {};
+    final scientificWork = json['scientific_work'] as Map<String, dynamic>? ?? {};
     final adminProofs = json['admin_proofs'] as Map<String, dynamic>? ?? {};
-    final leadershipData =
-        json['leadership_data'] as Map<String, dynamic>? ?? {};
+    final leadershipData = json['leadership_data'] as Map<String, dynamic>? ?? {};
+
+    // تحليل التاريخ الوظيفي (Job History)
+    List<JobHistory> jobHistoryList = [];
+    final jobHistoryData = json['job_history'];
+    if (jobHistoryData != null && jobHistoryData is List) {
+      for (var item in jobHistoryData) {
+        if (item is Map<String, dynamic>) {
+          jobHistoryList.add(JobHistory.fromJson(item));
+        }
+      }
+    }
 
     List<Map<String, dynamic>> historyList = [];
     final historyData = json['academic_profile']?['history'];
@@ -231,7 +239,6 @@ this.hasFLDCTraining = false,
           historyList.add({
             'degree': item['degree'] ?? '',
             'major': item['major'] ?? '',
-            // ✅ استخدام الدالة الموحدة هنا
             'date': normalizeDate(item['date']),
             'place': item['place'] ?? '',
             'type': item['type'] ?? 'degree',
@@ -263,63 +270,29 @@ this.hasFLDCTraining = false,
       nameEn: profile['display_name']?['en'] ?? '',
       nationalityAr: profile['nationality_ar'] ?? '',
       nationalityEn: profile['nationality_en'] ?? '',
-     currentJobAr:
-    profile['current_job_ar'] ?? json['jop']?['title']?['ar'] ?? '',
-currentJobEn:
-    profile['current_job_en'] ?? json['jop']?['title']?['en'] ?? '',
+      currentJobAr: profile['current_job_ar'] ?? json['jop']?['title']?['ar'] ?? '',
+      currentJobEn: profile['current_job_en'] ?? json['jop']?['title']?['en'] ?? '',
       socialStatusAr: profile['social_status_ar'] ?? '',
       socialStatusEn: profile['social_status_en'] ?? '',
       nationalId: json['national_id'] ?? '',
       employeeId: json['employee_id'] ?? '',
-      // ✅ استخدام الدالة الموحدة هنا
       birthDate: normalizeDate(profile['birth_date']),
       profileImage: profile['profile_image'] ?? '',
-      universityAr:
-          profile['university_ar'] ??
-          json['academic_profile']?['university_ar'] ??
-          '',
-      universityEn:
-          profile['university_en'] ??
-          json['academic_profile']?['university_en'] ??
-          '',
-      facultyAr:
-          profile['faculty_ar'] ??
-          json['academic_profile']?['faculty_ar'] ??
-          '',
-      facultyEn:
-          profile['faculty_en'] ??
-          json['academic_profile']?['faculty_en'] ??
-          '',
-      departmentAr:
-          profile['department_ar'] ??
-          json['academic_profile']?['department_ar'] ??
-          '',
-      departmentEn:
-          profile['department_en'] ??
-          json['academic_profile']?['department_en'] ??
-          '',
-    
-
-      // ✅ استخدام الدالة الموحدة هنا
-      hiringDate: normalizeDate(
-        profile['hiring_date'] ?? json['academic_profile']?['hiring_date'],
-      ),
-      activeDutySinceDate: normalizeDate(
-        json['academic_profile']?['active_duty_since_date'],
-      ),
-      professorRankDate: normalizeDate(
-        json['academic_profile']?['professor_rank_date'],
-      ),
-
-      previousLeadershipRoles: List<String>.from(
-        leadershipData['previous_roles'] ?? [],
-      ),
-      internalCommittees: List<String>.from(
-        leadershipData['internal_committees'] ?? [],
-      ),
+      universityAr: profile['university_ar'] ?? json['academic_profile']?['university_ar'] ?? '',
+      universityEn: profile['university_en'] ?? json['academic_profile']?['university_en'] ?? '',
+      facultyAr: profile['faculty_ar'] ?? json['academic_profile']?['faculty_ar'] ?? '',
+      facultyEn: profile['faculty_en'] ?? json['academic_profile']?['faculty_en'] ?? '',
+      departmentAr: profile['department_ar'] ?? json['academic_profile']?['department_ar'] ?? '',
+      departmentEn: profile['department_en'] ?? json['academic_profile']?['department_en'] ?? '',
+      hiringDate: normalizeDate(profile['hiring_date'] ?? json['academic_profile']?['hiring_date']),
+      activeDutySinceDate: normalizeDate(json['academic_profile']?['active_duty_since_date']),
+      professorRankDate: normalizeDate(json['academic_profile']?['professor_rank_date']),
+      previousLeadershipRoles: List<String>.from(leadershipData['previous_roles'] ?? []),
+      jobHistory: jobHistoryList,
+      internalCommittees: List<String>.from(leadershipData['internal_committees'] ?? []),
       hasCriminalRecord: json['security_data']?['has_criminal_record'] ?? false,
-      holdsPartyPosition:
-          json['security_data']?['holds_party_position'] ?? false,
+      holdsPartyPosition: json['security_data']?['holds_party_position'] ?? false,
+      yearsAsDean: adminProofs['years_as_dean'],
       email: json['university_email'] ?? '',
       phone: profile['phone']?['phone1'] ?? '',
       addressAr: profile['address']?['ar'] ?? '',
@@ -327,57 +300,33 @@ currentJobEn:
       alternativeEmail: json['alternative_email'] ?? '',
       academicHistory: historyList,
       digitalArchive: archiveList,
-      disciplinaryClearance:
-          json['eligibility_data']?['disciplinary_clearance'] ?? true,
-      hasPermanentPosition:
-          json['eligibility_data']?['has_permanent_position'] ?? true,
+      disciplinaryClearance: json['eligibility_data']?['disciplinary_clearance'] ?? true,
+      hasPermanentPosition: json['eligibility_data']?['has_permanent_position'] ?? true,
       isOnVacation: json['eligibility_data']?['is_on_vacation'] ?? false,
       isOnSecondment: json['eligibility_data']?['is_on_secondment'] ?? false,
       isOnUnpaidLeave: json['eligibility_data']?['is_on_unpaid_leave'] ?? false,
-      isActive:
-          json['is_active'] ?? json['eligibility_data']?['is_active'] ?? true,
+      isActive: json['is_active'] ?? json['eligibility_data']?['is_active'] ?? true,
       cvUrl: json['academic_profile']?['cv_url'],
       researchPapers: parseResearchPapers(scientificWork['research_papers']),
       conferences: parseConferences(scientificWork['conferences']),
       exhibitions: parseExhibitions(scientificWork['exhibitions']),
       courses: parseCourses(scientificWork['courses']),
       academicActivities: scientificWork['academic_activities'] != null
-          ? AcademicActivityModel.fromJson(
-              Map<String, dynamic>.from(scientificWork['academic_activities']),
-            )
+          ? AcademicActivityModel.fromJson(Map<String, dynamic>.from(scientificWork['academic_activities']))
           : null,
-      hasHealthCertificate:
-    adminProofs['has_health_certificate'] ?? false,
-
-hasCommitteeMembership:
-    adminProofs['has_committee_membership'] ?? false,
-
-hasSelfEvaluationReport:
-    adminProofs['has_self_evaluation_report'] ?? false,
-
-hasArbitrationPlan:
-    adminProofs['has_arbitration_plan'] ?? false,
-
-hasAdminExperience:
-    adminProofs['has_admin_experience'] ?? false,
-
-hasExcellentPerformanceReports:
-    adminProofs['has_excellent_performance_reports'] ?? false,
-
-isTop3Senior:
-    adminProofs['is_top3_senior'] ?? false,
-
-hasSupremeCouncilTraining:
-    adminProofs['has_supreme_council_training'] ?? false,
-
-hasFLDCTraining:
-    adminProofs['has_fldc_training'] ?? false,
-
+      hasHealthCertificate: adminProofs['has_health_certificate'] ?? false,
+      hasCommitteeMembership: adminProofs['has_committee_membership'] ?? false,
+      hasSelfEvaluationReport: adminProofs['has_self_evaluation_report'] ?? false,
+      hasArbitrationPlan: adminProofs['has_arbitration_plan'] ?? false,
+      hasAdminExperience: adminProofs['has_admin_experience'] ?? false,
+      hasExcellentPerformanceReports: adminProofs['has_excellent_performance_reports'] ?? false,
+      isTop3Senior: adminProofs['is_top3_senior'] ?? false,
+      hasSupremeCouncilTraining: adminProofs['has_supreme_council_training'] ?? false,
+      hasFLDCTraining: adminProofs['has_fldc_training'] ?? false,
     );
   }
 
   Map<String, dynamic> toMap() {
-    // ✅✅✅ تحويل آمن جداً للسجل الأكاديمي أثناء الحفظ ✅✅✅
     List<Map<String, dynamic>> historyMap = academicHistory.map((historyItem) {
       final safeDate = normalizeDate(historyItem['date']);
       return {
@@ -399,6 +348,8 @@ hasFLDCTraining:
       };
     }).toList();
 
+    List<Map<String, dynamic>> jobHistoryMap = jobHistory.map((job) => job.toJson()).toList();
+
     return {
       'role': role,
       'isFirstLogin': isFirstLogin,
@@ -407,6 +358,7 @@ hasFLDCTraining:
       'national_id': nationalId,
       'employee_id': employeeId,
       'is_active': isActive,
+      'job_history': jobHistoryMap,
       'profile': {
         'display_name': {'ar': nameAr, 'en': nameEn},
         'phone': {'phone1': phone},
@@ -425,20 +377,13 @@ hasFLDCTraining:
         'faculty_en': facultyEn,
         'department_ar': departmentAr,
         'department_en': departmentEn,
-        
-        'hiring_date': hiringDate != null
-            ? Timestamp.fromDate(hiringDate!)
-            : null,
+        'hiring_date': hiringDate != null ? Timestamp.fromDate(hiringDate!) : null,
       },
       'academic_profile': {
         'history': historyMap,
         'cv_url': cvUrl,
-        'professor_rank_date': professorRankDate != null
-            ? Timestamp.fromDate(professorRankDate!)
-            : null,
-        'active_duty_since_date': activeDutySinceDate != null
-            ? Timestamp.fromDate(activeDutySinceDate!)
-            : null,
+        'professor_rank_date': professorRankDate != null ? Timestamp.fromDate(professorRankDate!) : null,
+        'active_duty_since_date': activeDutySinceDate != null ? Timestamp.fromDate(activeDutySinceDate!) : null,
       },
       'eligibility_data': {
         'is_on_vacation': isOnVacation,
@@ -466,17 +411,18 @@ hasFLDCTraining:
         'courses': courses.map((x) => x.toMap()).toList(),
         'academic_activities': academicActivities?.toJson(),
       },
-    'admin_proofs': {
-  'has_health_certificate': hasHealthCertificate,
-  'has_committee_membership': hasCommitteeMembership,
-  'has_self_evaluation_report': hasSelfEvaluationReport,
-  'has_arbitration_plan': hasArbitrationPlan,
-  'has_admin_experience': hasAdminExperience,
-  'has_excellent_performance_reports': hasExcellentPerformanceReports,
-  'is_top3_senior': isTop3Senior,
-  'has_supreme_council_training': hasSupremeCouncilTraining,
-  'has_fldc_training': hasFLDCTraining,
-},
+      'admin_proofs': {
+        'has_health_certificate': hasHealthCertificate,
+        'has_committee_membership': hasCommitteeMembership,
+        'has_self_evaluation_report': hasSelfEvaluationReport,
+        'has_arbitration_plan': hasArbitrationPlan,
+        'has_admin_experience': hasAdminExperience,
+        'has_excellent_performance_reports': hasExcellentPerformanceReports,
+        'is_top3_senior': isTop3Senior,
+        'has_supreme_council_training': hasSupremeCouncilTraining,
+        'has_fldc_training': hasFLDCTraining,
+        'years_as_dean': yearsAsDean,
+      },
     };
   }
 
@@ -506,9 +452,11 @@ hasFLDCTraining:
     DateTime? activeDutySinceDate,
     DateTime? professorRankDate,
     List<String>? previousLeadershipRoles,
+    List<JobHistory>? jobHistory,
     List<String>? internalCommittees,
     bool? hasCriminalRecord,
     bool? holdsPartyPosition,
+    int? yearsAsDean,
     String? email,
     String? phone,
     String? addressAr,
@@ -539,8 +487,6 @@ hasFLDCTraining:
     bool? hasFLDCTraining,
     String? workPlanFileUrl,
     VerificationStatus? workPlanStatus,
-    String? collageAr,
-    String? collageEn,
   }) {
     return DoctorProfileModel(
       uid: uid ?? this.uid,
@@ -564,15 +510,15 @@ hasFLDCTraining:
       facultyEn: facultyEn ?? this.facultyEn,
       departmentAr: departmentAr ?? this.departmentAr,
       departmentEn: departmentEn ?? this.departmentEn,
-      
       hiringDate: hiringDate ?? this.hiringDate,
       activeDutySinceDate: activeDutySinceDate ?? this.activeDutySinceDate,
       professorRankDate: professorRankDate ?? this.professorRankDate,
-      previousLeadershipRoles:
-          previousLeadershipRoles ?? this.previousLeadershipRoles,
+      previousLeadershipRoles: previousLeadershipRoles ?? this.previousLeadershipRoles,
+      jobHistory: jobHistory ?? this.jobHistory,
       internalCommittees: internalCommittees ?? this.internalCommittees,
       hasCriminalRecord: hasCriminalRecord ?? this.hasCriminalRecord,
       holdsPartyPosition: holdsPartyPosition ?? this.holdsPartyPosition,
+      yearsAsDean: yearsAsDean ?? this.yearsAsDean,
       email: email ?? this.email,
       phone: phone ?? this.phone,
       addressAr: addressAr ?? this.addressAr,
@@ -580,8 +526,7 @@ hasFLDCTraining:
       alternativeEmail: alternativeEmail ?? this.alternativeEmail,
       academicHistory: academicHistory ?? this.academicHistory,
       digitalArchive: digitalArchive ?? this.digitalArchive,
-      disciplinaryClearance:
-          disciplinaryClearance ?? this.disciplinaryClearance,
+      disciplinaryClearance: disciplinaryClearance ?? this.disciplinaryClearance,
       hasPermanentPosition: hasPermanentPosition ?? this.hasPermanentPosition,
       isOnVacation: isOnVacation ?? this.isOnVacation,
       isOnSecondment: isOnSecondment ?? this.isOnSecondment,
@@ -594,17 +539,13 @@ hasFLDCTraining:
       courses: courses ?? this.courses,
       academicActivities: academicActivities ?? this.academicActivities,
       hasHealthCertificate: hasHealthCertificate ?? this.hasHealthCertificate,
-      hasCommitteeMembership:
-          hasCommitteeMembership ?? this.hasCommitteeMembership,
-      hasSelfEvaluationReport:
-          hasSelfEvaluationReport ?? this.hasSelfEvaluationReport,
+      hasCommitteeMembership: hasCommitteeMembership ?? this.hasCommitteeMembership,
+      hasSelfEvaluationReport: hasSelfEvaluationReport ?? this.hasSelfEvaluationReport,
       hasArbitrationPlan: hasArbitrationPlan ?? this.hasArbitrationPlan,
       hasAdminExperience: hasAdminExperience ?? this.hasAdminExperience,
-      hasExcellentPerformanceReports:
-          hasExcellentPerformanceReports ?? this.hasExcellentPerformanceReports,
+      hasExcellentPerformanceReports: hasExcellentPerformanceReports ?? this.hasExcellentPerformanceReports,
       isTop3Senior: isTop3Senior ?? this.isTop3Senior,
-      hasSupremeCouncilTraining:
-          hasSupremeCouncilTraining ?? this.hasSupremeCouncilTraining,
+      hasSupremeCouncilTraining: hasSupremeCouncilTraining ?? this.hasSupremeCouncilTraining,
       hasFLDCTraining: hasFLDCTraining ?? this.hasFLDCTraining,
       workPlanFileUrl: workPlanFileUrl ?? this.workPlanFileUrl,
       workPlanStatus: workPlanStatus ?? this.workPlanStatus,
@@ -626,46 +567,20 @@ hasFLDCTraining:
     });
   }
 
-  int get yearsSinceHiring {
-    if (hiringDate == null) return 0;
-    final now = DateTime.now();
-    int years = now.year - hiringDate!.year;
-    if (now.month < hiringDate!.month ||
-        (now.month == hiringDate!.month && now.day < hiringDate!.day)) {
-      years--;
-    }
-    return years;
-  }
-
   int get totalAchievements =>
-      researchPapers.length +
-      conferences.length +
-      exhibitions.length +
-      courses.length;
+      researchPapers.length + conferences.length + exhibitions.length + courses.length;
 
   int get totalApprovedAchievements {
-    return researchPapers
-            .where((p) => p.status == VerificationStatus.approved)
-            .length +
-        conferences
-            .where((c) => c.status == VerificationStatus.approved)
-            .length +
-        exhibitions
-            .where((e) => e.status == VerificationStatus.approved)
-            .length +
+    return researchPapers.where((p) => p.status == VerificationStatus.approved).length +
+        conferences.where((c) => c.status == VerificationStatus.approved).length +
+        exhibitions.where((e) => e.status == VerificationStatus.approved).length +
         courses.where((c) => c.status == VerificationStatus.approved).length;
   }
 
   int get totalPendingAchievements {
-    return researchPapers
-            .where((p) => p.status == VerificationStatus.pending)
-            .length +
-        conferences
-            .where((c) => c.status == VerificationStatus.pending)
-            .length +
-        exhibitions
-            .where((e) => e.status == VerificationStatus.pending)
-            .length +
+    return researchPapers.where((p) => p.status == VerificationStatus.pending).length +
+        conferences.where((c) => c.status == VerificationStatus.pending).length +
+        exhibitions.where((e) => e.status == VerificationStatus.pending).length +
         courses.where((c) => c.status == VerificationStatus.pending).length;
   }
 
@@ -673,21 +588,7 @@ hasFLDCTraining:
   int get totalExhibitions => exhibitions.length;
   int get totalCourses => courses.where((c) => !c.isMandatory).length;
   int get totalMandatoryCourses => courses.where((c) => c.isMandatory).length;
-  int get totalApprovedResearch => researchPapers
-      .where((p) => p.status == VerificationStatus.approved)
-      .length;
-
-  int get yearsAsProfessor {
-    if (professorRankDate == null) return 0;
-    final now = DateTime.now();
-    int years = now.year - professorRankDate!.year;
-    if (now.month < professorRankDate!.month ||
-        (now.month == professorRankDate!.month &&
-            now.day < professorRankDate!.day)) {
-      years--;
-    }
-    return years;
-  }
+  int get totalApprovedResearch => researchPapers.where((p) => p.status == VerificationStatus.approved).length;
 
   static String _normalizeArabic(String text) {
     return text
@@ -695,58 +596,52 @@ hasFLDCTraining:
         .replaceAll('إ', 'ا')
         .replaceAll('آ', 'ا')
         .replaceAll('ة', 'ه')
-        .replaceAll('ى', 'ي');
+        .replaceAll('ى', 'ي')
+        .replaceAll('ؤ', 'و')
+        .replaceAll('ئ', 'ي')
+        .replaceAll('ـ', '');
   }
 
-static List<String> getTop3SeniorInDepartment({
-  required List doctors,
-  required String departmentAr,
-}) {
-  final targetDept = departmentAr.trim();
-
-  if (targetDept.isEmpty) return [];
-
-  // دكاترة نفس القسم فقط
-  final filtered = doctors.where((doctor) {
-    return doctor.departmentAr.trim() == targetDept &&
-        doctor.uid != null;
-  }).toList();
-
-  if (filtered.isEmpty) return [];
-
-  // هل يوجد أستاذ؟
-  final professors = filtered
-      .where((doctor) => doctor.professorRankDate != null)
-      .toList();
-
-  // ==========================================================
-  // يوجد أساتذة → الأقدمية حسب تاريخ الأستاذية
-  // ==========================================================
-  if (professors.isNotEmpty) {
-    professors.sort((a, b) {
-      return a.professorRankDate!.compareTo(
-        b.professorRankDate!,
-      );
-    });
-
-    return professors
-        .take(3)
-        .map<String>((doctor) => doctor.uid!)
-        .toList();
+  // ✅ دالة ذكية لحساب سنوات شغل أي منصب من الـ JobHistory
+  int calculateYearsInPosition(String titleKeyword) {
+    int totalYears = 0;
+    for (var job in jobHistory) {
+      if (job.jobTitleAr.contains(titleKeyword) || 
+          job.jobTitleEn.toLowerCase().contains(titleKeyword.toLowerCase())) {
+        final end = job.endDate ?? DateTime.now();
+        totalYears += DateCalculationModel.betweenDates(
+          start: job.startDate,
+          end: end,
+        ).result;
+      }
+    }
+    return totalYears;
   }
 
-  // ==========================================================
-  // لا يوجد أساتذة → الأقدمية حسب تاريخ التعيين
-  // ==========================================================
-  filtered.sort((a, b) {
-    final dateA = a.hiringDate ?? DateTime(9999);
-    final dateB = b.hiringDate ?? DateTime(9999);
+  // ✅ حساب سنوات التعيين باستخدام الكلاس المنفصل
+  int get yearsSinceHiring {
+    if (hiringDate == null) return 0;
+    return DateCalculationModel.forHiring(hiringDate!).result;
+  }
 
-    return dateA.compareTo(dateB);
-  });
+  // ✅ حساب سنوات الأستاذية باستخدام الكلاس المنفصل
+  int get yearsAsProfessor {
+    if (professorRankDate == null) return 0;
+    return DateCalculationModel.forProfessorRank(professorRankDate!).result;
+  }
 
-  return filtered
-      .take(3)
-      .map<String>((doctor) => doctor.uid!)
-      .toList();
-}}
+  // ✅ دالة ترتيب الدكاترة في قسم معين
+  static List<DoctorProfileModel> getProfessorsSortedBySeniority({
+    required List<DoctorProfileModel> allDoctors,
+    required String departmentAr,
+  }) {
+    final filtered = allDoctors.where((doc) {
+      return doc.departmentAr.trim() == departmentAr.trim() && doc.professorRankDate != null;
+    }).toList();
+
+    filtered.sort((a, b) => a.professorRankDate!.compareTo(b.professorRankDate!));
+
+    return filtered;
+  }
+
+ }

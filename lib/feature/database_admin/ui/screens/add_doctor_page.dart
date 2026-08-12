@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'package:path/path.dart' as p;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,7 +8,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
-
+import 'package:optialeader/feature/database_admin/data/models/job_history_model.dart';
 import 'package:optialeader/core/theming/app_color.dart';
 import 'package:optialeader/core/theming/app_text_style.dart';
 import 'package:optialeader/feature/database_admin/data/models/doctor_profile_model.dart';
@@ -18,6 +17,9 @@ import 'package:optialeader/feature/database_admin/logic/doctor_data/doctor_data
 
 import 'package:optialeader/feature/admin/ui/announces/mansoura_universities_data.dart';
 
+// ============================================================
+//  كنترولر الشهادات الأكاديمية
+// ============================================================
 class AcademicControllers {
   final TextEditingController degree = TextEditingController();
   final TextEditingController major = TextEditingController();
@@ -51,6 +53,62 @@ class AcademicControllers {
   }
 }
 
+// ============================================================
+//  كنترولر السجل الوظيفي
+// ============================================================
+class JobHistoryController {
+  final TextEditingController titleAr = TextEditingController();
+  final TextEditingController titleEn = TextEditingController();
+
+  final TextEditingController placeAr = TextEditingController();
+  final TextEditingController placeEn = TextEditingController();
+
+  DateTime? startDate;
+  DateTime? endDate;
+
+  void dispose() {
+    titleAr.dispose();
+    titleEn.dispose();
+    placeAr.dispose();
+    placeEn.dispose();
+  }
+
+  void clear() {
+    titleAr.clear();
+    titleEn.clear();
+    placeAr.clear();
+    placeEn.clear();
+
+    startDate = null;
+    endDate = null;
+  }
+
+  JobHistory toModel() {
+    return JobHistory(
+      jobTitleAr: titleAr.text.trim(),
+      jobTitleEn: titleEn.text.trim(),
+      startDate: startDate ?? DateTime.now(),
+      endDate: endDate,
+      placeAr: placeAr.text.trim(),
+      placeEn: placeEn.text.trim(),
+    );
+  }
+
+  void fromModel(JobHistory job) {
+    titleAr.text = job.jobTitleAr;
+    titleEn.text = job.jobTitleEn;
+
+    placeAr.text = job.placeAr;
+    placeEn.text = job.placeEn;
+
+    startDate = job.startDate;
+    endDate = job.endDate;
+  }
+}
+
+// ============================================================
+//  الصفحة الرئيسية
+// ============================================================
 class AddDoctorPage extends StatefulWidget {
   final String? existingUid;
   final bool isViewMode;
@@ -82,6 +140,8 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   final _phone = TextEditingController();
   final _addressAr = TextEditingController();
   final _addressEn = TextEditingController();
+  final _committeeNameController = TextEditingController();
+  final _yearsAsDeanController = TextEditingController();
 
   DateTime? birthDate;
   DateTime? professorRankDate;
@@ -92,8 +152,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   bool holdsPartyPosition = false;
 
   final List<String> _internalCommittees = [];
-  final _committeeNameController = TextEditingController();
+  final List<JobHistoryController> _jobHistoryControllers = [];
 
+  // ✅ ماب الحالة الاجتماعية
   final Map<String, String> statusMapping = {
     "أعزب": "Single",
     "متزوج": "Married",
@@ -103,12 +164,31 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
   String? selectedStatusAr;
   String? selectedStatusEn;
 
-  final List<String> degreeLevelKeys = [
-    'add_doctor.degree_bachelor',
-    'add_doctor.degree_diploma',
-    'add_doctor.degree_master',
-    'add_doctor.degree_phd',
-  ];
+  // ✅ ماب الوظائف (نفس طريقة الحالة الاجتماعية بالظبط)
+  final Map<String, String> jobTitleMapping = {
+    "معيد": "Teaching Assistant",
+    "مدرس مساعد": "Assistant Lecturer",
+    "مدرس": "Lecturer",
+    "أستاذ مساعد": "Associate Professor",
+    "أستاذ": "Professor",
+    "أستاذ متفرغ": "Professor Emeritus",
+    "أستاذ زائر": "Visiting Professor",
+    "أستاذ فخري": "Honorary Professor",
+    "رئيس قسم": "Head of Department",
+    "وكيل الكلية للدراسات العليا والبحوث":
+        "Vice Dean for Graduate Studies and Research",
+    "وكيل الكلية لشؤون التعليم والطلاب": "Vice Dean for Education and Students",
+    "وكيل الكلية لشؤون خدمة المجتمع وتنمية البيئة":
+        "Vice Dean for Community Service",
+    "عميد الكلية": "Dean",
+    "نائب رئيس الجامعة للدراسات العليا والبحوث":
+        "Vice President for Graduate Studies and Research",
+    "نائب رئيس الجامعة لشؤون التعليم والطلاب":
+        "Vice President for Education and Students",
+    "نائب رئيس الجامعة لشؤون خدمة المجتمع":
+        "Vice President for Community Service",
+    "رئيس الجامعة": "University President",
+  };
 
   final List<String> degreeLevelValues = [
     'بكالوريوس',
@@ -164,7 +244,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
             SizedBox(width: 10.w),
             Text(
               'add_doctor.delete_confirm_title'.tr(),
-              style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark),
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.navyDark,
+              ),
             ),
           ],
         ),
@@ -214,6 +296,9 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     for (var controller in academicControllersList) {
       controller.dispose();
     }
+    for (var controller in _jobHistoryControllers) {
+      controller.dispose();
+    }
     _nameAr.dispose();
     _nameEn.dispose();
     _nationalityAr.dispose();
@@ -233,6 +318,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
     _addressAr.dispose();
     _addressEn.dispose();
     _committeeNameController.dispose();
+    _yearsAsDeanController.dispose();
     super.dispose();
   }
 
@@ -298,6 +384,10 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         ctrl.clear();
       }
       academicControllersList.clear();
+      for (var ctrl in _jobHistoryControllers) {
+        ctrl.clear();
+      }
+      _jobHistoryControllers.clear();
       _digitalArchive.clear();
       _internalCommittees.clear();
       birthDate = null;
@@ -313,6 +403,7 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
       activeDutySinceDate = null;
       hasSupremeCouncilTraining = false;
       hasFLDCTraining = false;
+      _yearsAsDeanController.clear();
     });
   }
 
@@ -342,6 +433,14 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
       final previousRoles = <String>[];
       if (_hasBeenDean) previousRoles.add('dean');
       if (_hasBeenHead) previousRoles.add('head_department');
+
+      final List<JobHistory> builtJobHistory = _jobHistoryControllers
+          .where(
+            (ctrl) =>
+                ctrl.titleAr.text.trim().isNotEmpty && ctrl.startDate != null,
+          )
+          .map((ctrl) => ctrl.toModel())
+          .toList();
 
       final doctorModel = DoctorProfileModel(
         uid: '',
@@ -386,37 +485,30 @@ class _AddDoctorPageState extends State<AddDoctorPage> {
         courses: _existingDoctor?.courses ?? const [],
         academicActivities: _existingDoctor?.academicActivities,
         internalCommittees: _internalCommittees,
-     hasHealthCertificate:
-    _existingDoctor?.hasHealthCertificate ?? false,
-
-hasCommitteeMembership:
-    _existingDoctor?.hasCommitteeMembership ?? false,
-
-hasSelfEvaluationReport:
-    _existingDoctor?.hasSelfEvaluationReport ?? false,
-
-hasArbitrationPlan:
-    _existingDoctor?.hasArbitrationPlan ?? false,
-
-hasAdminExperience:
-    _existingDoctor?.hasAdminExperience ?? false,
-
-hasExcellentPerformanceReports:
-    _existingDoctor?.hasExcellentPerformanceReports ?? false,
-
-isTop3Senior:
-    _existingDoctor?.isTop3Senior ?? false,
-
-hasSupremeCouncilTraining:
-    _existingDoctor?.hasSupremeCouncilTraining ?? false,
-
-hasFLDCTraining:
-    _existingDoctor?.hasFLDCTraining ?? false,
+        hasHealthCertificate: _existingDoctor?.hasHealthCertificate ?? false,
+        hasCommitteeMembership:
+            _existingDoctor?.hasCommitteeMembership ?? false,
+        hasSelfEvaluationReport:
+            _existingDoctor?.hasSelfEvaluationReport ?? false,
+        hasArbitrationPlan: _existingDoctor?.hasArbitrationPlan ?? false,
+        hasAdminExperience: _existingDoctor?.hasAdminExperience ?? false,
+        hasExcellentPerformanceReports:
+            _existingDoctor?.hasExcellentPerformanceReports ?? false,
+        isTop3Senior: _existingDoctor?.isTop3Senior ?? false,
+        hasSupremeCouncilTraining:
+            _existingDoctor?.hasSupremeCouncilTraining ?? false,
+        hasFLDCTraining: _existingDoctor?.hasFLDCTraining ?? false,
         isOnSecondment: isOnSecondment,
         isOnUnpaidLeave: isOnUnpaidLeave,
         activeDutySinceDate: activeDutySinceDate,
         workPlanFileUrl: _existingDoctor?.workPlanFileUrl,
         workPlanStatus: _existingDoctor?.workPlanStatus,
+        yearsAsDean: _hasBeenDean
+            ? (int.tryParse(_yearsAsDeanController.text) ?? 0)
+            : null,
+        jobHistory: builtJobHistory.isNotEmpty
+            ? builtJobHistory
+            : (_existingDoctor?.jobHistory ?? const []),
       );
 
       try {
@@ -428,9 +520,9 @@ hasFLDCTraining:
               ? File(_pickedImageFile!.path)
               : null;
           context.read<DoctorDataCubit>().createNewDoctor(
-                doctorModel,
-                profileImageFile: imageFile,
-              );
+            doctorModel,
+            profileImageFile: imageFile,
+          );
         }
       } catch (e) {
         if (!mounted) return;
@@ -501,12 +593,21 @@ hasFLDCTraining:
           );
           hasCriminalRecord = doc.hasCriminalRecord;
           holdsPartyPosition = doc.holdsPartyPosition;
+
           _internalCommittees.clear();
           _internalCommittees.addAll(doc.internalCommittees);
           isOnSecondment = doc.isOnSecondment ?? false;
           isOnUnpaidLeave = doc.isOnUnpaidLeave ?? false;
           hasSupremeCouncilTraining = doc.hasSupremeCouncilTraining ?? false;
           hasFLDCTraining = doc.hasFLDCTraining ?? false;
+          _yearsAsDeanController.text = doc.yearsAsDean?.toString() ?? '';
+
+          _jobHistoryControllers.clear();
+          for (var job in doc.jobHistory) {
+            final ctrl = JobHistoryController();
+            ctrl.fromModel(job);
+            _jobHistoryControllers.add(ctrl);
+          }
 
           academicControllersList.clear();
           for (var item in doc.academicHistory) {
@@ -515,7 +616,9 @@ hasFLDCTraining:
             ctrl.major.text = item['major'] ?? '';
             ctrl.date = DoctorProfileModel.normalizeDate(item['date']);
             ctrl.place.text = item['place'] ?? '';
-            ctrl.type = item['type'] ?? 'بكالوريوس';
+            ctrl.type = degreeLevelValues.contains(item['type'])
+                ? item['type']
+                : 'بكالوريوس';
             academicControllersList.add(ctrl);
           }
           _digitalArchive = List.from(doc.digitalArchive);
@@ -555,8 +658,8 @@ hasFLDCTraining:
             _isReadOnly
                 ? "add_doctor.view_profile".tr()
                 : (isEditing
-                    ? "add_doctor.edit_title".tr()
-                    : "add_doctor.title".tr()),
+                      ? "add_doctor.edit_title".tr()
+                      : "add_doctor.title".tr()),
             style: theme.appBarTheme.titleTextStyle,
           ),
           actions: [
@@ -610,13 +713,7 @@ hasFLDCTraining:
                         SizedBox(height: 15.h),
                         _buildSocialStatusDropdown(),
                         SizedBox(height: 15.h),
-                        _buildVerticalDoubleField(
-                          "add_doctor.job_ar".tr(),
-                          _currentJobAr,
-                          "add_doctor.job_en".tr(),
-                          _currentJobEn,
-                          Icons.work,
-                        ),
+                        _buildCurrentJobDropdown(),
                         SizedBox(height: 15.h),
                         _buildVerticalDoubleField(
                           "add_doctor.university_ar".tr(),
@@ -678,8 +775,21 @@ hasFLDCTraining:
                         _buildSwitch(
                           "add_doctor.been_dean".tr(),
                           _hasBeenDean,
-                          (v) => setState(() => _hasBeenDean = v),
+                          (v) => setState(() {
+                            _hasBeenDean = v;
+                            if (!v) _yearsAsDeanController.clear();
+                          }),
                         ),
+                        if (_hasBeenDean)
+                          Padding(
+                            padding: EdgeInsets.only(bottom: 10.h),
+                            child: _buildField(
+                              "dd_doctor.dean_years".tr(),
+                              _yearsAsDeanController,
+                              Icons.timer_outlined,
+                              keyboardType: TextInputType.number,
+                            ),
+                          ),
                         _buildSwitch(
                           "add_doctor.been_head".tr(),
                           _hasBeenHead,
@@ -697,6 +807,7 @@ hasFLDCTraining:
                         ),
                       ],
                     ),
+                    _buildJobHistorySection(),
                     _buildInternalCommitteesSection(),
                     _buildSectionCard(
                       "add_doctor.contact_info".tr(),
@@ -729,9 +840,9 @@ hasFLDCTraining:
                       Icons.school,
                       [
                         ...academicControllersList.asMap().entries.map(
-                              (entry) =>
-                                  _buildAcademicEntry(entry.key, entry.value),
-                            ),
+                          (entry) =>
+                              _buildAcademicEntry(entry.key, entry.value),
+                        ),
                         if (!_isReadOnly)
                           Center(
                             child: TextButton.icon(
@@ -849,523 +960,159 @@ hasFLDCTraining:
     );
   }
 
-  Widget _buildFacultyDropdown() {
+  // ============================================================
+  //  صورة البروفايل
+  // ============================================================
+  Widget _buildProfileImage() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final faculties = MansouraUniversitiesData.faculties;
-    final currentVal = isArabic ? _facultyAr.text : _facultyEn.text;
-    final isValid = faculties.any(
-      (f) => (isArabic ? f.nameAr : f.nameEn) == currentVal,
-    );
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
-      decoration: BoxDecoration(
-        color: _isReadOnly
-        /////////////////////////////
-        //////////////
-        //////////
-            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
-            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
-        border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: currentVal.isEmpty || !isValid ? null : currentVal,
-          isExpanded: true,
-          hint: Text(
-            "الكلية",
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: isDark ? Colors.white54 : AppColors.navyLight,
-            ),
+    return Center(
+      child: GestureDetector(
+        onTap: _isReadOnly ? null : _pickImage,
+        child: Container(
+          width: 120.w,
+          height: 120.w,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isDark ? Colors.grey.shade800 : Colors.grey.shade200,
+            border: Border.all(color: AppColors.darkGold, width: 3.w),
+            image: _pickedImageFile != null
+                ? DecorationImage(
+                    image: FileImage(File(_pickedImageFile!.path)),
+                    fit: BoxFit.cover,
+                  )
+                : _currentImageUrl.isNotEmpty
+                ? DecorationImage(
+                    image: CachedNetworkImageProvider(_currentImageUrl),
+                    fit: BoxFit.cover,
+                  )
+                : null,
           ),
-          icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white70 : AppColors.navyDark),
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: isDark ? Colors.white : AppColors.navyDark,
-          ),
-          dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-          items: faculties.map((f) {
-            final name = isArabic ? f.nameAr : f.nameEn;
-            return DropdownMenuItem(
-              value: name,
-              child: Text(
-                name,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: isDark ? Colors.white : AppColors.navyDark,
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: _isReadOnly
-              ? null
-              : (String? val) {
-                  if (val != null) {
-                    final f = faculties.firstWhere(
-                      (fac) => (isArabic ? fac.nameAr : fac.nameEn) == val,
-                    );
-                    setState(() {
-                      _facultyAr.text = f.nameAr;
-                      _facultyEn.text = f.nameEn;
-                      _departmentAr.clear();
-                      _departmentEn.clear();
-                    });
-                  }
-                },
+          child: _pickedImageFile == null && _currentImageUrl.isEmpty
+              ? Icon(
+                  Icons.camera_alt,
+                  size: 40.sp,
+                  color: isDark ? Colors.white54 : Colors.grey,
+                )
+              : null,
         ),
       ),
     );
   }
 
-  Widget _buildDepartmentDropdown() {
+  // ============================================================
+  //  كارت السكشن
+  // ============================================================
+  Widget _buildSectionCard(String title, IconData icon, List<Widget> children) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final currentFacVal = isArabic ? _facultyAr.text : _facultyEn.text;
-    FacultyData selectedFaculty = MansouraUniversitiesData.faculties.firstWhere(
-      (f) => (isArabic ? f.nameAr : f.nameEn) == currentFacVal,
-      orElse: () => MansouraUniversitiesData.faculties.first,
-    );
-    final departments = selectedFaculty.departments;
-    final currentDepVal = isArabic ? _departmentAr.text : _departmentEn.text;
-    final isValid = departments.any(
-      (d) => (isArabic ? d.nameAr : d.nameEn) == currentDepVal,
-    );
-    //////////////////////////////////////////
-    //////////////////////////
-    ///////////////
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+      margin: EdgeInsets.only(bottom: 20.h),
+      padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
-        color: _isReadOnly
-            ? (isDark ?  Colors.grey.shade800: Colors.grey.shade200)
-            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
-        border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12.r),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String>(
-          value: currentDepVal.isEmpty || !isValid ? null : currentDepVal,
-          isExpanded: true,
-          hint: Text(
-            "القسم",
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: isDark ? Colors.white54 : AppColors.navyLight,
-            ),
+        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+        borderRadius: BorderRadius.circular(16.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
-          icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white70 : AppColors.navyDark),
-          style: AppTextStyles.bodyMedium.copyWith(
-            color: isDark ? Colors.white : AppColors.navyDark,
-          ),
-          dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-          items: departments.map((d) {
-            final name = isArabic ? d.nameAr : d.nameEn;
-            return DropdownMenuItem(
-              value: name,
-              child: Text(
-                name,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodyMedium.copyWith(
-                  color: isDark ? Colors.white : AppColors.navyDark,
-                ),
-              ),
-            );
-          }).toList(),
-          onChanged: _isReadOnly
-              ? null
-              : (String? val) {
-                  if (val != null) {
-                    final d = departments.firstWhere(
-                      (dep) => (isArabic ? dep.nameAr : dep.nameEn) == val,
-                    );
-                    setState(() {
-                      _departmentAr.text = d.nameAr;
-                      _departmentEn.text = d.nameEn;
-                    });
-                  }
-                },
+        ],
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.grey.shade200,
         ),
       ),
-    );
-  }
-
-  Widget _buildInternalCommitteesSection() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return _buildSectionCard(
-      "add_doctor.internal_committees".tr(),
-      Icons.groups_rounded,
-      [
-        if (_internalCommittees.isEmpty)
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 10.h),
-            child: Text(
-              "add_doctor.no_committees".tr(),
-              style: TextStyle(color: isDark ? Colors.white54 : Colors.grey, fontSize: 13.sp),
-            ),
-          ),
-        ..._internalCommittees.asMap().entries.map((entry) {
-          final index = entry.key;
-          final name = entry.value;
-          return Container(
-            margin: EdgeInsets.only(bottom: 8.h),
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 8.h),
-            decoration: BoxDecoration(
-              color: isDark ? Colors.white10 : AppColors.navyLight.withOpacity(0.05),
-              borderRadius: BorderRadius.circular(10.r),
-              border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.commit_rounded,
-                  size: 18.sp,
-                  color: AppColors.darkGold,
-                ),
-                SizedBox(width: 10.w),
-                Expanded(
-                  child: Text(
-                    name,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: isDark ? Colors.white : AppColors.navyDark,
-                    ),
-                  ),
-                ),
-                if (!_isReadOnly)
-                  IconButton(
-                    onPressed: () => _removeCommittee(index),
-                    icon: Icon(
-                      Icons.close,
-                      color: AppColors.error,
-                      size: 20.sp,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-              ],
-            ),
-          );
-        }),
-        if (!_isReadOnly) ...[
-          SizedBox(height: 10.h),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
           Row(
             children: [
-              Expanded(
-                child: TextFormField(
-                  controller: _committeeNameController,
-                  enabled: !_isReadOnly,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: isDark ? Colors.white : AppColors.navyDark,
-                  ),
-                  textAlign: isArabic ? TextAlign.right : TextAlign.left,
-                  decoration: InputDecoration(
-                    hintText: "add_doctor.committee_name_hint".tr(),
-                    hintStyle: AppTextStyles.bodySmall.copyWith(
-                      color: isDark ? Colors.white54 : AppColors.navyLight,
-                    ),
-                    filled: true,
-                    fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.white,
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: 12.w,
-                      vertical: 10.h,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                      borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10.r),
-                      borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
-                    ),
-                  ),
-                  onFieldSubmitted: (_) => _addCommittee(),
-                ),
-              ),
-              SizedBox(width: 8.w),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.darkGold,
-                  borderRadius: BorderRadius.circular(10.r),
-                ),
-                child: IconButton(
-                  onPressed: _addCommittee,
-                  icon: const Icon(Icons.add, color: Colors.white),
+              Icon(icon, color: AppColors.darkGold, size: 22.sp),
+              SizedBox(width: 10.w),
+              Text(
+                title,
+                style: AppTextStyles.titleMedium.copyWith(
+                  color: isDark ? Colors.white : AppColors.navyDark,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-        ],
-      ],
-    );
-  }
-
-  Widget _buildDigitalArchiveSection() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return _buildSectionCard(
-      "add_doctor.digital_archive".tr(),
-      Icons.folder_open,
-      [
-        if (_digitalArchive.isEmpty)
-          Padding(
-            padding: EdgeInsets.symmetric(vertical: 10.h),
-            child: Text(
-              "add_doctor.no_archive".tr(),
-              style: TextStyle(color: isDark ? Colors.white54 : Colors.grey),
-            ),
-          ),
-        ..._digitalArchive.asMap().entries.map((entry) {
-          final item = entry.value;
-          return ListTile(
-            leading: Icon(Icons.insert_drive_file, color: isDark ? Colors.white70 : AppColors.navyLight),
-            title: Text(
-              item['title'] ?? 'Untitled',
-              style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white : AppColors.navyDark),
-            ),
-            subtitle: Text(
-              item['uploaded_at'] ?? '',
-              style: AppTextStyles.bodySmall.copyWith(color: isDark ? Colors.white54 : AppColors.navyLight),
-            ),
-            trailing: IconButton(
-              icon: Icon(Icons.open_in_new, color: AppColors.darkGold),
-              onPressed: () {},
-            ),
-          );
-        }),
-        if (!_isReadOnly)
-          Center(
-            child: OutlinedButton.icon(
-              onPressed: _pickAndUploadArchiveFile,
-              icon: Icon(Icons.upload_file, color: isDark ? Colors.white : AppColors.navyDark),
-              label: Text("add_doctor.upload_file".tr(), style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark)),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: isDark ? Colors.white : AppColors.navyDark,
-                side: BorderSide(color: isDark ? Colors.white54 : AppColors.navyDark),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildProfileImage() {
-    return Center(
-      child: Stack(
-        children: [
-          CircleAvatar(
-            radius: 50.r,
-            backgroundColor: AppColors.navyLight.withOpacity(0.2),
-            backgroundImage: _pickedImageFile != null
-                ? FileImage(File(_pickedImageFile!.path)) as ImageProvider
-                : (_currentImageUrl.isNotEmpty
-                    ? CachedNetworkImageProvider(_currentImageUrl)
-                    : null),
-            child: (_pickedImageFile == null && _currentImageUrl.isEmpty)
-                ? Icon(Icons.person, size: 50.sp, color: AppColors.navyLight)
-                : null,
-          ),
-          if (!_isReadOnly)
-            Positioned(
-              bottom: 0,
-              right: 0,
-              child: CircleAvatar(
-                radius: 18.r,
-                backgroundColor: AppColors.darkGold,
-                child: IconButton(
-                  icon: Icon(Icons.camera_alt, size: 18.r, color: Colors.white),
-                  onPressed: _pickImage,
-                ),
-              ),
-            ),
+          SizedBox(height: 15.h),
+          ...children,
         ],
       ),
     );
   }
 
-  Widget _buildSectionCard(String title, IconData icon, List<Widget> children) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Card(
-      color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-      elevation: 0.5,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
-      margin: EdgeInsets.only(bottom: 20.h),
-      child: Padding(
-        padding: EdgeInsets.all(18.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: AppColors.darkGold, size: 22.sp),
-                SizedBox(width: 10.w),
-                Text(
-                  title,
-                  style: AppTextStyles.titleMedium.copyWith(
-                    color: isDark ? Colors.white : AppColors.navyDark,
-                  ),
-                ),
-              ],
-            ),
-            Divider(height: 30, color: isDark ? Colors.white24 : Colors.grey.shade300),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildField(
-    String label,
-    TextEditingController ctrl,
-    IconData? icon, {
-    bool isEn = false,
-    TextInputType? keyboardType,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextFormField(
-      controller: ctrl,
-      keyboardType: keyboardType,
-      enabled: !_isReadOnly,
-      textAlign: isEn
-          ? TextAlign.left
-          : (isArabic ? TextAlign.right : TextAlign.left),
-      validator: _isReadOnly
-          ? null
-          : (v) => v!.isEmpty ? "add_doctor.required".tr() : null,
-      style: AppTextStyles.bodyMedium.copyWith(
-        color: _isReadOnly
-            ? (isDark ? Colors.white54 : Colors.grey)
-            : (isDark ? Colors.white : AppColors.navyDark),
-      ),
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: icon != null
-            ? Icon(icon, color: isDark ? Colors.white70 : AppColors.navyLight)
-            : null,
-        labelStyle: AppTextStyles.bodySmall.copyWith(
-          color: isDark ? Colors.white70 : AppColors.navyLight,
-        ),
-        filled: _isReadOnly,
-        fillColor: _isReadOnly
-            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
-            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: BorderSide(
-            color: isDark ? Colors.white24 : Colors.grey.shade300,
-          ),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
-        ),
-      ),
-    );
-  }
-
+  // ============================================================
+  //  حقلين فوق بعض
+  // ============================================================
   Widget _buildVerticalDoubleField(
     String labelAr,
-    TextEditingController ctrlAr,
+    TextEditingController controllerAr,
     String labelEn,
-    TextEditingController ctrlEn,
+    TextEditingController controllerEn,
     IconData icon,
   ) {
     return Column(
       children: [
-        _buildField(labelAr, ctrlAr, icon),
-        SizedBox(height: 8.h),
-        _buildField(labelEn, ctrlEn, null, isEn: true),
+        _buildField(labelAr, controllerAr, icon),
+        SizedBox(height: 10.h),
+        _buildField(labelEn, controllerEn, icon),
       ],
     );
   }
 
-  Widget _buildSocialStatusDropdown() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildDropdownField(
-            "add_doctor.social_status".tr(),
-            statusMapping.keys.toList(),
-            selectedStatusAr,
-            (val) => setState(() {
-              selectedStatusAr = val;
-              selectedStatusEn = statusMapping[val];
-            }),
-          ),
-        ),
-        SizedBox(width: 10.w),
-        Expanded(
-          child: _buildDropdownField(
-            "add_doctor.social_status".tr(),
-            statusMapping.values.toList(),
-            selectedStatusEn,
-            (val) => setState(() {
-              selectedStatusEn = val;
-              selectedStatusAr = statusMapping.entries
-                  .firstWhere((e) => e.value == val)
-                  .key;
-            }),
-            isEn: true,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildDropdownField(
+  // ============================================================
+  //  حقل نصي
+  // ============================================================
+  Widget _buildField(
     String label,
-    List<String> items,
-    String? value,
-    Function(String?) onChanged, {
-    bool isEn = false,
+    TextEditingController controller,
+    IconData icon, {
+    TextInputType? keyboardType,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return DropdownButtonFormField<String>(
-      value: value,
-      items: items
-          .map(
-            (s) => DropdownMenuItem(
-              value: s,
-              child: Text(
-                s,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: isDark ? Colors.white : AppColors.navyDark,
-                ),
-              ),
-            ),
-          )
-          .toList(),
-      onChanged: _isReadOnly ? null : onChanged,
-      dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-      icon: Icon(Icons.arrow_drop_down, color: isDark ? Colors.white70 : AppColors.navyDark),
-      style: AppTextStyles.bodySmall.copyWith(
-        color: isDark ? Colors.white : AppColors.navyDark,
-      ),
+    return TextFormField(
+      controller: controller,
+      readOnly: _isReadOnly,
+      keyboardType: keyboardType,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: isEn
-            ? null
-            : Icon(Icons.info_outline, color: isDark ? Colors.white70 : AppColors.navyLight),
-        labelStyle: AppTextStyles.bodySmall.copyWith(
-          color: isDark ? Colors.white70 : AppColors.navyLight,
-        ),
-        filled: _isReadOnly,
+        prefixIcon: Icon(icon, color: AppColors.darkGold, size: 20.sp),
+        filled: true,
         fillColor: _isReadOnly
             ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
             : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(
+            color: isDark ? Colors.white24 : Colors.grey.shade300,
+          ),
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.r),
           borderSide: BorderSide(
             color: isDark ? Colors.white24 : Colors.grey.shade300,
           ),
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12.r),
-          borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+        labelStyle: AppTextStyles.bodyMedium.copyWith(
+          color: isDark ? Colors.white70 : AppColors.navyLight,
         ),
+      ),
+      style: AppTextStyles.bodyMedium.copyWith(
+        color: isDark ? Colors.white : AppColors.navyDark,
       ),
     );
   }
 
+  // ============================================================
+  //  منتقي التاريخ
+  // ============================================================
   Widget _buildDatePicker(
     String label,
-    DateTime? currentDate,
-    Function(DateTime) onDateSelected,
+    DateTime? selectedDate,
+    Function(DateTime?) onDateSelected,
   ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -1377,9 +1124,9 @@ hasFLDCTraining:
             : () async {
                 DateTime? picked = await showDatePicker(
                   context: context,
-                  initialDate: currentDate ?? DateTime.now(),
+                  initialDate: selectedDate ?? DateTime.now(),
                   firstDate: DateTime(1940),
-                  lastDate: DateTime(2100),
+                  lastDate: DateTime.now(),
                   builder: (context, child) {
                     return Theme(
                       data: Theme.of(context).copyWith(
@@ -1400,8 +1147,10 @@ hasFLDCTraining:
                                 onSurface: AppColors.navyDark,
                                 onSurfaceVariant: AppColors.navyLight,
                               ),
-                        dialogBackgroundColor:
-                            isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                        dialogBackgroundColor: isDark
+                            ? const Color(0xFF1E1E2E)
+                            : Colors.white,
+
                         textButtonTheme: TextButtonThemeData(
                           style: TextButton.styleFrom(
                             foregroundColor: Colors.white,
@@ -1411,26 +1160,42 @@ hasFLDCTraining:
                             ),
                           ),
                         ),
+
                         datePickerTheme: DatePickerThemeData(
-                          backgroundColor:
-                              isDark ? const Color(0xFF1E1E2E) : Colors.white,
+                          backgroundColor: isDark
+                              ? const Color(0xFF1E1E2E)
+                              : Colors.white,
+
                           headerBackgroundColor: isDark
                               ? const Color(0xFF2A2A3E)
                               : AppColors.navyDark,
+
                           headerForegroundColor: Colors.white,
-                          dayForegroundColor:
-                              WidgetStatePropertyAll(isDark ? Colors.white : AppColors.navyDark),
-                          dayOverlayColor:
-                              WidgetStatePropertyAll(AppColors.darkGold.withOpacity(0.3)),
-                          todayForegroundColor:
-                              WidgetStatePropertyAll(AppColors.darkGold),
-                          yearForegroundColor:
-                              WidgetStatePropertyAll(isDark ? Colors.white : AppColors.navyDark),
-                          yearOverlayColor:
-                              WidgetStatePropertyAll(AppColors.darkGold.withOpacity(0.3)),
+
+                          dayForegroundColor: WidgetStatePropertyAll(
+                            isDark ? Colors.white : AppColors.navyDark,
+                          ),
+
+                          dayOverlayColor: WidgetStatePropertyAll(
+                            AppColors.darkGold.withOpacity(0.3),
+                          ),
+
+                          todayForegroundColor: WidgetStatePropertyAll(
+                            AppColors.darkGold,
+                          ),
+
+                          yearForegroundColor: WidgetStatePropertyAll(
+                            isDark ? Colors.white : AppColors.navyDark,
+                          ),
+
+                          yearOverlayColor: WidgetStatePropertyAll(
+                            AppColors.darkGold.withOpacity(0.3),
+                          ),
+
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16.r),
                           ),
+
                           elevation: 8,
                         ),
                       ),
@@ -1438,45 +1203,61 @@ hasFLDCTraining:
                     );
                   },
                 );
-                if (picked != null) onDateSelected(picked);
+
+                if (picked != null) {
+                  onDateSelected(picked);
+                }
               },
+
         borderRadius: BorderRadius.circular(12.r),
+
         child: InputDecorator(
           decoration: InputDecoration(
             labelText: label,
+
             prefixIcon: Icon(
               Icons.calendar_today,
               color: isDark ? Colors.white70 : AppColors.navyLight,
               size: 20.sp,
             ),
+
             labelStyle: AppTextStyles.bodySmall.copyWith(
               color: isDark ? Colors.white70 : AppColors.navyLight,
             ),
+
             filled: _isReadOnly,
+
             fillColor: _isReadOnly
                 ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
                 : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
               borderSide: BorderSide(
                 color: isDark ? Colors.white24 : Colors.grey.shade300,
               ),
             ),
+
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12.r),
-              borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
+              borderSide: const BorderSide(
+                color: AppColors.darkGold,
+                width: 1.5,
+              ),
             ),
+
             suffixIcon: Icon(
               Icons.arrow_drop_down,
               color: isDark ? Colors.white70 : AppColors.navyDark,
             ),
           ),
+
           child: Text(
-            currentDate != null
-                ? DateFormat('yyyy-MM-dd').format(currentDate)
+            selectedDate != null
+                ? DateFormat('yyyy-MM-dd').format(selectedDate)
                 : "add_doctor.select_date".tr(),
             style: AppTextStyles.bodyMedium.copyWith(
-              color: currentDate != null
+              color: selectedDate != null
                   ? (isDark ? Colors.white : AppColors.navyDark)
                   : (isDark ? Colors.white54 : AppColors.navyLight),
             ),
@@ -1486,6 +1267,9 @@ hasFLDCTraining:
     );
   }
 
+  // ============================================================
+  //  سويتش
+  // ============================================================
   Widget _buildSwitch(String label, bool value, Function(bool) onChanged) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SwitchListTile(
@@ -1497,270 +1281,691 @@ hasFLDCTraining:
       ),
       value: value,
       activeColor: AppColors.darkGold,
-      onChanged: _isReadOnly ? null : onChanged,
+      onChanged: _isReadOnly ? null : (v) => onChanged(v),
       contentPadding: EdgeInsets.zero,
     );
   }
 
+  // ============================================================
+  //  دروبداون الحالة الاجتماعية
+  // ============================================================
+  Widget _buildSocialStatusDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: _isReadOnly
+            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        border: Border.all(
+          color: isDark ? Colors.white24 : Colors.grey.shade300,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedStatusAr,
+          isExpanded: true,
+          hint: Text(
+            "add_doctor.social_status".tr(),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: isDark ? Colors.white54 : AppColors.navyLight,
+            ),
+          ),
+          icon: Icon(
+            Icons.arrow_drop_down,
+            color: isDark ? Colors.white70 : AppColors.navyDark,
+          ),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white : AppColors.navyDark,
+          ),
+          dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          items: statusMapping.keys.map((String ar) {
+            return DropdownMenuItem<String>(value: ar, child: Text(ar));
+          }).toList(),
+          onChanged: _isReadOnly
+              ? null
+              : (String? val) {
+                  if (val != null) {
+                    setState(() {
+                      selectedStatusAr = val;
+                      selectedStatusEn = statusMapping[val];
+                    });
+                  }
+                },
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  //  دروبداون الوظيفة الحالية (بنفس طريقة الحالة الاجتماعية)
+  // ============================================================
+  Widget _buildCurrentJobDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final isValid = jobTitleMapping.containsKey(_currentJobAr.text.trim());
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: _isReadOnly
+            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        border: Border.all(
+          color: isDark ? Colors.white24 : Colors.grey.shade300,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: isValid ? _currentJobAr.text.trim() : null,
+          isExpanded: true,
+          hint: Text(
+            "add_doctor.job_ar".tr(),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: isDark ? Colors.white54 : AppColors.navyLight,
+            ),
+          ),
+          icon: Icon(
+            Icons.arrow_drop_down,
+            color: isDark ? Colors.white70 : AppColors.navyDark,
+          ),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white : AppColors.navyDark,
+          ),
+          dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          items: jobTitleMapping.keys.map((String ar) {
+            return DropdownMenuItem<String>(value: ar, child: Text(ar));
+          }).toList(),
+          onChanged: _isReadOnly
+              ? null
+              : (String? val) {
+                  if (val != null) {
+                    setState(() {
+                      _currentJobAr.text = val;
+                      _currentJobEn.text = jobTitleMapping[val]!;
+                    });
+                  }
+                },
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  //  دروبداون الدرجة العلمية
+  // ============================================================
+  Widget _buildDegreeDropdown(AcademicControllers ctrl) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isValid = degreeLevelValues.contains(ctrl.type);
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: _isReadOnly
+            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        border: Border.all(
+          color: isDark ? Colors.white24 : Colors.grey.shade300,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: isValid ? ctrl.type : null,
+          isExpanded: true,
+          hint: Text(
+            "add_doctor.type_degree".tr(),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: isDark ? Colors.white54 : AppColors.navyLight,
+            ),
+          ),
+          icon: Icon(
+            Icons.school,
+            color: isDark ? Colors.white70 : AppColors.navyLight,
+          ),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white : AppColors.navyDark,
+          ),
+          dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          items: degreeLevelValues.map((String val) {
+            return DropdownMenuItem<String>(
+              value: val,
+              child: Text(
+                val,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: isDark ? Colors.white : AppColors.navyDark,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: _isReadOnly
+              ? null
+              : (String? newValue) {
+                  if (newValue != null) {
+                    setState(() {
+                      ctrl.type = newValue;
+                    });
+                  }
+                },
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  //  دروبداون المسمى الوظيفي للسجل (بنفس طريقة الحالة الاجتماعية)
+  // ============================================================
+  Widget _buildJobTitleDropdown(JobHistoryController ctrl) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final isValid = jobTitleMapping.containsKey(ctrl.titleAr.text.trim());
+    final hasCustomTitle = ctrl.titleAr.text.trim().isNotEmpty && !isValid;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+          decoration: BoxDecoration(
+            color: _isReadOnly
+                ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+                : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+            border: Border.all(
+              color: isDark ? Colors.white24 : Colors.grey.shade300,
+            ),
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: isValid ? ctrl.titleAr.text.trim() : null,
+              isExpanded: true,
+              hint: Text(
+                "add_doctor.select_job_title".tr(),
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: isDark ? Colors.white54 : AppColors.navyLight,
+                ),
+              ),
+              icon: Icon(
+                Icons.arrow_drop_down,
+                color: isDark ? Colors.white70 : AppColors.navyDark,
+              ),
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: isDark ? Colors.white : AppColors.navyDark,
+              ),
+              dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+              items: jobTitleMapping.keys.map((String ar) {
+                return DropdownMenuItem<String>(value: ar, child: Text(ar));
+              }).toList(),
+              onChanged: _isReadOnly
+                  ? null
+                  : (String? val) {
+                      if (val != null) {
+                        setState(() {
+                          ctrl.titleAr.text = val;
+                          ctrl.titleEn.text = jobTitleMapping[val]!;
+                        });
+                      }
+                    },
+            ),
+          ),
+        ),
+        if (ctrl.titleAr.text.trim().isNotEmpty)
+          Padding(
+            padding: EdgeInsets.only(top: 6.h, right: 4.w),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.check_circle,
+                  size: 14.sp,
+                  color: AppColors.darkGold,
+                ),
+                SizedBox(width: 6.w),
+                Expanded(
+                  child: Text(
+                    '${ctrl.titleAr.text}  |  ${ctrl.titleEn.text}',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: isDark ? Colors.white70 : AppColors.navyLight,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (hasCustomTitle)
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 6.w,
+                      vertical: 2.h,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(6.r),
+                    ),
+                    child: Text(
+                      'add_doctor.old_tag'.tr(),
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.orange,
+                        fontSize: 10.sp,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ============================================================
+  //  سكشن السجل الوظيفي
+  // ============================================================
+  Widget _buildJobHistorySection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return _buildSectionCard("add_doctor.job_history".tr(), Icons.timeline, [
+      if (_jobHistoryControllers.isEmpty)
+        Padding(
+          padding: EdgeInsets.symmetric(vertical: 10.h),
+          child: Text(
+            "add_doctor.no_job_history".tr(),
+            style: TextStyle(
+              color: isDark ? Colors.white54 : Colors.grey,
+              fontSize: 13.sp,
+            ),
+          ),
+        ),
+      ..._jobHistoryControllers.asMap().entries.map(
+        (entry) => _buildJobHistoryEntry(entry.key, entry.value),
+      ),
+      if (!_isReadOnly)
+        Center(
+          child: TextButton.icon(
+            onPressed: () => setState(
+              () => _jobHistoryControllers.add(JobHistoryController()),
+            ),
+            icon: const Icon(Icons.add_circle, color: AppColors.darkGold),
+            label: Text(
+              "add_doctor.add_previous_job".tr(),
+              style: TextStyle(color: AppColors.navyDark),
+            ),
+          ),
+        ),
+    ]);
+  }
+
+  Widget _buildJobHistoryEntry(int index, JobHistoryController ctrl) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: EdgeInsets.only(bottom: 15.h),
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white10 : AppColors.navyLight.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: isDark ? Colors.white24 : Colors.grey.shade300,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.work_outline,
+                    size: 18.sp,
+                    color: AppColors.darkGold,
+                  ),
+                  SizedBox(width: 8.w),
+                  Text(
+                    '${"add_doctor.job_number".tr()} ${index + 1}',
+                    style: AppTextStyles.titleSmall.copyWith(
+                      color: isDark ? Colors.white : AppColors.navyDark,
+                    ),
+                  ),
+                ],
+              ),
+              if (!_isReadOnly)
+                IconButton(
+                  icon: Icon(
+                    Icons.remove_circle,
+                    color: AppColors.error,
+                    size: 24.sp,
+                  ),
+                  onPressed: () => setState(() {
+                    ctrl.dispose();
+                    _jobHistoryControllers.removeAt(index);
+                  }),
+                ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          _buildJobTitleDropdown(ctrl),
+          SizedBox(height: 10.h),
+          _buildVerticalDoubleField(
+            "add_doctor.job_place_ar".tr(),
+            ctrl.placeAr,
+            "add_doctor.job_place_en".tr(),
+            ctrl.placeEn,
+            Icons.location_city,
+          ),
+          SizedBox(height: 10.h),
+
+          _buildDatePicker(
+            "add_doctor.start_date".tr(),
+            ctrl.startDate,
+            (date) => setState(() => ctrl.startDate = date),
+          ),
+          SizedBox(height: 10.h),
+          _buildDatePicker(
+            "add_doctor.end_date_hint".tr(),
+            ctrl.endDate,
+            (date) => setState(() => ctrl.endDate = date),
+          ),
+          if (ctrl.startDate != null)
+            Padding(
+              padding: EdgeInsets.only(top: 8.h),
+              child: Text(
+                ": ${ctrl.endDate != null ? _formatDuration(ctrl.startDate!, ctrl.endDate!) : _formatDuration(ctrl.startDate!, DateTime.now())}",
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.darkGold,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _formatDuration(DateTime start, DateTime end) {
+    int years = end.year - start.year;
+    int months = end.month - start.month;
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+    if (years > 0 && months > 0) return "$years سنة و $months شهر";
+    if (years > 0) return "$years common.year".tr();
+    if (months > 0) return "$months common.month".tr();
+    return "${end.difference(start).inDays} common.day".tr();
+  }
+
+  // ============================================================
+  //  دروبداون الكلية
+  // ============================================================
+  Widget _buildFacultyDropdown() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final faculties = MansouraUniversitiesData.faculties;
+
+    String? selectedFacultyKey;
+    for (final f in faculties) {
+      final currentVal = isArabic ? _facultyAr.text : _facultyEn.text;
+      if ((isArabic ? f.nameAr : f.nameEn) == currentVal) {
+        selectedFacultyKey = f.id;
+        break;
+      }
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 15.w, vertical: 5.h),
+      decoration: BoxDecoration(
+        color: _isReadOnly
+            ? (isDark ? Colors.grey.shade800 : Colors.grey.shade200)
+            : (isDark ? const Color(0xFF2A2A3E) : Colors.white),
+        border: Border.all(
+          color: isDark ? Colors.white24 : Colors.grey.shade300,
+        ),
+        borderRadius: BorderRadius.circular(12.r),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: selectedFacultyKey,
+          isExpanded: true,
+          hint: Text(
+            "add_doctor.faculty_ar".tr(),
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: isDark ? Colors.white54 : AppColors.navyLight,
+            ),
+          ),
+          icon: Icon(
+            Icons.arrow_drop_down,
+            color: isDark ? Colors.white70 : AppColors.navyDark,
+          ),
+          style: AppTextStyles.bodyMedium.copyWith(
+            color: isDark ? Colors.white : AppColors.navyDark,
+          ),
+          dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          items: faculties.map((f) {
+            return DropdownMenuItem<String>(
+              value: f.id,
+              child: Text(
+                isArabic ? f.nameAr : f.nameEn,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodyMedium.copyWith(
+                  color: isDark ? Colors.white : AppColors.navyDark,
+                ),
+              ),
+            );
+          }).toList(),
+          onChanged: _isReadOnly
+              ? null
+              : (String? val) {
+                  if (val == null) return;
+                  final faculty = faculties.firstWhere((f) => f.id == val);
+                  setState(() {
+                    _facultyAr.text = faculty.nameAr;
+                    _facultyEn.text = faculty.nameEn;
+                  });
+                },
+        ),
+      ),
+    );
+  }
+
+  // ============================================================
+  //  دروبداون القسم
+  // ============================================================
+  Widget _buildDepartmentDropdown() {
+    return _buildField(
+      "add_doctor.department_ar".tr(),
+      _departmentAr,
+      Icons.category,
+    );
+  }
+
+  // ============================================================
+  //  اللجان الداخلية
+  // ============================================================
+  Widget _buildInternalCommitteesSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return _buildSectionCard(
+      "add_doctor.internal_committees".tr(),
+      Icons.groups,
+      [
+        ..._internalCommittees.asMap().entries.map((entry) {
+          return Padding(
+            padding: EdgeInsets.only(bottom: 8.h),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    entry.value,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isDark ? Colors.white : AppColors.navyDark,
+                    ),
+                  ),
+                ),
+                if (!_isReadOnly)
+                  IconButton(
+                    icon: const Icon(
+                      Icons.close,
+                      color: AppColors.error,
+                      size: 20,
+                    ),
+                    onPressed: () => _removeCommittee(entry.key),
+                  ),
+              ],
+            ),
+          );
+        }),
+        if (!_isReadOnly)
+          Row(
+            children: [
+              Expanded(
+                child: _buildField(
+                  "add_doctor.committee_name_hint".tr(),
+                  _committeeNameController,
+                  Icons.add_task,
+                ),
+              ),
+              SizedBox(width: 10.w),
+              IconButton(
+                icon: const Icon(
+                  Icons.add_circle,
+                  color: AppColors.darkGold,
+                  size: 30,
+                ),
+                onPressed: _addCommittee,
+              ),
+            ],
+          ),
+      ],
+    );
+  }
+
+  // ============================================================
+  //  الأرشيف الرقمي
+  // ============================================================
+  Widget _buildDigitalArchiveSection() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return _buildSectionCard(
+      "add_doctor.digital_archive".tr(),
+      Icons.folder_open,
+      [
+        ..._digitalArchive.asMap().entries.map((entry) {
+          final item = entry.value;
+          return ListTile(
+            leading: const Icon(Icons.description, color: AppColors.darkGold),
+            title: Text(
+              item['name'] ?? '',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: isDark ? Colors.white : AppColors.navyDark,
+              ),
+            ),
+            trailing: IconButton(
+              icon: const Icon(Icons.delete, color: AppColors.error),
+              onPressed: _isReadOnly
+                  ? null
+                  : () => setState(() => _digitalArchive.removeAt(entry.key)),
+            ),
+          );
+        }),
+        if (!_isReadOnly)
+          Center(
+            child: TextButton.icon(
+              onPressed: _pickAndUploadArchiveFile,
+              icon: const Icon(Icons.upload_file, color: AppColors.darkGold),
+              label: Text("add_doctor.upload_file".tr()),
+            ),
+          ),
+      ],
+    );
+  }
+
+  // ============================================================
+  //  إدخال الشهادة الأكاديمية
+  // ============================================================
+  Widget _buildAcademicEntry(int index, AcademicControllers ctrl) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: EdgeInsets.only(bottom: 15.h),
+      padding: EdgeInsets.all(12.w),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white10 : AppColors.navyLight.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(
+          color: isDark ? Colors.white24 : Colors.grey.shade300,
+        ),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${"add_doctor.type_certificate".tr()} ${index + 1}',
+                style: AppTextStyles.titleSmall.copyWith(
+                  color: isDark ? Colors.white : AppColors.navyDark,
+                ),
+              ),
+              if (!_isReadOnly)
+                IconButton(
+                  icon: const Icon(Icons.remove_circle, color: AppColors.error),
+                  onPressed: () => setState(() {
+                    ctrl.dispose();
+                    academicControllersList.removeAt(index);
+                  }),
+                ),
+            ],
+          ),
+          SizedBox(height: 10.h),
+          _buildDegreeDropdown(ctrl),
+          SizedBox(height: 10.h),
+          _buildField(
+            "add_doctor.major_hint".tr(),
+            ctrl.major,
+            Icons.menu_book,
+          ),
+          SizedBox(height: 10.h),
+          _buildField(
+            "add_doctor.place_hint".tr(),
+            ctrl.place,
+            Icons.location_city,
+          ),
+          SizedBox(height: 10.h),
+          _buildDatePicker("", ctrl.date, (d) => setState(() => ctrl.date = d)),
+        ],
+      ),
+    );
+  }
+
+  // ============================================================
+  //  زر الحفظ
+  // ============================================================
   Widget _buildSaveButton() {
     return SizedBox(
       width: double.infinity,
       height: 50.h,
       child: ElevatedButton(
+        onPressed: _onSavePressed,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.darkGold,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.r),
           ),
         ),
-        onPressed: _onSavePressed,
         child: Text(
           isEditing
-              ? "add_doctor.save_changes".tr()
-              : "add_doctor.save_button".tr(),
-          style: const TextStyle(
+              ? "add_doctor.save_changes ".tr()
+              : "add_doctor.title ".tr(),
+          style: AppTextStyles.titleMedium.copyWith(
             color: Colors.white,
             fontWeight: FontWeight.bold,
-            fontSize: 16,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSmallInput(String label, TextEditingController ctrl) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return TextFormField(
-      controller: ctrl,
-      enabled: !_isReadOnly,
-      style: AppTextStyles.bodySmall.copyWith(
-        color: isDark ? Colors.white : AppColors.navyDark,
-      ),
-      textAlign: isArabic ? TextAlign.right : TextAlign.left,
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: AppTextStyles.bodySmall.copyWith(
-          color: isDark ? Colors.white70 : AppColors.navyLight,
-        ),
-        filled: true,
-        fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.white,
-        contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
-          borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
-          borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.r),
-          borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSmallDatePicker(
-    String label,
-    DateTime? currentDate,
-    Function(DateTime) onDateSelected,
-  ) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return InkWell(
-      onTap: _isReadOnly
-          ? null
-          : () async {
-              DateTime? picked = await showDatePicker(
-                context: context,
-                initialDate: currentDate ?? DateTime.now(),
-                firstDate: DateTime(1940),
-                lastDate: DateTime(2100),
-                builder: (context, child) {
-                  return Theme(
-                    data: Theme.of(context).copyWith(
-                      colorScheme: isDark
-                          ? ColorScheme.dark(
-                              primary: AppColors.darkGold,
-                              onPrimary: Colors.white,
-                              surface: const Color(0xFF1E1E2E),
-                              onSurface: Colors.white,
-                              onSurfaceVariant: Colors.white70,
-                            )
-                          : const ColorScheme.light(
-                              primary: AppColors.navyDark,
-                              onPrimary: Colors.white,
-                              surface: Colors.white,
-                              onSurface: AppColors.navyDark,
-                            ),
-                      dialogBackgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-                      textButtonTheme: TextButtonThemeData(
-                        style: TextButton.styleFrom(foregroundColor: Colors.white),
-                      ),
-                      datePickerTheme: DatePickerThemeData(
-                        backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-                        headerBackgroundColor: isDark ? const Color(0xFF2A2A3E) : AppColors.navyDark,
-                        headerForegroundColor: Colors.white,
-                        dayForegroundColor: WidgetStatePropertyAll(isDark ? Colors.white : AppColors.navyDark),
-                        dayOverlayColor: WidgetStatePropertyAll(AppColors.darkGold.withOpacity(0.3)),
-                        todayForegroundColor: WidgetStatePropertyAll(AppColors.darkGold),
-                        yearForegroundColor: WidgetStatePropertyAll(isDark ? Colors.white : AppColors.navyDark),
-                        yearOverlayColor: WidgetStatePropertyAll(AppColors.darkGold.withOpacity(0.3)),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16.r)),
-                      ),
-                    ),
-                    child: child!,
-                  );
-                },
-              );
-              if (picked != null) onDateSelected(picked);
-            },
-      child: InputDecorator(
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: AppTextStyles.bodySmall.copyWith(
-            color: isDark ? Colors.white70 : AppColors.navyLight,
-          ),
-          filled: true,
-          fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.grey.shade50,
-          contentPadding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.r),
-            borderSide: const BorderSide(color: AppColors.darkGold, width: 1.5),
-          ),
-          suffixIcon: Icon(Icons.calendar_today, size: 18.sp, color: isDark ? Colors.white70 : AppColors.navyLight),
-        ),
-        child: Text(
-          currentDate != null
-              ? DateFormat('yyyy-MM-dd').format(currentDate)
-              : "add_doctor.select_date".tr(),
-          style: AppTextStyles.bodySmall.copyWith(
-            color: currentDate != null
-                ? (isDark ? Colors.white : AppColors.navyDark)
-                : (isDark ? Colors.white54 : AppColors.navyLight),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildAcademicEntry(int index, AcademicControllers controllers) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
-      padding: EdgeInsets.all(12.w),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2A2A3E).withOpacity(0.5) : AppColors.navyLight.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12.r),
-        border: Border.all(color: isDark ? Colors.white24 : Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "${"add_doctor.entry".tr()} ${index + 1}",
-                style: AppTextStyles.bodySmall.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? Colors.white : AppColors.navyDark,
-                ),
-              ),
-              if (!_isReadOnly)
-                IconButton(
-                  onPressed: () =>
-                      setState(() => academicControllersList.removeAt(index)),
-                  icon: const Icon(
-                    Icons.delete_forever,
-                    color: AppColors.error,
-                  ),
-                ),
-            ],
-          ),
-          SizedBox(height: 10.h),
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 10.w),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2A2A3E) : Colors.grey.shade100,
-              borderRadius: BorderRadius.circular(8.r),
-              border: Border.all(color: isDark ? Colors.white24 : Colors.transparent),
-            ),
-            child: DropdownButton<String>(
-              value: degreeLevelValues.contains(controllers.type)
-                  ? controllers.type
-                  : null,
-              isExpanded: true,
-              underline: const SizedBox.shrink(),
-              icon: Icon(
-                Icons.arrow_drop_down,
-                size: 20.sp,
-                color: isDark ? Colors.white70 : AppColors.navyDark,
-              ),
-              dropdownColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: isDark ? Colors.white : AppColors.navyDark,
-              ),
-              items: List.generate(degreeLevelKeys.length, (index) {
-                final key = degreeLevelKeys[index];
-                final val = degreeLevelValues[index];
-                final isHigherDegree = (val == 'ماجستير' || val == 'دكتوراه');
-                return DropdownMenuItem(
-                  value: val,
-                  child: Text(
-                    key.tr(),
-                    style: isHigherDegree
-                        ? AppTextStyles.bodySmall.copyWith(
-                            color: isDark ? Colors.white : Colors.black,
-                            fontWeight: FontWeight.bold,
-                          )
-                        : AppTextStyles.bodySmall.copyWith(
-                            color: isDark ? Colors.white70 : AppColors.navyLight,
-                          ),
-                  ),
-                );
-              }),
-              onChanged: _isReadOnly
-                  ? null
-                  : (String? newValue) {
-                      if (newValue != null)
-                        setState(() {
-                          controllers.type = newValue;
-                        });
-                    },
-            ),
-          ),
-          SizedBox(height: 10.h),
-          _buildSmallInput("add_doctor.degree_hint".tr(), controllers.degree),
-          SizedBox(height: 8.h),
-          _buildSmallInput("add_doctor.major_hint".tr(), controllers.major),
-          SizedBox(height: 8.h),
-          _buildSmallInput("add_doctor.place_hint".tr(), controllers.place),
-          SizedBox(height: 8.h),
-          _buildSmallDatePicker(
-            "add_doctor.date_granted".tr(),
-            controllers.date,
-            (date) => setState(() => controllers.date = date),
-          ),
-        ],
       ),
     );
   }
 }
 
-// ✅ دالة حوار رفع الأرشيف (افتراضية عشان الكود يشتغل)
+// ============================================================
+//  حوار رفع ملف الأرشيف
+// ============================================================
 class _ArchiveFileDialog extends StatefulWidget {
   final File file;
   final String uid;
+
   const _ArchiveFileDialog({required this.file, required this.uid});
 
   @override
@@ -1768,63 +1973,80 @@ class _ArchiveFileDialog extends StatefulWidget {
 }
 
 class _ArchiveFileDialogState extends State<_ArchiveFileDialog> {
-  final _titleController = TextEditingController();
+  final _nameController = TextEditingController();
   bool _isUploading = false;
 
   @override
   void dispose() {
-    _titleController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
   Future<void> _upload() async {
-    if (_titleController.text.trim().isEmpty) return;
+    final name = _nameController.text.trim();
+    if (name.isEmpty) return;
+
     setState(() => _isUploading = true);
-    
-    // قم بوضع كود رفع الملف هنا باستخدام Cubit
-    
-    setState(() => _isUploading = false);
-    if (mounted) Navigator.pop(context);
+
+    try {
+      // ضع هنا منطق رفع الملف للـ Firebase
+      if (!mounted) return;
+      Navigator.pop(context, {
+        'name': name,
+        'url': '', // ضع رابط الملف هنا بعد الرفع
+      });
+    } catch (e) {
+      setState(() => _isUploading = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("common.error: $e".tr()),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return AlertDialog(
-      backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.r)),
-      title: Text(
-        "add_doctor.archive_details".tr(),
-        style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark),
-      ),
-      content: TextFormField(
-        controller: _titleController,
-        style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark),
+      title: Text("add_doctor.file_title ".tr()),
+      content: TextField(
+        controller: _nameController,
         decoration: InputDecoration(
-          labelText: "add_doctor.file_title".tr(),
-          labelStyle: TextStyle(color: isDark ? Colors.white70 : AppColors.navyLight),
-          filled: true,
-          fillColor: isDark ? const Color(0xFF2A2A3E) : Colors.white,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.r),
-            borderSide: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
-          ),
+          labelText: " add_doctor.add_archive".tr(),
+          hintText: "add_doctor.".tr(),
         ),
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text("common.cancel".tr(), style: TextStyle(color: isDark ? Colors.white : AppColors.navyLight)),
+          child: Text(
+            "common.cancel".tr(),
+            style: TextStyle(
+              color: isDark ? Colors.white : AppColors.navyLight,
+            ),
+          ),
         ),
         ElevatedButton(
           onPressed: _isUploading ? null : _upload,
           style: ElevatedButton.styleFrom(
             backgroundColor: AppColors.darkGold,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10.r)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.r),
+            ),
           ),
           child: _isUploading
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white))
-              : Text("common.save".tr(), style: const TextStyle(color: Colors.white)),
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(color: Colors.white),
+                )
+              : Text(
+                  "common.save".tr(),
+                  style: const TextStyle(color: Colors.white),
+                ),
         ),
       ],
     );

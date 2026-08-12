@@ -1,40 +1,51 @@
 {
   "career": {
     "title": "البيانات الوظيفية",
+
     "sections": {
       "credentials": "المؤهلات العلمية",
       "promotions_track": "سلم الترقيات والمسار الأكاديمي",
       "path": "المسار الوظيفي",
       "current_employment": "بيانات العمل الحالية"
     },
+
     "degrees": {
       "phd": "دكتوراه",
       "msc": "ماجستير",
       "bsc": "بكالوريوس"
     },
+
     "specs": {
       "computer_eng": "هندسة الحاسبات",
       "software_eng": "هندسة البرمجيات",
       "computer_science": "علوم الحاسب"
     },
+
     "current_role": "المنصب الحالي: {0}",
-    "experience": "عدد سنوات الخبرة: {0} سنوات",
+    "experience": "عدد سنوات الخبرة",
     "previous_positions": "الوظائف السابقة:",
     "no_history": "لا يوجد سجل أكاديمي",
     "no_promotions": "لا توجد بيانات مسار أكاديمي مسجلة",
+    "no_job_history": "لا يوجد سجل وظيفي",
     "no_previous_roles": "لا توجد وظائف سابقة",
+
     "years": "سنوات",
     "months": "أشهر",
     "until_now": "حتى الآن",
+
     "roles": {
       "lecturer": "مدرس",
       "ta": "معيد"
     },
+
     "labels": {
       "dept": "الجهة:",
       "type": "نوع التعيين:",
-      "hire_date": "تاريخ أول تعيين:"
+      "hire_date": "تاريخ أول تعيين:",
+      "job": "الوظيفة الحالية",
+      "professor_date": "تاريخ الأستاذية"
     },
+
     "employment_type": {
       "permanent": "تعيين دائم",
       "temporary": "تعيين مؤقت"

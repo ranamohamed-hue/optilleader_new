@@ -43,13 +43,22 @@ class _AddAdminPageState extends State<AddAdminPage> {
   bool _isReadOnly = true;
   String _currentImageUrl = '';
   bool _isSubmitting = false;
-
+  bool _isProfileLoaded = false;
+  @override
   @override
   void initState() {
     super.initState();
+
+    debugPrint('🔥 AddAdminPage initState');
+    debugPrint('🔥 existingUid = ${widget.existingUid}');
+    debugPrint('🔥 isViewMode = ${widget.isViewMode}');
+
     _isReadOnly = widget.isViewMode;
+
     if (isEditing) {
       context.read<AdminDataCubit>().getAdminProfile(widget.existingUid!);
+    } else {
+      _isProfileLoaded = true;
     }
   }
 
@@ -63,11 +72,17 @@ class _AddAdminPageState extends State<AddAdminPage> {
         backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
         title: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 28.sp),
+            Icon(
+              Icons.warning_amber_rounded,
+              color: AppColors.error,
+              size: 28.sp,
+            ),
             SizedBox(width: 10.w),
             Text(
               "add_admin.confirm_delete_title".tr(),
-              style: TextStyle(color: isDark ? Colors.white : AppColors.navyDark),
+              style: TextStyle(
+                color: isDark ? Colors.white : AppColors.navyDark,
+              ),
             ),
           ],
         ),
@@ -97,13 +112,14 @@ class _AddAdminPageState extends State<AddAdminPage> {
             ),
             onPressed: () {
               Navigator.pop(dialogContext);
-              context.read<AdminDataCubit>().deleteAdmin(
-                widget.existingUid!,
-              );
+              context.read<AdminDataCubit>().deleteAdmin(widget.existingUid!);
             },
             child: Text(
               "add_admin.confirm".tr(),
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -141,6 +157,19 @@ class _AddAdminPageState extends State<AddAdminPage> {
   }
 
   void _populateFields(AdminProfileModel admin) {
+    debugPrint('========== POPULATE ADMIN ==========');
+    debugPrint('nameAr: ${admin.nameAr}');
+    debugPrint('nameEn: ${admin.nameEn}');
+    debugPrint('email: ${admin.email}');
+    debugPrint('phone: ${admin.phone}');
+    debugPrint('jobAr: ${admin.jopAr}');
+    debugPrint('jobEn: ${admin.jopEn}');
+    debugPrint('addressAr: ${admin.addressAr}');
+    debugPrint('addressEn: ${admin.addressEn}');
+    debugPrint('nationalId: ${admin.nationalId}');
+    debugPrint('employeeId: ${admin.employeeId}');
+    debugPrint('image: ${admin.profileImage}');
+
     _nameArController.text = admin.nameAr;
     _nameEnController.text = admin.nameEn;
     _emailController.text = admin.email;
@@ -152,6 +181,8 @@ class _AddAdminPageState extends State<AddAdminPage> {
     _nationalIdController.text = admin.nationalId;
     _employeeIdController.text = admin.employeeId;
     _currentImageUrl = admin.profileImage;
+
+    debugPrint('========== FIELDS POPULATED ==========');
   }
 
   void _onSavePressed(BuildContext context) {
@@ -218,7 +249,17 @@ class _AddAdminPageState extends State<AddAdminPage> {
           current is AdminLoaded,
       listener: (context, state) {
         if (state is AdminLoaded) {
-          _populateFields(state.admin!);
+          debugPrint('✅ AddAdminPage received AdminLoaded');
+
+          if (state.admin != null) {
+            _populateFields(state.admin!);
+
+            if (mounted) {
+              setState(() {
+                _isProfileLoaded = true;
+              });
+            }
+          }
         } else if (state is AdminSuccess) {
           _isSubmitting = false;
           ScaffoldMessenger.of(context).clearSnackBars();
@@ -288,43 +329,50 @@ class _AddAdminPageState extends State<AddAdminPage> {
           children: [
             BlocBuilder<AdminDataCubit, AdminDataState>(
               builder: (context, state) {
-                if (isEditing &&
-                    state is! AdminLoaded &&
-                    state is! AdminError) {
+                // أثناء تحميل بيانات الأدمن
+                if (isEditing && !_isProfileLoaded) {
+                  if (state is AdminError) {
+                    return Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.error_outline,
+                            size: 60.sp,
+                            color: AppColors.error,
+                          ),
+                          SizedBox(height: 16.h),
+                          Text(
+                            state.error,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: isDark ? Colors.white : AppColors.navyDark,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          SizedBox(height: 16.h),
+                          ElevatedButton(
+                            onPressed: () {
+                              setState(() {
+                                _isProfileLoaded = false;
+                              });
+
+                              context.read<AdminDataCubit>().getAdminProfile(
+                                widget.existingUid!,
+                              );
+                            },
+                            child: Text("retry".tr()),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
                   return const Center(
                     child: CircularProgressIndicator(color: AppColors.darkGold),
                   );
                 }
-                if (isEditing && state is AdminError) {
-                  return Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          size: 60.sp,
-                          color: AppColors.error,
-                        ),
-                        SizedBox(height: 16.h),
-                        Text(
-                          state.error,
-                          style: AppTextStyles.bodyMedium.copyWith(
-                            color: isDark ? Colors.white : AppColors.navyDark,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        SizedBox(height: 16.h),
-                        ElevatedButton(
-                          onPressed: () => context
-                              .read<AdminDataCubit>()
-                              .getAdminProfile(widget.existingUid!),
-                          child: Text("retry".tr()),
-                        ),
-                      ],
-                    ),
-                  );
-                }
 
+                // البيانات اتحملت
                 return SingleChildScrollView(
                   padding: EdgeInsets.all(20.w),
                   physics: const BouncingScrollPhysics(),
@@ -458,7 +506,9 @@ class _AddAdminPageState extends State<AddAdminPage> {
                               Text(
                                 "add_admin.deleting".tr(),
                                 style: AppTextStyles.bodyMedium.copyWith(
-                                  color: isDark ? Colors.white : AppColors.navyDark,
+                                  color: isDark
+                                      ? Colors.white
+                                      : AppColors.navyDark,
                                 ),
                               ),
                             ],
@@ -567,7 +617,10 @@ class _AddAdminPageState extends State<AddAdminPage> {
                 ),
               ],
             ),
-            Divider(height: 30, color: isDark ? Colors.white24 : Colors.grey.shade300),
+            Divider(
+              height: 30,
+              color: isDark ? Colors.white24 : Colors.grey.shade300,
+            ),
             ...children,
           ],
         ),
@@ -605,7 +658,11 @@ class _AddAdminPageState extends State<AddAdminPage> {
         ),
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Icon(icon, size: 20.sp, color: isDark ? Colors.white70 : AppColors.navyLight),
+          prefixIcon: Icon(
+            icon,
+            size: 20.sp,
+            color: isDark ? Colors.white70 : AppColors.navyLight,
+          ),
           labelStyle: AppTextStyles.bodySmall.copyWith(
             color: isDark ? Colors.white70 : AppColors.navyLight,
           ),

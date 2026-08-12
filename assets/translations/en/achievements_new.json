@@ -88,6 +88,10 @@
     "mandatory_course_3": "Administrative Capacity Building Course",
     "mandatory_course_4": "Crisis Management Course",
     "mandatory_course_5": "Strategic Leadership Course",
+        "mandatory_course_6":"Certified Quality Course",
+
+        "mandatory_course_7":"Session of the Supreme Council of Universities",
+
     "error_mandatory_without_graded": "You cannot save qualification courses alone. Please add a normal activity (conference or course) as well.",
     "normal_activity_section": "Normal Activity (Conference / Graded Course)",
     "exhibitionWorksHint": "For international venues, you must submit at least 5 artworks"

@@ -2,7 +2,6 @@ import 'dart:io';
 import 'package:bloc/bloc.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:optialeader/feature/doctor/data/model/conferance_model.dart';
-
 import 'package:optialeader/feature/doctor/data/model/courses_model.dart';
 import 'package:optialeader/feature/doctor/data/model/exhibition_venue_model.dart';
 import 'package:optialeader/feature/doctor/data/repo/activities/activity_repo.dart';
@@ -15,7 +14,20 @@ class ActivityCubit extends Cubit<ActivityState> {
   final NotificationRepo notificationRepo;
 
   ActivityCubit(this.activitiesRepo, this.notificationRepo)
-    : super(ActivityInitial());
+      : super(ActivityInitial());
+
+  // ============================================================
+  // ============== دالة التحكم الرئيسية (الجديدة) =============
+  // ============================================================
+  Future<void> submitActivities(Future<void> Function() action) async {
+    emit(ActivityLoading());
+    try {
+      await action();
+      emit(ActivitySuccess());
+    } catch (e) {
+      emit(ActivityError(error: e.toString().replaceFirst('Exception: ', '')));
+    }
+  }
 
   // ============================================================
   // ============== دوال المؤتمرات ==============================
@@ -25,16 +37,15 @@ class ActivityCubit extends Cubit<ActivityState> {
     required ConferenceModel conference,
     File? certFile,
   }) async {
-    emit(ActivityLoading());
     final result = await activitiesRepo.addConference(
       doctorUid,
       conference,
       certFile: certFile,
     );
-    result.fold((error) => emit(ActivityError(error: error)), (_) async {
-      emit(ActivitySuccess());
-      _sendNotification(doctorUid, conference.title, 'مؤتمر');
-    });
+    result.fold(
+      (error) => throw Exception(error),
+      (_) => _sendNotification(doctorUid, conference.title, 'مؤتمر'),
+    );
   }
 
   Future<void> deleteConference({
@@ -57,16 +68,15 @@ class ActivityCubit extends Cubit<ActivityState> {
     required CourseModel course,
     File? certFile,
   }) async {
-    emit(ActivityLoading());
     final result = await activitiesRepo.addCourse(
       doctorUid,
       course,
       certFile: certFile,
     );
-    result.fold((error) => emit(ActivityError(error: error)), (_) async {
-      emit(ActivitySuccess());
-      _sendNotification(doctorUid, course.title, 'دورة تدريبية');
-    });
+    result.fold(
+      (error) => throw Exception(error),
+      (_) => _sendNotification(doctorUid, course.title, 'دورة تدريبية'),
+    );
   }
 
   Future<void> deleteCourse({
@@ -89,16 +99,15 @@ class ActivityCubit extends Cubit<ActivityState> {
     required ArtExhibitionModel exhibition,
     File? proofFile,
   }) async {
-    emit(ActivityLoading());
     final result = await activitiesRepo.addExhibition(
       doctorUid,
       exhibition,
       proofFile: proofFile,
     );
-    result.fold((error) => emit(ActivityError(error: error)), (_) async {
-      emit(ActivitySuccess());
-      _sendNotification(doctorUid, exhibition.title, 'معرض فني');
-    });
+    result.fold(
+      (error) => throw Exception(error),
+      (_) => _sendNotification(doctorUid, exhibition.title, 'معرض فني'),
+    );
   }
 
   Future<void> deleteExhibition({

@@ -42,7 +42,8 @@ class FolderJsonLoader extends AssetLoader {
     'employee_review_scren',
     'notification',
     'employee_archive',
-    'employee_archieve'
+    'employee_archieve',
+    'employee_nomination_page'
   ];
 
   @override

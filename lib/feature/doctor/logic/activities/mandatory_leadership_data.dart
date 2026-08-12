@@ -9,5 +9,6 @@ class MandatoryLeadershipData {
     {'key': 'addActivity.mandatory_course_5', 'titleAr': 'معايير الهيئة القومية للاعتماد'},
     {'key': 'addActivity.mandatory_course_6', 'titleAr': 'ادارة الموارد المالية والبشرية'},
     {'key': 'addActivity.mandatory_course_7', 'titleAr': 'الشهادة الدولية لقيادة الحاسب (ICDL)'},
+    
   ];
 }

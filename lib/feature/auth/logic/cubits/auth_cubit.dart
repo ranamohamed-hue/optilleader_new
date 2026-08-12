@@ -57,22 +57,39 @@ class AuthCubit extends Cubit<AuthState> {
     });
   }
 
-  Future<void> completeFirstLogin({required String newPassword}) async {
-    UserModel? currentUser;
-    if (state is NewUserFirstLoginState) {
-      currentUser = (state as NewUserFirstLoginState).userModel;
-    }
+ Future<void> completeFirstLogin({
+  required String newPassword,
+}) async {
+  UserModel? currentUser;
 
-    if (currentUser != null) {
-      emit(UpdatePasswordLoadingState(currentUser));
-      final result = await authRepo.completeFirstLogin(newPassword: newPassword);
-      result.fold((error) => emit(UpdatePasswordErrorState(error)), (message) {
-        final updatedUser = currentUser!.copyWith(isFirstLogin: false);
-        emit(AuthenticatedState(updatedUser));
-      });
-    }
+  if (state is NewUserFirstLoginState) {
+    currentUser = (state as NewUserFirstLoginState).userModel;
   }
 
+  if (currentUser == null) {
+    emit(UpdatePasswordErrorState('User session not found'));
+    return;
+  }
+
+  emit(UpdatePasswordLoadingState(currentUser));
+
+  final result = await authRepo.completeFirstLogin(
+    newPassword: newPassword,
+  );
+
+  result.fold(
+    (error) {
+      emit(UpdatePasswordErrorState(error));
+    },
+    (_) {
+      final updatedUser = currentUser!.copyWith(
+        isFirstLogin: false,
+      );
+
+      emit(AuthenticatedState(updatedUser));
+    },
+  );
+}
   Future<void> logout() async {
     final result = await authRepo.logout();
     result.fold((error) => emit(LoginErrorState(error)), (_) => emit(LogoutSuccessState()));
