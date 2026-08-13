@@ -13,6 +13,7 @@ import 'package:optialeader/feature/doctor/ui/screens/add_activity_page.dart';
 import 'package:optialeader/feature/admin/ui/admin_pending_requests_page.dart';
 import 'package:optialeader/feature/doctor/ui/screens/doctor_requests_status_screen.dart';
 import 'package:optialeader/feature/database_admin/data/models/doctor_profile_model.dart';
+import 'package:optialeader/feature/notification/ui/notification_page.dart';
 
 
 
@@ -110,4 +111,14 @@ final List<RouteBase> userSubRoutes = [
       return DoctorRequestsStatusScreen(doctor: doctor);
     },
   ),
+  GoRoute(
+  path: 'notification',
+  builder: (context, state) {
+    final uid = state.extra as String?;
+
+    return NotificationsScreen(
+      uid: uid,
+    );
+  },
+),
 ];

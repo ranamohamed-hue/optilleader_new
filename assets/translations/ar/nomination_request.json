@@ -10,7 +10,7 @@
   "nomination.error_no_file": "يرجى اختيار ملف الإقرارات أولاً",
   "nomination.button_submitting": "جاري الإرسال...",
   "nomination.button_submit": "إرسال الطلب",
-  
+  "nomination.error_duplicate_request":"  لا يمكن التقديم علي نفس المسابقة مرتين",
   "error_fetch_requests": "فشل في جلب الطلبات",
   "error_fetch_evaluator_requests": "فشل في جلب طلبات التقييم",
   "error_upload_declaration": "فشل في رفع ملف الإقرارات",

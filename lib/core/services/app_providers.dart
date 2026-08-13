@@ -1,4 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:optialeader/feature/doctor/data/repo/research_paper/research_paper_repo.dart';
+import 'package:optialeader/feature/doctor/data/repo/research_paper/research_paper_repo_impl.dart';
 import 'package:provider/single_child_widget.dart';
 import 'package:optialeader/core/theming/logic/theme_cubit.dart';
 import 'package:optialeader/feature/notification/data/repo/notification_repo.dart'; // <-- تأكد من استدعاء الكلاس الأساسي (الابستراكت)
@@ -16,7 +18,9 @@ class AppProviders {
       RepositoryProvider<NotificationRepo>(
         create: (context) => NotificationRepoImpl(),
       ),
-
+RepositoryProvider<ResearchPaperRepo>(
+        create: (context) => ResearchPaperRepoImpl(/* الـ parameters المطلوبة لديك */),
+      ),
       // 2. ثانياً: نضع الـ Cubits التي تعتمد على الـ Repositories
           BlocProvider<NotificationCubit>(
         create: (context) => NotificationCubit(

@@ -29,7 +29,7 @@ void main() async {
   await hiveService.init();
 
   final authCubit = AuthCubit(AuthRepoImpl(auth: FirebaseAuth.instance, firestore: FirebaseFirestore.instance, hiveService: hiveService));
-authCubit.checkAuthStatus(); // ✅ شغله في الخلفية
+Future.microtask(() => authCubit.checkAuthStatus());
   runApp(
     EasyLocalization(
       supportedLocales: const [Locale('en'), Locale('ar')],

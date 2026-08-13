@@ -573,13 +573,7 @@ class LeadershipCriteriaEngine {
         details: DeanCriteriaCalculator.getDeanPartyPositionDetails(doctor),
       ),
 
-      CriterionStatus(
-        titleAr: 'السلامة الصحية والتحمل',
-        titleEn: 'Good health',
-        isMet: DeanCriteriaCalculator.isDeanHealthRequirementMet(doctor),
-        isAutoChecked: true,
-        details: DeanCriteriaCalculator.getDeanHealthDetails(doctor),
-      ),
+     
     ];
   }
 
@@ -794,32 +788,8 @@ class LeadershipCriteriaEngine {
     return count >= maxTerms;
   }
 
-  // ============================================================
-  // تفاصيل الدورات السابقة
-  // ============================================================
-
-  static String _getTermsDetails(
-    DoctorProfileModel doctor,
-    String keywordAr,
-    String roleCode,
-  ) {
-    if (doctor.jobHistory.isNotEmpty) {
-      final terms = _getTermsCountFromHistory(doctor, keywordAr);
-
-      final years = doctor.calculateYearsInPosition(keywordAr);
-
-      if (years > 0) {
-        return 'السجل الوظيفي: $years سنة ($terms دورة)';
-      }
-    }
-
-    final count = doctor.previousLeadershipRoles
-        .where((r) => r.trim().toLowerCase() == roleCode.trim().toLowerCase())
-        .length;
-
-    return count > 0 ? 'مُسجل كدورات: $count' : 'لا توجد دورات سابقة';
-  }
-
+ 
+ 
   // ============================================================
   // خطة العمل
   // ============================================================

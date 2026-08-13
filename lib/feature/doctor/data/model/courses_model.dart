@@ -29,75 +29,169 @@ class CourseModel {
   final CourseCategory courseCategory;
   final CourseScope courseScope;
 
-  // ✅ مفتاح الدورة من MandatoryLeadershipData
+  // ==========================================================
+  // ✅ مفتاح الدورة الإلزامية
+  //
+  // يأتي من MandatoryLeadershipData
+  //
   // مثال:
   // addActivity.mandatory_course_1
+  // ==========================================================
   final String? mandatoryKey;
 
+  // ==========================================================
+  // ✅ هل الدورة ICDL؟
+  // ==========================================================
   final bool isIcdl;
 
+  // ==========================================================
+  // ملف الشهادة
+  // ==========================================================
   final String certificateUrl;
   final String? certificateFileType;
 
+  // ==========================================================
+  // حالة اعتماد الدورة
+  // ==========================================================
   final VerificationStatus status;
+
+  // سبب الرفض إن وجد
   final String? rejectionReason;
 
+  // ==========================================================
+  // Constructor
+  // ==========================================================
   CourseModel({
     required this.id,
     required this.title,
     required this.organization,
     required this.date,
     this.durationHours,
+
     required this.type,
+
     this.courseCategory = CourseCategory.none,
     this.courseScope = CourseScope.none,
 
-    // ✅ جديد
+    // ✅ مفتاح الدورة الإلزامية
     this.mandatoryKey,
 
+    // ✅ ICDL
     this.isIcdl = false,
+
     required this.certificateUrl,
+
     this.certificateFileType = 'image',
+
+    // ✅ أي دورة جديدة تبدأ قيد المراجعة
     this.status = VerificationStatus.pending,
+
     this.rejectionReason,
   });
 
-  /// حساب نقاط الدورة
+  // ==========================================================
+  // Sentinel لـ copyWith
+  //
+  // الهدف:
+  // نفرق بين:
+  //
+  // copyWith()
+  // => الاحتفاظ بالقيمة القديمة
+  //
+  // copyWith(mandatoryKey: null)
+  // => مسح القيمة القديمة فعلًا
+  // ==========================================================
+
+  static const Object _notProvided = Object();
+
+  // ==========================================================
+  // حساب نقاط الدورة
+  // ==========================================================
+
   double get points {
-    // الدورات الإلزامية لا تأخذ نقاط
+    // ----------------------------------------------------------
+    // الدورات الإلزامية لا تحصل على نقاط
+    // ----------------------------------------------------------
     if (type == CourseType.mandatory) {
       return 0.0;
     }
 
+    // ----------------------------------------------------------
+    // لو الفئة أو النطاق غير محدد
+    // ----------------------------------------------------------
     if (courseCategory == CourseCategory.none ||
         courseScope == CourseScope.none) {
       return 0.0;
     }
 
+    // ----------------------------------------------------------
+    // الدورات الإدارية
+    // ----------------------------------------------------------
     if (courseCategory == CourseCategory.administrative) {
-      return courseScope == CourseScope.international ? 6.0 : 5.0;
+      return courseScope == CourseScope.international
+          ? 6.0
+          : 5.0;
     }
 
+    // ----------------------------------------------------------
+    // الدورات التخصصية
+    // ----------------------------------------------------------
     if (courseCategory == CourseCategory.specialized) {
-      return courseScope == CourseScope.international ? 4.0 : 3.0;
+      return courseScope == CourseScope.international
+          ? 4.0
+          : 3.0;
     }
 
+    // ----------------------------------------------------------
+    // الدورات العامة
+    // ----------------------------------------------------------
     if (courseCategory == CourseCategory.general) {
-      return courseScope == CourseScope.international ? 2.0 : 1.0;
+      return courseScope == CourseScope.international
+          ? 2.0
+          : 1.0;
     }
 
     return 0.0;
   }
 
-  bool get isMandatory => type == CourseType.mandatory;
+  // ==========================================================
+  // هل الدورة إلزامية؟
+  // ==========================================================
 
-  factory CourseModel.fromJson(Map<String, dynamic> json) {
+  bool get isMandatory {
+    return type == CourseType.mandatory;
+  }
+
+  // ==========================================================
+  // هل الدورة من الدورات القيادية المحددة؟
+  // ==========================================================
+
+  bool get isMandatoryLeadershipCourse {
+    return isMandatory &&
+        mandatoryKey != null &&
+        mandatoryKey!.trim().isNotEmpty;
+  }
+
+  // ==========================================================
+  // fromJson
+  // ==========================================================
+
+  factory CourseModel.fromJson(
+    Map<String, dynamic> json,
+  ) {
+    // --------------------------------------------------------
+    // Parse CourseType
+    // --------------------------------------------------------
     CourseType parseCourseType(dynamic val) {
-      if (val == null || val.toString().trim().isEmpty) {
+      if (val == null ||
+          val.toString().trim().isEmpty) {
         return CourseType.graded;
       }
 
-      final str = val.toString().trim().toLowerCase();
+      final str = val
+          .toString()
+          .trim()
+          .toLowerCase();
 
       return CourseType.values.firstWhere(
         (e) => e.name == str,
@@ -105,12 +199,21 @@ class CourseModel {
       );
     }
 
-    CourseCategory parseCourseCategory(dynamic val) {
-      if (val == null || val.toString().trim().isEmpty) {
+    // --------------------------------------------------------
+    // Parse CourseCategory
+    // --------------------------------------------------------
+    CourseCategory parseCourseCategory(
+      dynamic val,
+    ) {
+      if (val == null ||
+          val.toString().trim().isEmpty) {
         return CourseCategory.none;
       }
 
-      final str = val.toString().trim().toLowerCase();
+      final str = val
+          .toString()
+          .trim()
+          .toLowerCase();
 
       return CourseCategory.values.firstWhere(
         (e) => e.name == str,
@@ -118,12 +221,21 @@ class CourseModel {
       );
     }
 
-    CourseScope parseCourseScope(dynamic val) {
-      if (val == null || val.toString().trim().isEmpty) {
+    // --------------------------------------------------------
+    // Parse CourseScope
+    // --------------------------------------------------------
+    CourseScope parseCourseScope(
+      dynamic val,
+    ) {
+      if (val == null ||
+          val.toString().trim().isEmpty) {
         return CourseScope.none;
       }
 
-      final str = val.toString().trim().toLowerCase();
+      final str = val
+          .toString()
+          .trim()
+          .toLowerCase();
 
       return CourseScope.values.firstWhere(
         (e) => e.name == str,
@@ -133,52 +245,134 @@ class CourseModel {
 
     return CourseModel(
       id: json['id'] ?? '',
+
       title: json['title'] ?? '',
-      organization: json['organization'] ?? '',
+
+      organization:
+          json['organization'] ?? '',
+
       date: json['date'] ?? '',
-      durationHours: json['durationHours'],
 
-      type: parseCourseType(json['type']),
-      courseCategory: parseCourseCategory(json['courseCategory']),
-      courseScope: parseCourseScope(json['courseScope']),
+      durationHours:
+          json['durationHours'],
 
-      // ✅ جديد
-      mandatoryKey: json['mandatoryKey'],
+      type: parseCourseType(
+        json['type'],
+      ),
 
-      isIcdl: json['isIcdl'] ?? false,
+      courseCategory:
+          parseCourseCategory(
+        json['courseCategory'],
+      ),
 
-      certificateUrl: json['certificateUrl'] ?? '',
-      certificateFileType: json['certificateFileType'] ?? 'image',
+      courseScope:
+          parseCourseScope(
+        json['courseScope'],
+      ),
 
-      status: parseVerificationStatus(json['status']),
-      rejectionReason: json['rejectionReason'],
+      // ======================================================
+      // ✅ قراءة mandatoryKey
+      // ======================================================
+      mandatoryKey:
+          json['mandatoryKey'],
+
+      // ======================================================
+      // ✅ قراءة ICDL
+      // ======================================================
+      isIcdl:
+          json['isIcdl'] ?? false,
+
+      // ======================================================
+      // ملف الشهادة
+      // ======================================================
+      certificateUrl:
+          json['certificateUrl'] ?? '',
+
+      certificateFileType:
+          json['certificateFileType'] ??
+              'image',
+
+      // ======================================================
+      // حالة الاعتماد
+      // ======================================================
+      status:
+          parseVerificationStatus(
+        json['status'],
+      ),
+
+      // ======================================================
+      // سبب الرفض
+      // ======================================================
+      rejectionReason:
+          json['rejectionReason'],
     );
   }
+
+  // ==========================================================
+  // toMap
+  // ==========================================================
 
   Map<String, dynamic> toMap() {
     return {
       'id': id,
+
       'title': title,
-      'organization': organization,
+
+      'organization':
+          organization,
+
       'date': date,
-      'durationHours': durationHours,
 
-      'type': type.name,
-      'courseCategory': courseCategory.name,
-      'courseScope': courseScope.name,
+      'durationHours':
+          durationHours,
 
-      // ✅ جديد
-      'mandatoryKey': mandatoryKey,
+      'type':
+          type.name,
 
-      'isIcdl': isIcdl,
+      'courseCategory':
+          courseCategory.name,
 
-      'certificateUrl': certificateUrl,
-      'certificateFileType': certificateFileType,
+      'courseScope':
+          courseScope.name,
 
-      'status': status.name,
-      'rejectionReason': rejectionReason,
+      // ======================================================
+      // ✅ حفظ mandatoryKey
+      // ======================================================
+      'mandatoryKey':
+          mandatoryKey,
+
+      // ======================================================
+      // ✅ حفظ ICDL
+      // ======================================================
+      'isIcdl':
+          isIcdl,
+
+      // ======================================================
+      // ملف الشهادة
+      // ======================================================
+      'certificateUrl':
+          certificateUrl,
+
+      'certificateFileType':
+          certificateFileType,
+
+      // ======================================================
+      // حالة الاعتماد
+      // ======================================================
+      'status':
+          status.name,
+
+      // ======================================================
+      // سبب الرفض
+      // ======================================================
+      'rejectionReason':
+          rejectionReason,
     };
   }
+
+  // ==========================================================
+  // copyWith
+  // ==========================================================
 
   CourseModel copyWith({
     String? id,
@@ -186,12 +380,20 @@ class CourseModel {
     String? organization,
     String? date,
     int? durationHours,
+
     CourseType? type,
     CourseCategory? courseCategory,
     CourseScope? courseScope,
 
-    // ✅ جديد
-    String? mandatoryKey,
+    // ========================================================
+    // ✅ Object? بدل String?
+    //
+    // عشان نقدر نفرق بين:
+    //
+    // عدم إرسال القيمة
+    // وإرسال null لمسحها
+    // ========================================================
+    Object? mandatoryKey = _notProvided,
 
     bool? isIcdl,
 
@@ -203,26 +405,62 @@ class CourseModel {
   }) {
     return CourseModel(
       id: id ?? this.id,
+
       title: title ?? this.title,
-      organization: organization ?? this.organization,
+
+      organization:
+          organization ?? this.organization,
+
       date: date ?? this.date,
-      durationHours: durationHours ?? this.durationHours,
+
+      durationHours:
+          durationHours ?? this.durationHours,
 
       type: type ?? this.type,
-      courseCategory: courseCategory ?? this.courseCategory,
-      courseScope: courseScope ?? this.courseScope,
 
-      // ✅ جديد
-      mandatoryKey: mandatoryKey ?? this.mandatoryKey,
+      courseCategory:
+          courseCategory ??
+              this.courseCategory,
 
-      isIcdl: isIcdl ?? this.isIcdl,
+      courseScope:
+          courseScope ??
+              this.courseScope,
 
-      certificateUrl: certificateUrl ?? this.certificateUrl,
+      // ======================================================
+      // ✅ mandatoryKey
+      //
+      // لو لم يتم إرساله => القديم
+      // لو أرسل null => يتم مسحه
+      // لو أرسل String => يتم تحديثه
+      // ======================================================
+      mandatoryKey:
+          identical(
+                  mandatoryKey,
+                  _notProvided,
+                )
+              ? this.mandatoryKey
+              : mandatoryKey as String?,
+
+      // ======================================================
+      // ✅ ICDL
+      // ======================================================
+      isIcdl:
+          isIcdl ?? this.isIcdl,
+
+      certificateUrl:
+          certificateUrl ??
+              this.certificateUrl,
+
       certificateFileType:
-          certificateFileType ?? this.certificateFileType,
+          certificateFileType ??
+              this.certificateFileType,
 
-      status: status ?? this.status,
-      rejectionReason: rejectionReason ?? this.rejectionReason,
+      status:
+          status ?? this.status,
+
+      rejectionReason:
+          rejectionReason ??
+              this.rejectionReason,
     );
   }
 }

@@ -154,8 +154,8 @@ Future<void> _applyDoctorData(
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark; // ✅ ضيف السطر ده
 
-    // ✅ إضافة BlocListener هنا للاستماع لبيانات الدكتور وتحديث الواجهة تلقائياً
     return BlocListener<DoctorDataCubit, DoctorDataState>(
       listener: (context, state) {
         if (state is DoctorLoaded) {
@@ -323,7 +323,7 @@ Future<void> _applyDoctorData(
                               "nomination.declarations_title".tr(),
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.bold,
-                                color: colorScheme.primary,
+                                color: isDark?const Color.fromARGB(255, 235, 231, 231):Colors.black
                               ),
                             ),
                           ],
@@ -331,7 +331,10 @@ Future<void> _applyDoctorData(
                         SizedBox(height: 10.h),
                         Text(
                           "nomination.declarations_instructions".tr(),
-                          style: theme.textTheme.bodySmall,
+                          style: theme.textTheme.bodySmall?.copyWith(    
+                              color: isDark?const Color.fromARGB(255, 236, 232, 232):Colors.black
+),      
+
                         ),
                         SizedBox(height: 15.h),
                         if (_selectedFileName != null)
@@ -349,8 +352,8 @@ Future<void> _applyDoctorData(
                               children: [
                                 Icon(
                                   Icons.description,
-                                  color: colorScheme.primary,
-                                  size: 24.r,
+                                color: isDark?const Color.fromARGB(255, 235, 231, 231):Colors.black
+                                  ,size: 24.r,
                                 ),
                                 SizedBox(width: 10.w),
                                 Expanded(
@@ -358,6 +361,8 @@ Future<void> _applyDoctorData(
                                     _selectedFileName!,
                                     style: theme.textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.w600,
+                                                                      color: isDark?const Color.fromARGB(255, 235, 231, 231):Colors.black
+
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -380,8 +385,9 @@ Future<void> _applyDoctorData(
                               onPressed: isSubmitting
                                   ? null
                                   : _pickDeclarationFile,
-                              icon: Icon(Icons.attach_file, size: 22.r),
-                              label: Text("nomination.pick_file".tr()),
+                              icon: Icon(Icons.attach_file, size: 22.r,color: isDark?const Color.fromARGB(255, 235, 231, 231):Colors.black),
+                              label: Text("nomination.pick_file".tr(),style: TextStyle(                                color: isDark?const Color.fromARGB(255, 235, 231, 231):Colors.black
+),),
                               style: OutlinedButton.styleFrom(
                                 padding: EdgeInsets.all(15.r),
                                 shape: RoundedRectangleBorder(

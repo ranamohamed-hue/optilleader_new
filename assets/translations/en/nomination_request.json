@@ -10,7 +10,8 @@
   "nomination.error_no_file": "Please select the declarations file first",
   "nomination.button_submitting": "Submitting...",
   "nomination.button_submit": "Submit Request",
-  
+    "nomination.error_duplicate_request":"Error Diplicate Request",
+
   "error_fetch_requests": "Failed to fetch requests",
   "error_fetch_evaluator_requests": "Failed to fetch evaluation requests",
   "error_upload_declaration": "Failed to upload declarations file",

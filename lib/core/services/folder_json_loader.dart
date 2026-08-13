@@ -43,7 +43,8 @@ class FolderJsonLoader extends AssetLoader {
     'notification',
     'employee_archive',
     'employee_archieve',
-    'employee_nomination_page'
+    'employee_nomination_page',
+    'employee_request_detail'
   ];
 
   @override

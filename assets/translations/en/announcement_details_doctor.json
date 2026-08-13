@@ -31,7 +31,12 @@
     "no_title": "No Title",
     "no_description": "No Description",
     "ineligible_title": "Sorry",
-    "ineligible_body": "You cannot apply for this position because you do not meet the following criteria:"
+    "ineligible_body": "You cannot apply for this position because you do not meet the following criteria:",
+     "application_documents_title": "Documents to be submitted with the nomination request",
+  "health_certificate": "Health and fitness certificate",
+  "development_plan": "Proposed development plan",
+  "other_documents": "Other supporting documents",
+  "documents_uploaded_in_application": "These documents are uploaded with the nomination request and are subject to review."
   },
   "admin_details": {
     "paper_title": "Scientific Paper Details",

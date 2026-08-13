@@ -1,0 +1,105 @@
+{"employee_pending_request":{
+  "employee_request_details": "تفاصيل طلب الترشيح",
+  "employee_data": "بيانات الموظف",
+  "name": "الاسم",
+  "employee_id": "الرقم الوظيفي",
+  "current_job": "الوظيفة الحالية",
+  "sector": "القطاع",
+  "department": "القسم",
+
+  "nomination_data": "بيانات الترشيح",
+  "announcement": "الإعلان",
+  "target_role": "الوظيفة المستهدف الترشح لها",
+
+  "vision_statement": "الرؤية",
+  "evaluator_data": "بيانات المحكم",
+  "evaluator": "المحكم",
+
+  "interview_data": "بيانات المقابلة",
+  "date": "التاريخ",
+  "time": "الوقت",
+  "location": "المكان",
+
+  "admin_notes": "ملاحظات الإدارة",
+  "request_information": "معلومات الطلب",
+  "created_at": "تاريخ تقديم الطلب",
+  "updated_at": "آخر تحديث",
+
+  "rejection_reason": "سبب الرفض",
+
+  "pending_admin": "قيد مراجعة الإدارة",
+  "pending_admin_description": "تم تقديم طلبك وهو قيد المراجعة من الإدارة.",
+
+  "pending_evaluator": "قيد تقييم المحكم",
+  "pending_evaluator_description": "تمت الموافقة على الطلب وتحويله إلى المحكم للتقييم.",
+
+  "rejected_by_admin": "تم رفض الطلب",
+  "rejected_by_admin_description": "تم رفض طلب الترشيح من قبل الإدارة.",
+
+  "evaluated": "تم تقييم الطلب",
+  "evaluated_description": "تم الانتهاء من تقييم طلب الترشيح.",
+
+  "final_approved": "تمت الموافقة النهائية",
+  "final_approved_description": "تمت الموافقة النهائية على طلب الترشيح.",
+
+  "final_rejected": "تم الرفض النهائي",
+  "final_rejected_description": "تم رفض طلب الترشيح بشكل نهائي.",
+
+  "final_approved_pending_announcement": "تمت الموافقة بانتظار الإعلان",
+  "final_approved_pending_announcement_description": "تمت الموافقة النهائية على طلبك، وهو بانتظار إعلان النتيجة."
+},
+
+  "employees_admin_pending_request_page": {
+    "employee_request_details": "تفاصيل طلب الترشح",
+
+    "employee_data": "بيانات الموظف",
+    "name": "الاسم",
+    "employee_id": "الرقم الوظيفي",
+    "current_job": "الوظيفة الحالية",
+    "sector": "القطاع",
+    "department": "القسم",
+
+    "nomination_data": "بيانات الترشح",
+    "announcement": "الإعلان",
+    "target_role": "الوظيفة المستهدفة",
+
+    "vision_statement": "الرؤية المستقبلية",
+
+    "evaluator_data": "بيانات المُقيّم",
+    "evaluator": "المُقيّم",
+
+    "interview_data": "بيانات المقابلة",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "location": "المكان",
+
+    "admin_notes": "ملاحظات الإدارة",
+
+    "request_information": "معلومات الطلب",
+    "created_at": "تاريخ تقديم الطلب",
+    "updated_at": "آخر تحديث",
+
+    "rejection_reason": "سبب الرفض",
+
+    "pending_admin": "قيد مراجعة الإدارة",
+    "pending_admin_description": "تم تقديم طلب الترشح الخاص بك، وهو حاليًا قيد المراجعة من قِبل الإدارة.",
+
+    "pending_evaluator": "قيد مراجعة المُقيّم",
+    "pending_evaluator_description": "تمت الموافقة على طلبك وإحالته إلى المُقيّم لإجراء التقييم.",
+
+    "rejected_by_admin": "تم رفض الطلب",
+    "rejected_by_admin_description": "تم رفض طلب الترشح الخاص بك من قِبل الإدارة.",
+
+    "evaluated": "تم تقييم الطلب",
+    "evaluated_description": "تم الانتهاء من تقييم طلب الترشح الخاص بك.",
+
+    "final_approved": "الموافقة النهائية",
+    "final_approved_description": "حصل طلب الترشح الخاص بك على الموافقة النهائية.",
+
+    "final_rejected": "الرفض النهائي",
+    "final_rejected_description": "تم رفض طلب الترشح الخاص بك بشكل نهائي.",
+
+    "final_approved_pending_announcement": "تمت الموافقة - في انتظار الإعلان",
+    "final_approved_pending_announcement_description": "حصل طلب الترشح الخاص بك على الموافقة النهائية، وهو في انتظار إعلان النتائج."
+  }
+}

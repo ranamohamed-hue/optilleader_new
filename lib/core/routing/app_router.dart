@@ -7,10 +7,8 @@ import 'package:optialeader/feature/auth/logic/cubits/auth_cubit.dart';
 import 'package:optialeader/feature/auth/logic/cubits/auth_state.dart';
 import 'package:optialeader/feature/auth/ui/change_password_screen.dart';
 import 'package:optialeader/feature/auth/ui/signin_screen.dart';
-import 'package:optialeader/feature/database_admin/data/models/employee_model.dart';
 import 'package:optialeader/feature/database_admin/routing/database_admin_routes.dart';
 import 'package:optialeader/feature/employee/employee_router/employee_rout.dart';
-import 'package:optialeader/feature/employee/ui/employee_courses_page.dart';
 import 'package:optialeader/feature/employee/ui/employee_dashboard_screen.dart';
 import 'package:optialeader/feature/judge/routing/judge_rouring.dart';
 import 'package:optialeader/feature/judge/ui/screens/judge.dart';
@@ -22,58 +20,58 @@ import 'package:optialeader/feature/auth/data/models/user_model.dart';
 import 'package:optialeader/feature/database_admin/ui/screens/database_admin_dashboard.dart';
 import 'routes.dart';
 
-
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 GoRouter createRouter(AuthCubit authCubit) {
   String getHomeByRole(UserRole role) {
     switch (role) {
-      case UserRole.database_admin: return Routes.databaseAdmin;
-      case UserRole.admin: return Routes.admin;
-      case UserRole.judge: return Routes.judge;
-      case UserRole.user: return Routes.user;
-      case UserRole.admin_manager: return Routes.adminManager;
+      case UserRole.database_admin:
+        return Routes.databaseAdmin;
+      case UserRole.admin:
+        return Routes.admin;
+      case UserRole.judge:
+        return Routes.judge;
+      case UserRole.user:
+        return Routes.user;
+      case UserRole.admin_manager:
+        return Routes.adminManager;
     }
   }
 
   return GoRouter(
     navigatorKey: navigatorKey,
-    initialLocation: Routes.splash, // نبدأ دائماً بالـ Splash
+    initialLocation: Routes.splash,
     refreshListenable: RouterRefreshNotifier(authCubit),
     redirect: (context, state) {
       final authState = authCubit.state;
       final location = state.matchedLocation;
 
-      // 1. إذا كان المستخدم مسجل الدخول
+      // 1. إذا كان المستخدم مسجل الدخول (سواء عادي أو بعد تغيير كلمة المرور)
       if (authState is AuthenticatedState) {
-        // إذا كان في شاشة اللودنج أو اللوجين -> يوجهه للرئيسية حسب دوره
-        if (location == Routes.splash || location == Routes.login) {
+        if (location == Routes.splash || location == Routes.login || location == Routes.changePassword) {
           return getHomeByRole(authState.userModel.role);
         }
-        return null; // إذا كان في أي مكان آخر، اتركه مكانه
+        return null;
       }
 
-      // 2. إذا كان مستخدم جديد ويحتاج لتغيير الباسورد
+      // 2. إذا كان مطلوباً تغيير كلمة المرور لأول دخول
       if (authState is NewUserFirstLoginState) {
         if (location == Routes.changePassword) return null;
         return Routes.changePassword;
       }
 
-      // 3. إذا لم يسجل الدخول أو حالة الخطأ أو تسجيل الخروج
+      // 3. إذا لم يسجل الدخول أو حدث خطأ / تسجيل خروج
       if (authState is AuthInitialState || 
           authState is LoginErrorState || 
           authState is LogoutSuccessState) {
-        // إذا كان في شاشة اللودنج -> يوجهه لشاشة اللوجين
         if (location == Routes.splash) {
           return Routes.login;
         }
-        // إذا كان في اللوجين بالفعل اتركه
         if (location == Routes.login) return null;
-        
-        // إذا حاول الدخول لأي صفحة أخرى وهو غير مسجل -> ارجعه للوجين
         return Routes.login;
       }
 
-      // 4. في حالة كان الـ state هو AuthLoadingState (أثناء الفحص) اتركه في الـ Splash
+      // 4. حالة الفحص (AuthLoadingState)
       return null;
     },
     routes: [

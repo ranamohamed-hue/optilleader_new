@@ -1,0 +1,105 @@
+{"employee_pending_request":{
+  "employee_request_details": "Nomination Request Details",
+  "employee_data": "Employee Information",
+  "name": "Name",
+  "employee_id": "Employee ID",
+  "current_job": "Current Job",
+  "sector": "Sector",
+  "department": "Department",
+
+  "nomination_data": "Nomination Information",
+  "announcement": "Announcement",
+  "target_role": "Target Position",
+
+  "vision_statement": "Vision Statement",
+  "evaluator_data": "Evaluator Information",
+  "evaluator": "Evaluator",
+
+  "interview_data": "Interview Information",
+  "date": "Date",
+  "time": "Time",
+  "location": "Location",
+
+  "admin_notes": "Administration Notes",
+  "request_information": "Request Information",
+  "created_at": "Submission Date",
+  "updated_at": "Last Updated",
+
+  "rejection_reason": "Rejection Reason",
+
+  "pending_admin": "Pending Administration Review",
+  "pending_admin_description": "Your nomination request has been submitted and is currently under administrative review.",
+
+  "pending_evaluator": "Pending Evaluator Review",
+  "pending_evaluator_description": "Your request has been approved and forwarded to the evaluator for assessment.",
+
+  "rejected_by_admin": "Request Rejected",
+  "rejected_by_admin_description": "Your nomination request has been rejected by the administration.",
+
+  "evaluated": "Request Evaluated",
+  "evaluated_description": "The evaluation of your nomination request has been completed.",
+
+  "final_approved": "Final Approval",
+  "final_approved_description": "Your nomination request has received final approval.",
+
+  "final_rejected": "Final Rejection",
+  "final_rejected_description": "Your nomination request has been finally rejected.",
+
+  "final_approved_pending_announcement": "Approved - Pending Announcement",
+  "final_approved_pending_announcement_description": "Your nomination request has received final approval and is pending the announcement of the results."
+},
+
+  "employees_admin_pending_request_page": {
+    "employee_request_details": "Nomination Request Details",
+
+    "employee_data": "Employee Information",
+    "name": "Name",
+    "employee_id": "Employee ID",
+    "current_job": "Current Job",
+    "sector": "Sector",
+    "department": "Department",
+
+    "nomination_data": "Nomination Information",
+    "announcement": "Announcement",
+    "target_role": "Target Position",
+
+    "vision_statement": "Vision Statement",
+
+    "evaluator_data": "Evaluator Information",
+    "evaluator": "Evaluator",
+
+    "interview_data": "Interview Information",
+    "date": "Date",
+    "time": "Time",
+    "location": "Location",
+
+    "admin_notes": "Administration Notes",
+
+    "request_information": "Request Information",
+    "created_at": "Submission Date",
+    "updated_at": "Last Updated",
+
+    "rejection_reason": "Rejection Reason",
+
+    "pending_admin": "Pending Administration Review",
+    "pending_admin_description": "Your nomination request has been submitted and is currently under administrative review.",
+
+    "pending_evaluator": "Pending Evaluator Review",
+    "pending_evaluator_description": "Your request has been approved and forwarded to the evaluator for assessment.",
+
+    "rejected_by_admin": "Request Rejected",
+    "rejected_by_admin_description": "Your nomination request has been rejected by the administration.",
+
+    "evaluated": "Request Evaluated",
+    "evaluated_description": "The evaluation of your nomination request has been completed.",
+
+    "final_approved": "Final Approval",
+    "final_approved_description": "Your nomination request has received final approval.",
+
+    "final_rejected": "Final Rejection",
+    "final_rejected_description": "Your nomination request has been finally rejected.",
+
+    "final_approved_pending_announcement": "Approved - Pending Announcement",
+    "final_approved_pending_announcement_description": "Your nomination request has received final approval and is pending the announcement of the results."
+  }
+}

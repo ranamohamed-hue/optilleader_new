@@ -64,16 +64,16 @@ class NotificationCubit extends Cubit<NotificationState> with WidgetsBindingObse
 
           emit(NotificationLoaded(notifications));
         },
-        onError: (error, stackTrace) {
-          print('🚨 NOTIFICATION STREAM ERROR');
-          print(error);
-          print(stackTrace);
-
-          emit(
-            NotificationError(
-              "فشل جلب الإشعارات: $error",
-            ),
-          );
+               onError: (error, stackTrace) {
+          print('🚨 NOTIFICATION STREAM ERROR: $error');
+          
+          // ✅ لا تطلع خطأ للواجهة لو كان السبب انتهاء صلاحية الجلسة (مثلاً أثناء تغيير كلمة السر)
+          if (error.toString().contains('PERMISSION_DENIED')) {
+            print('⚠️ تم تجاهل خطأ الصلاحيات (ربما المستخدم غير مفعل مؤقتاً)');
+            return; 
+          }
+          
+          emit(NotificationError("فشل جلب الإشعارات: $error"));
         },
       );
 }

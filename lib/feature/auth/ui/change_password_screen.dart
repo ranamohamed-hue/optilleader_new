@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // لسه محتاجينه عشان الـ LengthLimiting
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 
 import 'package:optialeader/feature/auth/logic/cubits/auth_cubit.dart';
 import 'package:optialeader/feature/auth/logic/cubits/auth_state.dart';
@@ -16,8 +17,10 @@ class ChangePasswordView extends StatefulWidget {
 
 class _ChangePasswordViewState extends State<ChangePasswordView> {
   final _formKey = GlobalKey<FormState>();
+
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+
   bool isObscure = true;
 
   @override
@@ -28,16 +31,18 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
   }
 
   void _submit() {
-    if (_formKey.currentState!.validate()) {
-      if (passwordController.text != confirmPasswordController.text) {
-        _showErrorSnackBar("validation.password_mismatch".tr());
-        return;
-      }
-
-      context.read<AuthCubit>().completeFirstLogin(
-        newPassword: passwordController.text.trim(),
-      );
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    if (passwordController.text != confirmPasswordController.text) {
+      _showErrorSnackBar("validation.password_mismatch".tr());
+      return;
+    }
+
+    context.read<AuthCubit>().completeFirstLogin(
+      newPassword: passwordController.text.trim(),
+    );
   }
 
   void _showErrorSnackBar(String message) {
@@ -56,6 +61,7 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
+
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text("change_password.title".tr()),
@@ -63,12 +69,20 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
         elevation: 0,
         backgroundColor: Colors.transparent,
       ),
+
       body: SafeArea(
         child: BlocConsumer<AuthCubit, AuthState>(
           listener: (context, state) {
+            // ==============================
+            // فشل تغيير كلمة المرور
+            // ==============================
             if (state is UpdatePasswordErrorState) {
               _showErrorSnackBar(state.error);
-            } else if (state is UpdatePasswordSuccessState) {
+            }
+            // ==============================
+            // نجاح تغيير كلمة المرور
+            // ==============================
+            else if (state is UpdatePasswordSuccessState) {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text("change_password.success_msg".tr()),
@@ -76,8 +90,16 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                   behavior: SnackBarBehavior.floating,
                 ),
               );
+
+              // نرجع لصفحة تسجيل الدخول
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (context.mounted) {
+                  context.go('/login');
+                }
+              });
             }
           },
+
           builder: (context, state) {
             return SingleChildScrollView(
               padding: EdgeInsets.symmetric(horizontal: 24.w),
@@ -88,6 +110,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
                   children: [
                     SizedBox(height: 30.h),
 
+                    // ==============================
+                    // Icon
+                    // ==============================
                     Icon(
                       Icons.lock_reset_rounded,
                       size: 80.sp,
@@ -96,6 +121,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
 
                     SizedBox(height: 20.h),
 
+                    // ==============================
+                    // Header
+                    // ==============================
                     Text(
                       "change_password.header".tr(),
                       style: theme.textTheme.headlineSmall?.copyWith(
@@ -107,6 +135,9 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
 
                     SizedBox(height: 12.h),
 
+                    // ==============================
+                    // Subtitle
+                    // ==============================
                     Text(
                       "change_password.subtitle".tr(),
                       style: theme.textTheme.bodyMedium?.copyWith(
@@ -117,24 +148,41 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
 
                     SizedBox(height: 40.h),
 
+                    // ==============================
+                    // New Password
+                    // ==============================
                     _buildPasswordField(
                       controller: passwordController,
                       label: "fields.new_password".tr(),
                       isObscure: isObscure,
-                      onToggle: () => setState(() => isObscure = !isObscure),
+                      onToggle: () {
+                        setState(() {
+                          isObscure = !isObscure;
+                        });
+                      },
                     ),
 
                     SizedBox(height: 20.h),
 
+                    // ==============================
+                    // Confirm Password
+                    // ==============================
                     _buildPasswordField(
                       controller: confirmPasswordController,
                       label: "fields.confirm_password".tr(),
                       isObscure: isObscure,
-                      onToggle: () => setState(() => isObscure = !isObscure),
+                      onToggle: () {
+                        setState(() {
+                          isObscure = !isObscure;
+                        });
+                      },
                     ),
 
                     SizedBox(height: 50.h),
 
+                    // ==============================
+                    // Save Button / Loading
+                    // ==============================
                     state is UpdatePasswordLoadingState
                         ? const Center(child: CircularProgressIndicator())
                         : SizedBox(
@@ -167,6 +215,10 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
     );
   }
 
+  // ============================================================
+  // Password Field
+  // ============================================================
+
   Widget _buildPasswordField({
     required TextEditingController controller,
     required String label,
@@ -175,26 +227,39 @@ class _ChangePasswordViewState extends State<ChangePasswordView> {
   }) {
     return TextFormField(
       controller: controller,
+
       obscureText: isObscure,
-      // keyboardType رجعناها للوضع العادي عشان يقبل حروف وأرقام
-      keyboardType: TextInputType.text, 
-      inputFormatters: [
-        // شلنا digitsOnly عشان يقبل حروف
-        LengthLimitingTextInputFormatter(14), // وبقينا بس على الحد الأقصى 14
-      ],
+
+      keyboardType: TextInputType.text,
+
+      inputFormatters: [LengthLimitingTextInputFormatter(14)],
+
       decoration: InputDecoration(
         labelText: label,
+
         prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF000080)),
+
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12.r)),
+
         suffixIcon: IconButton(
           icon: Icon(isObscure ? Icons.visibility_off : Icons.visibility),
           onPressed: onToggle,
         ),
       ),
+
       validator: (v) {
-        if (v == null || v.isEmpty) return "validation.required".tr();
-        if (v.length > 14) return "الحد الأقصى لكلمة المرور 14 حرف"; 
-        if (v.length < 6) return "validation.password_short".tr();
+        if (v == null || v.isEmpty) {
+          return "validation.required".tr();
+        }
+
+        if (v.length > 14) {
+          return "الحد الأقصى لكلمة المرور 14 حرف";
+        }
+
+        if (v.length < 6) {
+          return "validation.password_short".tr();
+        }
+
         return null;
       },
     );

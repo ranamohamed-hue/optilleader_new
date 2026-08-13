@@ -23,28 +23,28 @@ class UserModel extends Equatable {
   });
 
   /// Firestore → Model
-  factory UserModel.fromFirestore(DocumentSnapshot doc) {
+ factory UserModel.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>? ?? {};
+
+    // قراءة الاسم سواء كان مسطحاً أو داخل خريطة profile -> display_name
+    String resolvedUsername = 'بدون اسم';
+    if (data['username'] != null) {
+      resolvedUsername = data['username'];
+    } else if (data['profile'] != null && data['profile']['display_name'] != null) {
+      resolvedUsername = data['profile']['display_name']['ar'] ?? 
+                          data['profile']['display_name']['en'] ?? 'بدون اسم';
+    }
 
     return UserModel(
       uid: doc.id,
-
-      username:
-          data['username'] ??
-          data['display_name']?['en'] ??
-          data['display_name']?['ar'] ??
-          'بدون اسم',
-
+      username: resolvedUsername,
       universityEmail: data['university_email'] ?? '',
       nationalId: data['national_id'] ?? '',
       employeeId: data['employee_id'] ?? '',
-
       role: _mapRole(data['role']),
-
       isFirstLogin: data['isFirstLogin'] ?? true,
     );
   }
-
   ///  تحويل String → Enum
     /// تحويل String → Enum
    /// تحويل String → Enum
@@ -74,7 +74,7 @@ class UserModel extends Equatable {
       case UserRole.user:
         return 'user';
         case UserRole.admin_manager:
-        return 'adminManager';
+        return 'admin_manager';
     }
   }
 

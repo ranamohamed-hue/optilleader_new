@@ -31,7 +31,12 @@
     "no_title": "لا يوجد عنوان",
     "no_description": "لا يوجد وصف",
     "ineligible_title": "عذراً",
-    "ineligible_body": "لا يمكنك التقديم لهذه المسابقة لعدم استيفاء الشروط التالية:"
+    "ineligible_body": "لا يمكنك التقديم لهذه المسابقة لعدم استيفاء الشروط التالية:",
+    "application_documents_title": "مستندات تُرفع مع طلب الترشح",
+  "health_certificate": "شهادة السلامة الصحية",
+  "development_plan": "خطة التطوير المقترحة",
+  "other_documents": "مستندات أخرى داعمة",
+  "documents_uploaded_in_application": "يتم رفع هذه المستندات ضمن طلب الترشح وتخضع للمراجعة."
   },
   "admin_details": {
     "paper_title": "تفاصيل البحث العلمي",

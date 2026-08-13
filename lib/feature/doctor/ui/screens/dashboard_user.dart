@@ -14,6 +14,7 @@ import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_state.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:optialeader/feature/notification/data/repo/notification_repo_impl.dart';
+import 'package:optialeader/feature/notification/logic/app_notification_cubit.dart';
 class DashboardUserPage extends StatefulWidget {
   const DashboardUserPage({super.key});
 
@@ -22,19 +23,21 @@ class DashboardUserPage extends StatefulWidget {
 }
 
 class _DashboardUserPageState extends State<DashboardUserPage> {
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final uid = FirebaseAuth.instance.currentUser?.uid;
-      if (uid != null) {
-        context.read<DoctorDataCubit>().getDoctorProfile(uid);
-        // ❌❌❌ شيلنا السطر ده لأن الكيوبت الجديد هيشتغل لوحده في الـ BlocProvider ❌❌❌
-      }
-      _checkAndShowWelcomeDialog();
-    });
-  }
+ @override
+void initState() {
+  super.initState();
 
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    if (uid != null && uid.isNotEmpty) {
+      context.read<DoctorDataCubit>().getDoctorProfile(uid);
+      context.read<NotificationCubit>().updateUserIdAndFetch(uid);
+    }
+
+    _checkAndShowWelcomeDialog();
+  });
+}
   void _checkAndShowWelcomeDialog() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -585,8 +588,15 @@ return BlocProvider(
             context.push(Routes.settings, extra: {'uid': uid, 'role': role});
             break;
           case 1:
-            context.push(Routes.notification,  extra: uid,);
-            break;
+  final currentUid = FirebaseAuth.instance.currentUser?.uid;
+
+  if (currentUid != null && currentUid.isNotEmpty) {
+    context.push(
+      Routes.notification,
+      extra: currentUid,
+    );
+  }
+  break;
           case 2:
             context.push('${Routes.digitalArchieve}?uid=$uid');
             break;

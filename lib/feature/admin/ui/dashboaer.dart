@@ -5,7 +5,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
-import 'package:optialeader/feature/database_admin/data/models/admin_profile_model.dart';
 import 'package:optialeader/feature/database_admin/logic/admin_data/admin_data_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/admin_data/admin_data_state.dart';
 import 'package:optialeader/feature/admin/data/model/nomination_request_model.dart';
@@ -14,7 +13,7 @@ import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomonat
 import 'package:optialeader/feature/notification/logic/app_notification_cubit.dart';
 import 'package:optialeader/feature/notification/ui/notification_page.dart';
 import 'package:optialeader/feature/setting/ui/setting.dart';
-import 'package:optialeader/feature/database_admin/ui/screens/empolyee_search_page.dart';
+import 'package:optialeader/feature/admin/ui/user_search_screen.dart';
 import 'package:optialeader/feature/admin/ui/announces/announce.dart';
 import 'package:optialeader/core/theming/app_color.dart';
 
@@ -44,61 +43,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         context.read<AdminDataCubit>().getAdminProfile(uid);
         context.read<NotificationCubit>().updateUserIdAndFetch(uid);
         context.read<NominationRequestCubit>().fetchAdminRequests(
-          status: NominationRequestModel.statusPendingAdmin,
-        );
+              status: NominationRequestModel.statusPendingAdmin,
+            );
       }
-      _checkAndShowWelcomeDialog();
     });
-  }
-
-  void _checkAndShowWelcomeDialog() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return;
-
-    final creationTime = user.metadata.creationTime;
-    final lastSignInTime = user.metadata.lastSignInTime;
-
-    if (creationTime != null && lastSignInTime != null) {
-      final difference = lastSignInTime.difference(creationTime).inMinutes;
-      if (difference < 2) {
-        _showWelcomeDialog();
-      }
-    }
-  }
-
-  void _showWelcomeDialog() {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20.r)),
-        title: Row(
-          children: [
-            Icon(Icons.waving_hand_rounded, color: AppColors.darkGold, size: 28.sp),
-            SizedBox(width: 10.w),
-            Text('dashboard.welcome_title'.tr(), style: const TextStyle(fontWeight: FontWeight.bold)),
-          ],
-        ),
-        content: Text('dashboard.welcome_body'.tr(), style: TextStyle(fontSize: 15.sp, height: 1.5)),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                padding: EdgeInsets.symmetric(vertical: 12.h),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-              ),
-              onPressed: () => Navigator.pop(dialogContext),
-              child: Text('dashboard.lets_start'.tr(), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16.sp)),
-            ),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
@@ -161,7 +109,6 @@ class _HomeTab extends StatelessWidget {
             fullDisplayName = FirebaseAuth.instance.currentUser?.displayName ?? 'dashboard.admin_role'.tr();
           }
 
-          // ✅ جلب الوظيفة
           String jobTitle = isArabic 
               ? (admin.jopAr ?? '').trim() 
               : (admin.jopEn ?? '').trim();
@@ -186,7 +133,6 @@ class _HomeTab extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            // ✅ الاسم في الأول (بدون مرحباً)
                             Text(
                               fullDisplayName,
                               style: TextStyle(
@@ -197,7 +143,6 @@ class _HomeTab extends StatelessWidget {
                               overflow: TextOverflow.ellipsis, 
                               maxLines: 1,
                             ),
-                            // ✅ الوظيفة تحته لو موجودة
                             if (jobTitle.isNotEmpty)
                               Padding(
                                 padding: const EdgeInsets.only(top: 4.0),
@@ -229,8 +174,8 @@ class _HomeTab extends StatelessWidget {
                                     width: 60.r, 
                                     height: 60.r, 
                                     fit: BoxFit.cover,
-                                    placeholder: (_, _) => const CircularProgressIndicator(),
-                                    errorWidget: (_, _, _) => const Icon(Icons.person),
+                                    placeholder: (_, __) => const CircularProgressIndicator(),
+                                    errorWidget: (_, __, ___) => const Icon(Icons.person),
                                   )
                                 : const Icon(Icons.person),
                           ),
@@ -239,7 +184,6 @@ class _HomeTab extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: Row(
                     children: isArabic
@@ -479,10 +423,13 @@ class _SettingsTab extends StatelessWidget {
   const _SettingsTab({required this.onBackToHome});
   @override
   Widget build(BuildContext context) {
-    final state = context.watch<AdminDataCubit>().state;
-    if (state is AdminLoaded) {
-      return SettingsScreen(uid: state.admin!.uid, role: 'admin', onBack: onBackToHome);
-    }
-    return const Center(child: CircularProgressIndicator());
+    return BlocBuilder<AdminDataCubit, AdminDataState>(
+      builder: (context, state) {
+        if (state is AdminLoaded) {
+          return SettingsScreen(uid: state.admin!.uid, role: 'admin', onBack: onBackToHome);
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
   }
 }

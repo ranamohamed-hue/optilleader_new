@@ -69,7 +69,7 @@ class NotificationRepoImpl extends NotificationRepo {
 
 
   // ✅ أضفنا distinct() لمنع التكرار نهائياً
-  @override
+   @override
   Stream<List<AppNotificationModel>> getNotifications(String receiverId) {
     final query = firebaseFirestore
         .collection('users')
@@ -78,7 +78,6 @@ class NotificationRepoImpl extends NotificationRepo {
         .where('is_read', isEqualTo: false);
 
     return query.snapshots().map((snapshot) {
-      // ✅ أضفنا الحماية دي عشان لو في إشعار فاسد متقفلش الباقي
       return snapshot.docs.map((doc) {
         try {
           return AppNotificationModel.fromFirestore(doc.data(), doc.id);
@@ -86,10 +85,22 @@ class NotificationRepoImpl extends NotificationRepo {
           print("⚠️ خطأ في قراءة إشعار (تم تخطيه): ${doc.id} - $e");
           return null;
         }
-      }).whereType<AppNotificationModel>().toList()..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      }).whereType<AppNotificationModel>().toList()
+        ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    }).distinct((prevList, nextList) {
+      // مقارنة عميقة (Deep Comparison) لمنع الإطلاق المتكرر للـ Stream إذا المحتوى واحد
+      if (prevList.length != nextList.length) return false;
+      for (int i = 0; i < prevList.length; i++) {
+        if (prevList[i].id != nextList[i].id || prevList[i].isRead != nextList[i].isRead) {
+          return false;
+        }
+      }
+      return true; // إذا وصلنا لهنا، يعني القائمتين متطابقتين تماماً، لا تطلع حدث جديد
     });
   }
+ 
   @override
+ 
   Future<Either<String, Unit>> markAsRead(String receiverId, String notificationId) async {
     try {
       await firebaseFirestore

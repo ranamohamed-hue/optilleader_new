@@ -3,19 +3,16 @@ import 'package:optialeader/feature/doctor/data/model/courses_model.dart';
 import 'package:optialeader/feature/doctor/data/model/verefication_status.dart';
 import 'package:optialeader/feature/doctor/logic/activities/mandatory_leadership_data.dart';
 
-/// ==========================================================
-/// الشروط العامة المشتركة لجميع المناصب
-/// ==========================================================
 class CommonCriteriaCalculator {
   // ==========================================================
   // الثوابت
   // ==========================================================
 
-  /// الحد الأدنى لعدد الدورات القيادية المطلوبة
+  /// المطلوب دورتان مختلفتان من الدورات القيادية السبعة
   static const int requiredLeadershipCourses = 2;
 
   // ==========================================================
-  // 1. الجنسية المصرية
+  // 1. الجنسية
   // ==========================================================
 
   static bool isEgyptian(DoctorProfileModel doctor) {
@@ -30,32 +27,26 @@ class CommonCriteriaCalculator {
   }
 
   // ==========================================================
-  // 2. عدم وجود حكم بجناية
+  // 2. السجل الجنائي
   // ==========================================================
 
-  static bool hasNoCriminalRecord(
-    DoctorProfileModel doctor,
-  ) {
+  static bool hasNoCriminalRecord(DoctorProfileModel doctor) {
     return !doctor.hasCriminalRecord;
   }
 
   // ==========================================================
-  // 3. عدم وجود جزاء تأديبي
+  // 3. السجل التأديبي
   // ==========================================================
 
-  static bool hasCleanDisciplinaryRecord(
-    DoctorProfileModel doctor,
-  ) {
+  static bool hasCleanDisciplinaryRecord(DoctorProfileModel doctor) {
     return doctor.disciplinaryClearance;
   }
 
   // ==========================================================
-  // 4. عدم شغل منصب حزبي
+  // 4. المنصب الحزبي
   // ==========================================================
 
-  static bool hasNoPartyPosition(
-    DoctorProfileModel doctor,
-  ) {
+  static bool hasNoPartyPosition(DoctorProfileModel doctor) {
     return !doctor.holdsPartyPosition;
   }
 
@@ -63,58 +54,105 @@ class CommonCriteriaCalculator {
   // 5. ICDL
   // ==========================================================
 
-  static bool hasICDL(
-    DoctorProfileModel doctor,
-  ) {
+  static bool hasICDL(DoctorProfileModel doctor) {
     return doctor.hasICDL;
   }
 
   // ==========================================================
-  // 6. الدورات القيادية المحددة في النظام
+  // 6. الدورات القيادية السبعة المحددة
   // ==========================================================
 
-  /// مفاتيح الدورات القيادية السبعة المحددة بالنظام.
+  /// جميع مفاتيح الدورات القيادية المحددة في النظام.
   static Set<String> get mandatoryLeadershipKeys {
     return MandatoryLeadershipData.courses
         .map((course) => course['key']!)
         .toSet();
   }
 
-  /// يرجع الدورات القيادية المطلوبة فقط والمُعتمدة من الأدمن.
+  // ==========================================================
+  // تحديد مفتاح الدورة
+  // ==========================================================
+
+  /// لا نعتمد على اسم الدورة.
   ///
-  /// لكي تُحسب الدورة:
-  /// 1. تكون واحدة من الدورات السبعة المحددة مسبقًا.
-  /// 2. تكون Approved.
-  ///
-  /// لا نعتمد على CourseCategory هنا،
-  /// لأن الدورات الإلزامية في CourseModel قد تكون
-  /// CourseCategory.none.
+  /// الدورة تدخل في شرط الدورتين فقط إذا:
+  /// 1. لديها mandatoryKey
+  /// 2. المفتاح موجود ضمن الدورات السبعة المحددة
+  static String? _resolveMandatoryKey(CourseModel course) {
+    if (course.mandatoryKey == null) {
+      return null;
+    }
+
+    if (mandatoryLeadershipKeys.contains(course.mandatoryKey)) {
+      return course.mandatoryKey;
+    }
+
+    return null;
+  }
+
+  // ==========================================================
+  // الدورات القيادية المعتمدة
+  // ==========================================================
+
+  /// إرجاع الدورات القيادية المحددة التي:
+  /// - من الدورات السبعة
+  /// - معتمدة من الأدمن
   static List<CourseModel> getApprovedLeadershipCourses(
     DoctorProfileModel doctor,
   ) {
-    final mandatoryKeys = mandatoryLeadershipKeys;
-
     return doctor.courses.where((course) {
-      final isRequiredCourse =
-          course.mandatoryKey != null &&
-          mandatoryKeys.contains(course.mandatoryKey);
+      if (course.status != VerificationStatus.approved) {
+        return false;
+      }
 
-      final isApproved =
-          course.status == VerificationStatus.approved;
+      final key = _resolveMandatoryKey(course);
 
-      return isRequiredCourse && isApproved;
+      return key != null;
     }).toList();
   }
 
-  /// عدد الدورات القيادية المحددة والمعتمدة.
+  // ==========================================================
+  // مفاتيح الدورات المختلفة فقط
+  // ==========================================================
+
+  /// مهم:
+  /// نفس الدورة لو موجودة مرتين لا تُحسب مرتين.
+  static Set<String> getApprovedLeadershipCourseKeys(
+    DoctorProfileModel doctor,
+  ) {
+    final approvedKeys = <String>{};
+
+    for (final course in doctor.courses) {
+      if (course.status != VerificationStatus.approved) {
+        continue;
+      }
+
+      final key = _resolveMandatoryKey(course);
+
+      if (key != null) {
+        approvedKeys.add(key);
+      }
+    }
+
+    return approvedKeys;
+  }
+
+  // ==========================================================
+  // عدد الدورات المختلفة
+  // ==========================================================
+
   static int calculateLeadershipCoursesCount(
     DoctorProfileModel doctor,
   ) {
-    return getApprovedLeadershipCourses(doctor).length;
+    return getApprovedLeadershipCourseKeys(doctor).length;
   }
 
-  /// التحقق من وجود دورتين على الأقل من الدورات المحددة
-  /// والمعتمدة من الأدمن.
+  // ==========================================================
+  // الشرط الحقيقي
+  // ==========================================================
+
+  /// يجب أن يكون لدى الدكتور دورتان مختلفتان على الأقل
+  /// من الدورات السبعة المحددة، وكلتاهما معتمدتان من الأدمن.
   static bool hasRequiredLeadershipCourses(
     DoctorProfileModel doctor,
   ) {
@@ -123,18 +161,32 @@ class CommonCriteriaCalculator {
   }
 
   // ==========================================================
-  // 7. السلامة الصحية
+  // تفاصيل الشرط
   // ==========================================================
 
-  /// السلامة الصحية لا تدخل هنا.
-  ///
-  /// لأنها تعتمد على تقرير طبي مرتبط بطلب ترشح معين
-  /// ويمكن أن تتغير من طلب لآخر.
-  ///
-  /// لذلك يتم فحصها داخل بيانات طلب الترشح نفسه.
+  static String getLeadershipCoursesDetails(
+    DoctorProfileModel doctor,
+  ) {
+    final approvedKeys =
+        getApprovedLeadershipCourseKeys(doctor);
+
+    final count = approvedKeys.length;
+
+    if (count == 0) {
+      return 'لا توجد دورات قيادية محددة ومعتمدة من الأدمن';
+    }
+
+    if (count == 1) {
+      return 'تم اعتماد دورة قيادية واحدة فقط '
+          '(المطلوب دورتان مختلفتان)';
+    }
+
+    return 'تم اعتماد $count دورات قيادية مختلفة '
+        '(المطلوب $requiredLeadershipCourses)';
+  }
 
   // ==========================================================
-  // تفاصيل الشروط
+  // تفاصيل باقي الشروط
   // ==========================================================
 
   static String getNationalityDetails(
@@ -175,19 +227,5 @@ class CommonCriteriaCalculator {
     return hasICDL(doctor)
         ? 'تم إثبات إجادة التعامل مع الحاسب الآلي ICDL'
         : 'لم يتم إثبات الحصول على ICDL';
-  }
-
-  static String getLeadershipCoursesDetails(
-    DoctorProfileModel doctor,
-  ) {
-    final count =
-        calculateLeadershipCoursesCount(doctor);
-
-    if (count == 0) {
-      return 'لا توجد دورات قيادية معتمدة من الدورات المحددة';
-    }
-
-    return 'عدد الدورات القيادية المحددة والمعتمدة: $count '
-        '(المطلوب $requiredLeadershipCourses)';
   }
 }
