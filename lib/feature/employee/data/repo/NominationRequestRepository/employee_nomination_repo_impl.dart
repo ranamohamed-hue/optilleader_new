@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 
-import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model%20.dart';
+import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model.dart';
 import 'package:optialeader/feature/employee/data/repo/NominationRequestRepository/employee_nomination_repo.dart';
 
 class EmployeeNominationRepositoryImpl

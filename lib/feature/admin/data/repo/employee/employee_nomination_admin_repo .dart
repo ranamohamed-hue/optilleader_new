@@ -1,4 +1,4 @@
-import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model .dart';
+import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model.dart';
 
 abstract class EmployeeNominationAdminRepo {
   Future<List<EmployeeNominationRequestModel>>

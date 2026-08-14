@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:optialeader/feature/admin/data/repo/admin_approval/admin_aproval_repo_impl.dart';
+import 'package:optialeader/feature/admin/data/repo/admin_approval_employee/admin_approval_employee_repo.dart';
 import 'package:optialeader/feature/admin/data/repo/announcement_repos/announcement_repo_impl.dart';
 import 'package:optialeader/feature/admin/data/repo/employee/employee_nomination_admin_repo%20.dart';
 import 'package:optialeader/feature/admin/data/repo/employee/employee_nomination_admin_repo_impl.dart';
@@ -9,6 +10,7 @@ import 'package:optialeader/feature/admin/data/repo/nomination_request/nominatio
 import 'package:optialeader/feature/admin/logic/admin_approval/admin_approval_cubit.dart';
 import 'package:optialeader/feature/admin/logic/announcement_logic/announcement_cubit.dart';
 import 'package:optialeader/feature/admin/logic/employee/employee_nomination_admin_cubit.dart';
+import 'package:optialeader/feature/admin/logic/employee_admin_approval/employee_course_approval_cubit.dart';
 import 'package:optialeader/feature/admin/logic/nomination_request_logic/nomination_request_cubit.dart';
 import 'package:optialeader/feature/database_admin/data/repo/admin_repository/admin_repo_impl.dart';
 import 'package:optialeader/feature/database_admin/data/repo/database_admin_repository/database_admin_repo_impl.dart';
@@ -21,60 +23,76 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class AdminProviders {
   static List<SingleChildWidget> providers() => [
-    // 1. تعريف الـ Repository أولاً
-    RepositoryProvider<AnnouncementRepositoryImpl>(
-      create: (context) => AnnouncementRepositoryImpl(FirebaseFirestore.instance),
-    ),
-
-    RepositoryProvider<NominationRequestRepository>(
-      create: (context) => NominationRequestRepositoryImpl(
-        FirebaseFirestore.instance,
-        Supabase.instance.client,
-      ),
-    ),
-
-    BlocProvider(create: (context) => AdminDataCubit(AdminRepoImpl())),
-    
-    BlocProvider(
-      create: (context) =>
-          DatabseAdminCubit(DatabaseAdminRepoImpl(FirebaseFirestore.instance)),
-    ),
-    
-    // 2. استخدام الـ Repository عبر context.read
-    BlocProvider(
-      create: (context) => AnnouncementCubit(
-        context.read<AnnouncementRepositoryImpl>(),
-        context.read<NotificationRepo>(),
-      ),
-    ),
-    
-    BlocProvider(
-      create: (context) => AdminApprovalCubit(
-        adminApprovalRepo: AdminApprovalRepoImpl(
-          firebaseFirestore: FirebaseFirestore.instance,
-          researchPaperRepo: context.read<ResearchPaperRepo>(),
-          notificationRepo: context.read<NotificationRepo>(),
+        // ==================== Repositories ====================
+        RepositoryProvider<AnnouncementRepositoryImpl>(
+          create: (context) => AnnouncementRepositoryImpl(FirebaseFirestore.instance),
         ),
-      ),
-    ),
-    
-    BlocProvider(
-      create: (context) => NominationRequestCubit(
-        context.read<NominationRequestRepository>(), 
-        context.read<NotificationRepo>(),
-      ),
-    ),
-    RepositoryProvider<EmployeeNominationAdminRepo>(
-  create: (context) =>
-      EmployeeNominationAdminRepoImpl(
-        FirebaseFirestore.instance,
-      ),
-),
-     BlocProvider(
-          create: (context) =>
-              EmployeeNominationAdminCubit(
+
+        RepositoryProvider<NominationRequestRepository>(
+          create: (context) => NominationRequestRepositoryImpl(
+            FirebaseFirestore.instance,
+            Supabase.instance.client,
+          ),
+        ),
+
+        RepositoryProvider<EmployeeNominationAdminRepo>(
+          create: (context) => EmployeeNominationAdminRepoImpl(
+            FirebaseFirestore.instance,
+          ),
+        ),
+
+        RepositoryProvider<EmployeeCourseApprovalRepo>(
+          create: (context) => EmployeeCourseApprovalRepo(
+            firestore: FirebaseFirestore.instance,
+            notificationRepo: context.read<NotificationRepo>(),
+          ),
+        ),
+
+        // ==================== Cubits ====================
+        BlocProvider(
+          create: (context) => AdminDataCubit(AdminRepoImpl()),
+        ),
+        
+        BlocProvider(
+          create: (context) => DatabseAdminCubit(
+            DatabaseAdminRepoImpl(FirebaseFirestore.instance),
+          ),
+        ),
+        
+        BlocProvider(
+          create: (context) => AnnouncementCubit(
+            context.read<AnnouncementRepositoryImpl>(),
+            context.read<NotificationRepo>(),
+          ),
+        ),
+        
+        BlocProvider(
+          create: (context) => AdminApprovalCubit(
+            adminApprovalRepo: AdminApprovalRepoImpl(
+              firebaseFirestore: FirebaseFirestore.instance,
+              researchPaperRepo: context.read<ResearchPaperRepo>(),
+              notificationRepo: context.read<NotificationRepo>(),
+            ),
+          ),
+        ),
+        
+        BlocProvider(
+          create: (context) => NominationRequestCubit(
+            context.read<NominationRequestRepository>(), 
+            context.read<NotificationRepo>(),
+          ),
+        ),
+
+        BlocProvider(
+          create: (context) => EmployeeNominationAdminCubit(
             context.read<EmployeeNominationAdminRepo>(),
           ),
         ),
-  ];
+
+        BlocProvider(
+          create: (context) => EmployeeCourseApprovalCubit(
+            repo: context.read<EmployeeCourseApprovalRepo>(),
+          ),
+        ),
+      ];
 }

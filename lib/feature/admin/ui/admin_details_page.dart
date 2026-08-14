@@ -10,7 +10,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:optialeader/feature/admin/logic/admin_approval/admin_approval_cubit.dart';
 import 'package:optialeader/feature/admin/logic/admin_approval/admin_approval_state.dart';
-import 'package:optialeader/feature/doctor/data/model/research_paper_model.dart';
 // ✅ استورد ملف المسارات هنا (غيّر المسار حسب مكان الملف عندك)
 
 /// ============================================================

@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 
 import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
-import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model .dart';
+import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model.dart';
 import 'package:optialeader/feature/employee/data/repo/NominationRequestRepository/employee_nomination_repo.dart';
 import 'package:optialeader/feature/employee/logic/EmployeenNominationCubit/employee_nomination_state.dart';
 import 'package:optialeader/feature/notification/data/model/app_notification_model.dart';

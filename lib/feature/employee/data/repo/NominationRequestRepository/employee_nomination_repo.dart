@@ -1,5 +1,5 @@
 import 'package:dartz/dartz.dart';
-import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model%20.dart';
+import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model.dart';
 
 abstract class EmployeeNominationRepository {
   // إرسال طلب ترشح الموظف

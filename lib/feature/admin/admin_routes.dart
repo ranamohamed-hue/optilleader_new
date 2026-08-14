@@ -1,7 +1,9 @@
 import 'package:go_router/go_router.dart';
 
 import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
+import 'package:optialeader/feature/admin/data/model/employee_course_approval_model.dart';
 import 'package:optialeader/feature/admin/data/model/nomination_request_model.dart';
+import 'package:optialeader/feature/admin/logic/employee_admin_approval/employee_course_approval_state.dart';
 
 import 'package:optialeader/feature/admin/ui/announces/announce.dart';
 import 'package:optialeader/feature/admin/ui/announces/edit_announcement.dart';
@@ -15,8 +17,14 @@ import 'package:optialeader/feature/admin/ui/request/order_list_screen.dart';
 import 'package:optialeader/feature/admin/ui/request/nomination_requestd_details_screen.dart';
 
 import 'package:optialeader/feature/admin/ui/user_search_screen.dart';
-import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model .dart';
+
+import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model.dart';
+
+import 'package:optialeader/feature/admin/ui/employee/employees_admin_pending_request_page.dart';
 import 'package:optialeader/feature/admin/ui/employee/employee_pending_request_details_screen.dart';
+import 'package:optialeader/feature/admin/ui/employee/employee_evaluators_page.dart';
+import 'package:optialeader/feature/admin/ui/employee/admin_employee_course_details_screen.dart';
+import 'package:optialeader/feature/admin/ui/employee/employee_course_approval_page.dart';
 
 final List<RouteBase> adminSubRoutes = [
 
@@ -46,8 +54,8 @@ final List<RouteBase> adminSubRoutes = [
 
   GoRoute(
     path: 'nomination-request-details',
-    builder: (context, state) {
 
+    builder: (context, state) {
       final request =
           state.extra as NominationRequestModel;
 
@@ -73,8 +81,8 @@ final List<RouteBase> adminSubRoutes = [
 
   GoRoute(
     path: 'announcement-details',
-    builder: (context, state) {
 
+    builder: (context, state) {
       final announcement =
           state.extra as AnnouncementModel;
 
@@ -90,8 +98,8 @@ final List<RouteBase> adminSubRoutes = [
 
   GoRoute(
     path: 'edit-announcement',
-    builder: (context, state) {
 
+    builder: (context, state) {
       final announcement =
           state.extra as AnnouncementModel?;
 
@@ -107,14 +115,15 @@ final List<RouteBase> adminSubRoutes = [
 
   GoRoute(
     path: 'competition-results-view',
-    builder: (context, state) {
 
+    builder: (context, state) {
       final args =
           state.extra as Map<String, dynamic>?;
 
       return CompetitionResultsViewPage(
         announcementId:
             args?['announcementId'] ?? '',
+
         currentDoctorId:
             args?['currentDoctorId'],
       );
@@ -141,7 +150,6 @@ final List<RouteBase> adminSubRoutes = [
         path: 'details',
 
         builder: (context, state) {
-
           final args =
               state.extra as Map<String, dynamic>;
 
@@ -161,7 +169,6 @@ final List<RouteBase> adminSubRoutes = [
         path: 'paper-details',
 
         builder: (context, state) {
-
           final args =
               state.extra as Map<String, dynamic>;
 
@@ -174,19 +181,78 @@ final List<RouteBase> adminSubRoutes = [
   ),
 
   // ============================================================
-  // 9. EMPLOYEE NOMINATION REQUEST DETAILS
+  // 9. EMPLOYEE NOMINATION REQUESTS
   // ============================================================
 
   GoRoute(
-    path: 'employee-pending-request-details',
+    path: 'employees-pending-requests',
+
+    builder: (context, state) =>
+        const EmployeesAdminPendingRequestPage(),
+
+    routes: [
+
+      // ----------------------------------------------------------
+      // 9.1 EMPLOYEE REQUEST DETAILS
+      // ----------------------------------------------------------
+
+      GoRoute(
+        path: 'details',
+
+        builder: (context, state) {
+          final request =
+              state.extra
+                  as EmployeeNominationRequestModel;
+
+          return EmployeePendingRequestDetailsScreen(
+            request: request,
+          );
+        },
+      ),
+
+      // ----------------------------------------------------------
+      // 9.2 SELECT EMPLOYEE EVALUATOR
+      // ----------------------------------------------------------
+
+      GoRoute(
+        path: 'select-evaluator',
+
+        builder: (context, state) {
+          final request =
+              state.extra
+                  as EmployeeNominationRequestModel;
+
+          return EmployeeEvaluatorsPage(
+            request: request,
+          );
+        },
+      ),
+    ],
+  ),
+    // ============================================================
+  // 10. EMPLOYEE ACHIEVEMENTS / COURSES APPROVAL
+  // ============================================================
+
+  GoRoute(
+    path: 'employee-course-approval',
+
+    builder: (context, state) =>
+        const EmployeeCourseApprovalPage(),
+  ),
+
+  // ============================================================
+  // 10.1 EMPLOYEE COURSE DETAILS
+  // ============================================================
+
+  GoRoute(
+    path: 'employee-course-details',
 
     builder: (context, state) {
+      final item =
+          state.extra as EmployeeCourseApprovalModel;
 
-      final request =
-          state.extra as EmployeeNominationRequestModel;
-
-      return EmployeePendingRequestDetailsScreen(
-        request: request,
+      return AdminEmployeeCourseDetailsScreen(
+        item: item,
       );
     },
   ),

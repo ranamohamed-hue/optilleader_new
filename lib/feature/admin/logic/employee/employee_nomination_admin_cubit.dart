@@ -1,6 +1,8 @@
+
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:optialeader/feature/admin/data/repo/employee/employee_nomination_admin_repo .dart';
-import 'package:optialeader/feature/admin/logic/employee/employee_nomination_admin_state .dart';
+import 'package:optialeader/feature/admin/data/repo/employee/employee_nomination_admin_repo%20.dart';
+
+import 'package:optialeader/feature/admin/logic/employee/employee_nomination_admin_state%20.dart';
 
 class EmployeeNominationAdminCubit
     extends Cubit<EmployeeNominationAdminState> {
@@ -8,6 +10,10 @@ class EmployeeNominationAdminCubit
 
   EmployeeNominationAdminCubit(this.repo)
       : super(EmployeeNominationAdminInitial());
+
+  // ============================================================
+  // GET PENDING REQUESTS
+  // ============================================================
 
   Future<void> getPendingRequests() async {
     emit(EmployeeNominationAdminLoading());
@@ -29,6 +35,10 @@ class EmployeeNominationAdminCubit
     }
   }
 
+  // ============================================================
+  // APPROVE REQUEST & SEND TO EVALUATOR
+  // ============================================================
+
   Future<void> approveAndSendToEvaluator({
     required String requestId,
     required String evaluatorId,
@@ -43,8 +53,11 @@ class EmployeeNominationAdminCubit
         evaluatorName: evaluatorName,
       );
 
-      emit(EmployeeNominationAdminActionSuccess());
+      emit(
+        EmployeeNominationAdminActionSuccess(),
+      );
 
+      // تحديث قائمة الطلبات بعد نجاح العملية
       await getPendingRequests();
     } catch (e) {
       emit(
@@ -54,6 +67,10 @@ class EmployeeNominationAdminCubit
       );
     }
   }
+
+  // ============================================================
+  // REJECT REQUEST
+  // ============================================================
 
   Future<void> rejectRequest({
     required String requestId,
@@ -67,8 +84,11 @@ class EmployeeNominationAdminCubit
         reason: reason,
       );
 
-      emit(EmployeeNominationAdminActionSuccess());
+      emit(
+        EmployeeNominationAdminActionSuccess(),
+      );
 
+      // تحديث القائمة بعد الرفض
       await getPendingRequests();
     } catch (e) {
       emit(
