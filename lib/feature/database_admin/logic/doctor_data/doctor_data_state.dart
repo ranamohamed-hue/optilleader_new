@@ -27,3 +27,12 @@ class DoctorError extends DoctorDataState {
 //لرفع البيانات والصور
 class DoctorUploading extends DoctorDataState {}
 class DoctorDeleting extends DoctorDataState{}
+
+class DoctorSearchLoaded extends DoctorDataState {
+  final List<DoctorProfileModel> doctors;
+
+   DoctorSearchLoaded({required this.doctors});
+
+  @override
+  List<Object?> get props => [doctors];
+}

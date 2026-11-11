@@ -474,7 +474,7 @@ class _PendingRequestDetailsScreenState
   // ─────────────────────────────────────────────
   // 4. كارت الملفات
   // ─────────────────────────────────────────────
-  Widget _buildFilesCard(ThemeData theme, ResearchPaperModel paper) {
+ Widget _buildFilesCard(ThemeData theme, ResearchPaperModel paper) {
     return Container(
       padding: EdgeInsets.all(16.w),
       decoration: BoxDecoration(
@@ -531,11 +531,40 @@ class _PendingRequestDetailsScreenState
               url: paper.certifiedReportFileUrl,
               color: Colors.green,
             ),
+
+          SizedBox(height: 10.h),
+
+          // ✅ ضيفي هنا زرار VerifyMe عشان يفتح رابط الفحص للبحث العلمي
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: theme.colorScheme.secondary,
+                side: BorderSide(color: theme.colorScheme.secondary),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12.r),
+                ),
+              ),
+              onPressed: () async {
+                final url = Uri.parse('https://verifyme-secure.lovable.app/');
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              },
+              icon: const Icon(Icons.security, size: 18),
+              label: Text(
+                'report.verify_me.check_button'.tr(),
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: theme.colorScheme.secondary,
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
-
   Widget _buildFileRow({
     required IconData icon,
     required String label,

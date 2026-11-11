@@ -35,6 +35,7 @@ class _JudgeOrdersListScreenState extends State<JudgeOrdersListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🔥 JudgeOrdersListScreen OPENED');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;

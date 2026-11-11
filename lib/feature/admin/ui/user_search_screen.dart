@@ -17,11 +17,31 @@ class UserSearchScreen extends StatefulWidget {
 }
 
 class _UserSearchScreenState extends State<UserSearchScreen> {
+  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
+  bool _hasSearched = false;
+
   @override
-  void initState() {
-    super.initState();
-    // تفعيل مراقبة البيانات فور دخول الشاشة
-    context.read<DoctorDataCubit>().watchAllDoctors();
+  void dispose() {
+    _searchController.dispose();
+    context.read<DoctorDataCubit>().clearSearch();
+    super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    final query = value.trim();
+    setState(() {
+      _searchQuery = query;
+    });
+
+    if (query.isEmpty) {
+      setState(() => _hasSearched = false);
+      context.read<DoctorDataCubit>().clearSearch();
+      return;
+    }
+
+    setState(() => _hasSearched = true);
+    context.read<DoctorDataCubit>().searchDoctors(query);
   }
 
   @override
@@ -55,70 +75,186 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
           Padding(
             padding: EdgeInsets.all(20.w),
             child: TextField(
+              controller: _searchController,
               textAlign: isAr ? TextAlign.right : TextAlign.left,
+              style: TextStyle(
+                color: colorScheme.onSurface,
+              ), // ✅ واضح في الدارك مود
               decoration: InputDecoration(
                 hintText: 'search.hint'.tr(),
-                prefixIcon: const Icon(Icons.search),
+                hintStyle: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                ), // ✅ واضح في الدارك مود
+                prefixIcon: Icon(
+                  Icons.search,
+                  color: colorScheme.onSurfaceVariant,
+                ), // ✅
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.clear,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          _onSearchChanged('');
+                        },
+                      )
+                    : null,
               ),
-              onChanged: (value) {
-                // هنا ممكن مستقبلاً تضيفي Search logic في الـ Cubit
-              },
+              onChanged: _onSearchChanged,
             ),
           ),
 
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.w),
-            child: _buildSectionHeader(
-              context,
-              'search.employee_services'.tr(),
+          // عنوان القسم (يظهر فقط أثناء البحث)
+          if (_hasSearched)
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20.w),
+              child: _buildSectionHeader(
+                context,
+                'search.employee_services'.tr(),
+              ),
             ),
-          ),
 
-          // عرض البيانات المربوطة بالكيوبيت
-          Expanded(
-            child: BlocBuilder<DoctorDataCubit, DoctorDataState>(
-              builder: (context, state) {
-                if (state is DoctorLoading) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          // شاشة البداية (قبل الكتابة)
+          if (!_hasSearched) Expanded(child: _buildEmptySearchState(context)),
 
-                if (state is AllDoctorLoaded) {
-                  final doctors = state.doctors;
-
-                  if (doctors == null || doctors.isEmpty) {
-                    return Center(child: Text('search.no_users'.tr()));
+          // عرض نتائج البحث
+          if (_hasSearched)
+            Expanded(
+              child: BlocBuilder<DoctorDataCubit, DoctorDataState>(
+                builder: (context, state) {
+                  if (state is DoctorLoading) {
+                    return Center(
+                      child: CircularProgressIndicator(
+                        color: colorScheme.primary,
+                      ),
+                    );
                   }
 
-                  return ListView.builder(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 20.w,
-                      vertical: 10.h,
-                    ),
-                    itemCount: doctors.length,
-                    itemBuilder: (context, index) {
-                      return _buildDoctorCard(context, doctors[index]);
-                    },
-                  );
-                }
+                  if (state is DoctorSearchLoaded) {
+                    final doctors = state.doctors;
 
-                if (state is DoctorError) {
-                  return Center(
-                    child: Text(
-                      'search.error_message'.tr(args: [state.error.toString()]),
-                    ),
-                  );
-                }
+                    if (doctors == null || doctors.isEmpty) {
+                      return _buildNoResultsState(context);
+                    }
 
-                return Center(child: Text('search.loading'.tr()));
-              },
+                    return ListView.builder(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20.w,
+                        vertical: 10.h,
+                      ),
+                      itemCount: doctors.length,
+                      itemBuilder: (context, index) {
+                        return _buildDoctorCard(context, doctors[index]);
+                      },
+                    );
+                  }
+
+                  if (state is DoctorError) {
+                    return Center(
+                      child: Text(
+                        'search.error_message'.tr(
+                          args: [state.error.toString()],
+                        ),
+                        style: TextStyle(color: colorScheme.error),
+                      ),
+                    );
+                  }
+
+                  return const SizedBox.shrink();
+                },
+              ),
             ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // حالة الشاشة الفاضية
+  // ─────────────────────────────────────────────
+  Widget _buildEmptySearchState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.search_rounded,
+            size: 80.sp,
+            color: colorScheme.onSurfaceVariant.withOpacity(
+              0.4,
+            ), // ✅ واضح في الدارك مود
+          ),
+          SizedBox(height: 20.h),
+          Text(
+            'search.start_searching'.tr(),
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant.withOpacity(
+                0.6,
+              ), // ✅ واضح في الدارك مود
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'search.start_searching_desc'.tr(),
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant.withOpacity(
+                0.4,
+              ), // ✅ واضح في الدارك مود
+              fontSize: 13.sp,
+            ),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
 
-   Widget _buildDoctorCard(BuildContext context, DoctorProfileModel doctor) {
+  // ─────────────────────────────────────────────
+  // حالة عدم وجود نتائج
+  // ─────────────────────────────────────────────
+  Widget _buildNoResultsState(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.person_search_rounded,
+            size: 70.sp,
+            color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+          ),
+          SizedBox(height: 20.h),
+          Text(
+            'search.no_results'.tr(),
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant.withOpacity(0.6),
+              fontSize: 16.sp,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 8.h),
+          Text(
+            'search.no_results_desc'.tr(args: [_searchQuery]),
+            style: TextStyle(
+              color: colorScheme.onSurfaceVariant.withOpacity(0.4),
+              fontSize: 13.sp,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────
+  // كرت الدكتور (صامت بدون ضغط)
+  // ─────────────────────────────────────────────
+  Widget _buildDoctorCard(BuildContext context, DoctorProfileModel doctor) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final isAr = context.locale.languageCode == 'ar';
@@ -126,86 +262,87 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
     return Card(
       margin: EdgeInsets.only(bottom: 16.h),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.r)),
-      child: InkWell(
-        onTap: () {
-          // ✅ الانتقال لصفحة العرض والتعديل الخاصة بالدكتور
-          context.push(
-            Routes.addDoctorPage,
-            extra: {
-              'existingUid': doctor.uid ?? '', // تأكدي إن الـ UID مش null
-              'isViewMode': true, // ✅ تفعيل وضع العرض المجمد
-            },
-          );
-        },
-        borderRadius: BorderRadius.circular(12.r),
-        child: Padding(
-          padding: EdgeInsets.all(16.w),
-          child: Column(
-            children: [
-              Row(
-                // تغيير اتجاه الـ Row بناءً على اللغة
-                textDirection: isAr
-                    ? ui.TextDirection.rtl
-                    : ui.TextDirection.ltr,
-                children: [
-                  _buildProfileImage(colorScheme, doctor.profileImage),
-                  SizedBox(width: 15.w),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: isAr
-                          ? CrossAxisAlignment.start
-                          : CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          doctor.nameAr,
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14.sp,
-                          ),
+      color: colorScheme.surface, // ✅ لون الكارت ديناميكي
+      elevation: theme.brightness == Brightness.dark
+          ? 0
+          : 1, // ✅ إزالة الظل في الدارك مود
+      child: Padding(
+        padding: EdgeInsets.all(16.w),
+        child: Column(
+          children: [
+            Row(
+              textDirection: isAr ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+              children: [
+                _buildProfileImage(colorScheme, doctor.profileImage),
+                SizedBox(width: 15.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: isAr
+                        ? CrossAxisAlignment.start
+                        : CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        doctor.nameAr,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.sp,
+                          color: colorScheme.onSurface, // ✅ واضح في الدارك مود
                         ),
-                        Text(
-                          doctor.currentJobAr,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontSize: 12.sp,
-                          ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        doctor.currentJobAr,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 12.sp,
+                          color: colorScheme
+                              .onSurfaceVariant, // ✅ واضح في الدارك مود
                         ),
-                        Text(
-                          'search.employee_id_label'.tr(
-                            args: [doctor.employeeId],
-                          ),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            fontSize: 11.sp,
-                            color: Colors.grey,
-                          ),
+                      ),
+                      SizedBox(height: 4.h),
+                      Text(
+                        'search.employee_id_label'.tr(
+                          args: [doctor.employeeId],
                         ),
-                      ],
-                    ),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          fontSize: 11.sp,
+                          color: colorScheme.outline, // ✅ بدل Colors.grey
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              Divider(height: 25.h, thickness: 0.5),
-              Row(
-                mainAxisAlignment: isAr
-                    ? MainAxisAlignment.end
-                    : MainAxisAlignment.start,
-                children: [
-                  Text(
+                ),
+              ],
+            ),
+            Divider(
+              height: 25.h,
+              thickness: 0.5,
+              color: colorScheme.outlineVariant.withOpacity(0.5),
+            ),
+            Row(
+              mainAxisAlignment: isAr
+                  ? MainAxisAlignment.end
+                  : MainAxisAlignment.start,
+              children: [
+                Flexible(
+                  child: Text(
                     doctor.email,
                     style: theme.textTheme.bodyMedium?.copyWith(
                       fontSize: 12.sp,
-                      color: colorScheme.onSurface.withOpacity(0.7),
+                      color:
+                          colorScheme.onSurfaceVariant, // ✅ واضح في الدارك مود
                     ),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(width: 10.w),
-                  Icon(
-                    Icons.email_outlined,
-                    color: colorScheme.secondary,
-                    size: 18.sp,
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                SizedBox(width: 10.w),
+                Icon(
+                  Icons.email_outlined,
+                  color: colorScheme.secondary,
+                  size: 18.sp,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -233,7 +370,6 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
   Widget _buildSectionHeader(BuildContext context, String title) {
     final theme = Theme.of(context);
     final isAr = context.locale.languageCode == 'ar';
-    final isDark = theme.brightness == Brightness.dark; // ✅ ضيف السطر ده
     return Padding(
       padding: EdgeInsets.only(bottom: 12.h),
       child: Row(
@@ -244,7 +380,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
           if (!isAr)
             Icon(
               Icons.label_important_outline,
-              color: isDark?Colors.white:Colors.black,
+              color: theme.colorScheme.onSurface, // ✅ واضح في الدارك مود
               size: 20.sp,
             ),
           if (!isAr) SizedBox(width: 8.w),
@@ -253,6 +389,7 @@ class _UserSearchScreenState extends State<UserSearchScreen> {
             style: theme.textTheme.titleLarge?.copyWith(
               fontSize: 16.sp,
               fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface, // ✅ واضح في الدارك مود
             ),
           ),
           if (isAr) SizedBox(width: 8.w),

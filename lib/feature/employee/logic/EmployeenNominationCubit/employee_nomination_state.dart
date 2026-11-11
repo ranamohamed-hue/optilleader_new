@@ -1,43 +1,39 @@
+import 'package:equatable/equatable.dart';
 import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model.dart';
 
-abstract class EmployeeNominationState {}
+abstract class EmployeeNominationState extends Equatable {
+  const EmployeeNominationState();
+  
+  @override
+  List<Object?> get props => [];
+}
 
 class EmployeeNominationInitial extends EmployeeNominationState {}
 
 class EmployeeNominationLoading extends EmployeeNominationState {}
 
-class EmployeeNominationLoaded extends EmployeeNominationState {
-  final List<EmployeeNominationRequestModel> requests;
-
-  EmployeeNominationLoaded(this.requests);
-}
-
-class EmployeeNominationActionSuccess
-    extends EmployeeNominationState {
+class EmployeeNominationActionSuccess extends EmployeeNominationState {
   final String message;
+  const EmployeeNominationActionSuccess(this.message);
 
-  EmployeeNominationActionSuccess(this.message);
+  @override
+  List<Object?> get props => [message];
 }
 
 class EmployeeNominationError extends EmployeeNominationState {
   final String message;
+  const EmployeeNominationError(this.message);
 
-  EmployeeNominationError(this.message);
+  @override
+  List<Object?> get props => [message];
 }
 
-class EmployeeEvaluatorsLoading
-    extends EmployeeNominationState {}
+// ✅ الكلاس ده هو اللي الشاشة بتدور عليه
+class EmployeeNominationLoaded extends EmployeeNominationState {
+  final List<EmployeeNominationRequestModel> requests;
+  
+  const EmployeeNominationLoaded({required this.requests});
 
-class EmployeeEvaluatorsLoaded
-    extends EmployeeNominationState {
-  final List<Map<String, dynamic>> evaluators;
-
-  EmployeeEvaluatorsLoaded(this.evaluators);
-}
-
-class EmployeeEvaluatorsError
-    extends EmployeeNominationState {
-  final String message;
-
-  EmployeeEvaluatorsError(this.message);
+  @override
+  List<Object?> get props => [requests];
 }

@@ -20,7 +20,7 @@ class EmployeeNominationRepositoryImpl
   ) async {
     try {
       final docRef = await _firestore
-          .collection('nomination_requests')
+          .collection('employee_nomination_requests')
           .add(request.toMap());
 
       return Right(docRef.id);
@@ -39,7 +39,7 @@ class EmployeeNominationRepositoryImpl
     required String status,
   }) {
     return _firestore
-        .collection('nomination_requests')
+        .collection('employee_nomination_requests')
         .where('applicantType', isEqualTo: 'employee')
         .where('status', isEqualTo: status)
         .orderBy('createdAt', descending: true)
@@ -76,7 +76,7 @@ class EmployeeNominationRepositoryImpl
     String evaluatorId,
   ) {
     return _firestore
-        .collection('nomination_requests')
+        .collection('employee_nomination_requests')
         .where('applicantType', isEqualTo: 'employee')
         .where('evaluatorId', isEqualTo: evaluatorId)
         .orderBy('createdAt', descending: true)
@@ -118,7 +118,7 @@ class EmployeeNominationRepositoryImpl
       }
 
       await _firestore
-          .collection('nomination_requests')
+          .collection('employee_nomination_requests')
           .doc(request.id)
           .update(request.toMap());
 

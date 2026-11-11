@@ -30,6 +30,12 @@ class EmployeeNominationRequestModel {
   final String? visionStatement;
 
   // ============================================================
+  // الملفات والمستندات المرفقة (الجديد) ✅
+  // ============================================================
+
+  final Map<String, String>? uploadedDocuments;
+
+  // ============================================================
   // المحكم
   // ============================================================
 
@@ -109,6 +115,9 @@ class EmployeeNominationRequestModel {
 
     // Vision
     this.visionStatement,
+
+    // ✅ Documents
+    this.uploadedDocuments,
 
     // Evaluator
     this.evaluatorId,
@@ -211,6 +220,14 @@ class EmployeeNominationRequestModel {
       visionStatement: map['visionStatement'],
 
       // ========================================================
+      // ✅ Documents
+      // ========================================================
+
+      uploadedDocuments: map['uploadedDocuments'] != null
+          ? Map<String, String>.from(map['uploadedDocuments'] as Map)
+          : null,
+
+      // ========================================================
       // Evaluator
       // ========================================================
 
@@ -299,6 +316,12 @@ class EmployeeNominationRequestModel {
       'visionStatement': visionStatement,
 
       // ========================================================
+      // ✅ Documents
+      // ========================================================
+
+      'uploadedDocuments': uploadedDocuments,
+
+      // ========================================================
       // Evaluator
       // ========================================================
 
@@ -368,6 +391,9 @@ class EmployeeNominationRequestModel {
     // Vision
     String? visionStatement,
 
+    // ✅ Documents
+    Map<String, String>? uploadedDocuments,
+
     // Evaluator
     String? evaluatorId,
     String? evaluatorName,
@@ -430,6 +456,13 @@ class EmployeeNominationRequestModel {
 
       visionStatement:
           visionStatement ?? this.visionStatement,
+
+      // ========================================================
+      // ✅ Documents
+      // ========================================================
+
+      uploadedDocuments:
+          uploadedDocuments ?? this.uploadedDocuments,
 
       // ========================================================
       // Evaluator

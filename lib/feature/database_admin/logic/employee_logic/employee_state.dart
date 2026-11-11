@@ -24,3 +24,4 @@ class EmployeeError extends EmployeeDataState {
   final String error;
   EmployeeError({required this.error});
 }
+class EmployeeArchiveUploadSuccess extends EmployeeDataState {}

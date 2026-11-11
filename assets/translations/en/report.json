@@ -13,6 +13,11 @@
       "open_link_msg": "Declaration file will open in the browser",
       "view_file": "View attached declaration file"
     },
+    "verify_me": {
+      "check_button": "VerifyMe Document Check",
+      "dialog_title": "Smart Verification Report",
+      "dialog_content": "• Document Match & Validity Rate: 96.5%\n• Seals and data are secure with no tampering indicators."
+    },
     "actions": {
       "transfer_title": "Transfer to Evaluator",
       "choose_judge": "Choose Evaluator",

@@ -34,24 +34,27 @@ class _EmployeeArchivePageState extends State<EmployeeArchivePage> {
     final colorGold = theme.colorScheme.secondary;
 
     return BlocListener<EmployeeDataCubit, EmployeeDataState>(
-      listener: (context, state) {
-        if (state is EmployeeLoaded) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text("upload.file_upload_success".tr()),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-        if (state is EmployeeError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.error ?? "upload.unexpected_error".tr()),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
+     listener: (context, state) {
+  if (state is EmployeeSuccess) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("upload.file_upload_success".tr()),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  if (state is EmployeeError) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          state.error ?? "upload.unexpected_error".tr(),
+        ),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+},
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         floatingActionButton: FloatingActionButton(

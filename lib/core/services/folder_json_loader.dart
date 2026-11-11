@@ -38,19 +38,20 @@ class FolderJsonLoader extends AssetLoader {
     'employee_courses',
     'nomination_details',
     'pending_details',
-    'evaluator_review', 
+    'evaluator_review',
     'employee_review_scren',
     'notification',
     'employee_archive',
     'employee_archieve',
     'employee_nomination_page',
-    'employee_request_detail'
+    'employee_request_detail',
+    'employee_course_details'
   ];
 
   @override
   Future<Map<String, dynamic>> load(String path, Locale locale) async {
     final localeCode = locale.languageCode;
-    
+
     // ✅ السحر هنا: نطلب من التطبيق تحميل كل الملفات في نفس الوقت (بالتوازي)
     final futures = fileNames.map((fileName) async {
       final filePath = '$path/$localeCode/$fileName.json';

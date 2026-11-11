@@ -1,11 +1,15 @@
 {
   "search": {
-    "app_bar_title": "Search Employee",
+    "app_bar_title": "Search for Employee",
     "hint": "Search by name or ID...",
-    "employee_services": "Staff Data",
-    "no_users": "No employees found",
+    "employee_services": "Faculty Members Data",
+    "no_users": "No employees available currently",
     "loading": "Loading data...",
-    "error_message": "Error occurred: {}",
-    "employee_id_label": "Employee ID: {}"
+    "error_message": "An error occurred: {}",
+    "employee_id_label": "Employee ID: {}",
+    "start_searching": "Start searching for an employee",
+    "start_searching_desc": "Type the employee's name or ID to search",
+    "no_results": "No results found",
+    "no_results_desc": "No results found for \"{}\""
   }
 }

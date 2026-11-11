@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -6,9 +7,7 @@ import 'package:optialeader/feature/admin/logic/employee_admin_approval/employee
 import 'package:optialeader/feature/admin/logic/employee_admin_approval/employee_course_approval_state.dart';
 
 class EmployeeCourseApprovalPage extends StatefulWidget {
-  const EmployeeCourseApprovalPage({
-    super.key,
-  });
+  const EmployeeCourseApprovalPage({super.key});
 
   @override
   State<EmployeeCourseApprovalPage> createState() =>
@@ -21,86 +20,58 @@ class _EmployeeCourseApprovalPageState
   void initState() {
     super.initState();
 
-    context
-        .read<EmployeeCourseApprovalCubit>()
-        .loadPendingCourses();
+    context.read<EmployeeCourseApprovalCubit>().loadPendingCourses();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(
-          'اعتماد الدورات التدريبية',
-        ),
-      ),
-      body: BlocConsumer<
-          EmployeeCourseApprovalCubit,
-          EmployeeCourseApprovalState>(
-        listener: (context, state) {
-          if (state
-              is EmployeeCourseApprovalSuccess) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.message,
-                ),
-              ),
-            );
-          }
+      appBar: AppBar(title: Text('employee_course_approval.title'.tr())),
+      body:
+          BlocConsumer<
+            EmployeeCourseApprovalCubit,
+            EmployeeCourseApprovalState
+          >(
+            listener: (context, state) {
+              if (state is EmployeeCourseApprovalSuccess) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.message)));
+              }
 
-          if (state
-              is EmployeeCourseApprovalError) {
-            ScaffoldMessenger.of(context)
-                .showSnackBar(
-              SnackBar(
-                content: Text(
-                  state.message,
-                ),
-              ),
-            );
-          }
-        },
-        builder: (context, state) {
-          if (state
-                  is EmployeeCourseApprovalLoading ||
-              state
-                  is EmployeeCourseApprovalInitial) {
-            return const Center(
-              child:
-                  CircularProgressIndicator(),
-            );
-          }
+              if (state is EmployeeCourseApprovalError) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text(state.message)));
+              }
+            },
+            builder: (context, state) {
+              if (state is EmployeeCourseApprovalLoading ||
+                  state is EmployeeCourseApprovalInitial) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-          if (state
-              is EmployeeCourseApprovalLoaded) {
-            if (state.courses.isEmpty) {
-              return const Center(
-                child: Text(
-                  'لا توجد دورات معلقة',
-                ),
-              );
-            }
+              if (state is EmployeeCourseApprovalLoaded) {
+                if (state.courses.isEmpty) {
+                  return Center(
+                    child: Text(
+                      'employee_course_approval.no_pending_courses'.tr(),
+                    ),
+                  );
+                }
 
-            return ListView.builder(
-              padding:
-                  const EdgeInsets.all(12),
-              itemCount:
-                  state.courses.length,
-              itemBuilder:
-                  (context, index) {
-                return _CourseCard(
-                  item:
-                      state.courses[index],
+                return ListView.builder(
+                  padding: const EdgeInsets.all(12),
+                  itemCount: state.courses.length,
+                  itemBuilder: (context, index) {
+                    return _CourseCard(item: state.courses[index]);
+                  },
                 );
-              },
-            );
-          }
+              }
 
-          return const SizedBox();
-        },
-      ),
+              return const SizedBox();
+            },
+          ),
     );
   }
 }
@@ -108,93 +79,77 @@ class _EmployeeCourseApprovalPageState
 class _CourseCard extends StatelessWidget {
   final EmployeeCourseApprovalModel item;
 
-  const _CourseCard({
-    required this.item,
-  });
+  const _CourseCard({required this.item});
 
   @override
   Widget build(BuildContext context) {
-    final cubit =
-        context.read<
-            EmployeeCourseApprovalCubit>();
+    final cubit = context.read<EmployeeCourseApprovalCubit>();
 
     return Card(
-      margin:
-          const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
-        padding:
-            const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               item.employeeName,
-              style: const TextStyle(
-                fontWeight:
-                    FontWeight.bold,
-                fontSize: 18,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
 
             const SizedBox(height: 8),
 
             Text(
-              'الرقم الوظيفي: ${item.employeeId}',
+              '${'employee_course_approval.employee_id'.tr()}: '
+              '${item.employeeId}',
             ),
 
             Text(
-              'الإدارة: ${item.department}',
+              '${'employee_course_approval.department'.tr()}: '
+              '${item.department}',
             ),
 
             const Divider(height: 24),
 
             Text(
-              'اسم الدورة: ${item.course.title}',
-              style: const TextStyle(
-                fontWeight:
-                    FontWeight.bold,
-              ),
+              '${'employee_course_approval.course_name'.tr()}: '
+              '${item.course.title}',
+              style: const TextStyle(fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 6),
 
             Text(
-              'الجهة المنظمة: ${item.course.organization}',
+              '${'employee_course_approval.organization'.tr()}: '
+              '${item.course.organization}',
             ),
 
             Text(
-              'تاريخ الدورة: ${item.course.date}',
+              '${'employee_course_approval.course_date'.tr()}: '
+              '${item.course.date}',
             ),
 
-            if (item.course.durationHours !=
-                null)
+            if (item.course.durationHours != null)
               Text(
-                'عدد الساعات: ${item.course.durationHours}',
+                '${'employee_course_approval.hours'.tr()}: '
+                '${item.course.durationHours}',
               ),
 
             Text(
-              'نوع الدورة: ${item.course.courseType}',
+              '${'employee_course_approval.course_type'.tr()}: '
+              '${item.course.courseType}',
             ),
 
             const SizedBox(height: 16),
 
-            if (item.course
-                        .certificateFileUrl !=
-                    null &&
-                item.course
-                    .certificateFileUrl!
-                    .isNotEmpty)
+            if (item.course.certificateFileUrl != null &&
+                item.course.certificateFileUrl!.isNotEmpty)
               OutlinedButton.icon(
                 onPressed: () {
                   // افتحي الملف هنا
                 },
-                icon: const Icon(
-                  Icons.picture_as_pdf,
-                ),
-                label: const Text(
-                  'عرض الشهادة',
-                ),
+                icon: const Icon(Icons.picture_as_pdf),
+                label: Text('employee_course_approval.view_certificate'.tr()),
               ),
 
             const SizedBox(height: 16),
@@ -202,49 +157,31 @@ class _CourseCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child:
-                      ElevatedButton.icon(
+                  child: ElevatedButton.icon(
                     onPressed: () {
                       cubit.approveCourse(
-                        employeeUid:
-                            item.employeeUid,
-                        courseId:
-                            item.course.id!,
-                        courseTitle:
-                            item.course.title,
+                        employeeUid: item.employeeUid,
+                        courseId: item.course.id!,
+                        courseTitle: item.course.title,
                       );
                     },
-                    icon: const Icon(
-                      Icons.check,
-                    ),
-                    label: const Text(
-                      'اعتماد',
-                    ),
+                    icon: const Icon(Icons.check),
+                    label: Text('employee_course_approval.approve'.tr()),
                   ),
                 ),
 
                 const SizedBox(width: 12),
 
                 Expanded(
-                  child:
-                      ElevatedButton.icon(
-                    style:
-                        ElevatedButton.styleFrom(
-                      backgroundColor:
-                          Colors.red,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
                     ),
                     onPressed: () {
-                      _showRejectDialog(
-                        context,
-                        item,
-                      );
+                      _showRejectDialog(context, item);
                     },
-                    icon: const Icon(
-                      Icons.close,
-                    ),
-                    label: const Text(
-                      'رفض',
-                    ),
+                    icon: const Icon(Icons.close),
+                    label: Text('employee_course_approval.reject'.tr()),
                   ),
                 ),
               ],
@@ -256,27 +193,19 @@ class _CourseCard extends StatelessWidget {
   }
 }
 
-void _showRejectDialog(
-  BuildContext context,
-  EmployeeCourseApprovalModel item,
-) {
-  final controller =
-      TextEditingController();
+void _showRejectDialog(BuildContext context, EmployeeCourseApprovalModel item) {
+  final controller = TextEditingController();
 
   showDialog(
     context: context,
     builder: (_) {
       return AlertDialog(
-        title: const Text(
-          'سبب الرفض',
-        ),
+        title: Text('employee_course_approval.rejection_reason'.tr()),
         content: TextField(
           controller: controller,
           maxLines: 3,
-          decoration:
-              const InputDecoration(
-            hintText:
-                'اكتب سبب الرفض',
+          decoration: InputDecoration(
+            hintText: 'employee_course_approval.rejection_hint'.tr(),
           ),
         ),
         actions: [
@@ -284,37 +213,27 @@ void _showRejectDialog(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text(
-              'إلغاء',
-            ),
+            child: Text('employee_course_approval.cancel'.tr()),
           ),
+
           ElevatedButton(
             onPressed: () {
-              final reason =
-                  controller.text.trim();
+              final reason = controller.text.trim();
 
               if (reason.isEmpty) {
                 return;
               }
 
-              context
-                  .read<
-                      EmployeeCourseApprovalCubit>()
-                  .rejectCourse(
-                    employeeUid:
-                        item.employeeUid,
-                    courseId:
-                        item.course.id!,
-                    courseTitle:
-                        item.course.title,
-                    reason: reason,
-                  );
+              context.read<EmployeeCourseApprovalCubit>().rejectCourse(
+                employeeUid: item.employeeUid,
+                courseId: item.course.id!,
+                courseTitle: item.course.title,
+                reason: reason,
+              );
 
               Navigator.pop(context);
             },
-            child: const Text(
-              'رفض',
-            ),
+            child: Text('employee_course_approval.reject'.tr()),
           ),
         ],
       );

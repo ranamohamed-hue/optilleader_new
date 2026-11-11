@@ -6,6 +6,10 @@
     "no_users": "لا يوجد موظفين حالياً",
     "loading": "جاري تحميل البيانات...",
     "error_message": "حدث خطأ: {}",
-    "employee_id_label": "الرقم الوظيفي: {}"
+    "employee_id_label": "الرقم الوظيفي: {}",
+    "start_searching": "ابدأ بالبحث عن موظف",
+    "start_searching_desc": "اكتب اسم الموظف أو رقمه الوظيفي للبحث",
+    "no_results": "لا توجد نتائج",
+    "no_results_desc": "لم يتم العثور على نتائج لـ \"{}\""
   }
 }

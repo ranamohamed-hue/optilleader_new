@@ -218,11 +218,11 @@ class _AddCourseSheetState extends State<AddCourseSheet> {
       ),
     );
   }
-
   Widget _buildDateField(Color textColor, ColorScheme colorScheme) {
     return InkWell(
       onTap: () async {
-        final picked = await showDatePicker(
+        // ✅ إضافة نوع DateTime?
+        final DateTime? picked = await showDatePicker(
           context: context,
           initialDate: _selectedDate,
           firstDate: DateTime(1990),
@@ -239,14 +239,13 @@ class _AddCourseSheetState extends State<AddCourseSheet> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(DateFormat.yMd(context.locale.languageCode).format(_selectedDate), style: TextStyle(fontSize: 13, color: textColor)), // ✅ نص متغير
+            Text(DateFormat.yMd(context.locale.languageCode).format(_selectedDate), style: TextStyle(fontSize: 13, color: textColor)),
             Icon(Icons.calendar_month_rounded, size: 18, color: colorScheme.secondary),
           ],
         ),
       ),
     );
   }
-
   Widget _buildTypeDropdown(Color textColor, Color hintColor, ColorScheme colorScheme) {
     final types = [
       'general_admin', 'leadership', 'hr_management', 'crisis_management', 

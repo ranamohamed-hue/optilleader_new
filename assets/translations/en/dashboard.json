@@ -4,8 +4,16 @@
       "new": "New Requests",
       "reviewing": "Under Review",
       "evaluated": "Evaluated",
+      "rejected": "Rejected",
       "request": "Request"
     }
+  },
+  "doctor": "Faculty member",
+  "employee": "Employee",
+  "employee_categories": {
+    "error_message": "An error occurred while loading data",
+    "retry": "Retry",
+    "admin_manager_job": "Admin Manager"
   },
   "dashboardJudge": {
     "welcome": "Welcome, {0}",
@@ -19,6 +27,11 @@
     "no_requests": "No requests to evaluate at the moment",
     "nomination_for_role": "Nominated for: {role}",
     "notifications": "Notifications",
+    "choose_request_type": "Choos Request Type",
+    "doctors": "Faculty Member",
+    "doctors_requests": "",
+    "employees": "Employees",
+    "employee_managers_requests": "",
     "cards": {
       "under_review": "Requests Under Review"
     },
@@ -34,20 +47,27 @@
       "vice_dean": "Vice Dean",
       "head_dept": "Head of Department",
       "other": "Other",
-      "quality_manager": "Quality Manager",  
+      "quality_manager": "Quality Manager",
       "admin_manager": "Admin Manager",
       "university_president": "University President",
-"vice_university_president": "Vice University President",
- "error_message": "An error occurred while loading data",
-  "retry": "Retry",
-  "view":"View"
+      "vice_university_president": "Vice University President",
+      "error_message": "An error occurred while loading data",
+      "retry": "Retry",
+      "view": "View",
+      "doctor_requests": "Doctor Nominations & Requests",
+      "employee_requests": "Employee Nominations & Requests",
+      "admin_manager_job": ""
     }
   },
   "judge_orders": {
+    "choose_type": "Choose Request Type",
     "title": "Assigned Requests",
     "no_requests": "No requests to evaluate currently",
     "evaluate": "Evaluate",
     "role_label": "Running for role:",
-      "view": "View"
+    "view": "View",
+    "applicants_list_title": "Applicants List",
+    "doctor_requests": "",
+    "employee_requests": ""
   }
 }

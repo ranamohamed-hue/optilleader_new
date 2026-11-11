@@ -1,294 +1,232 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'package:cloud_firestore/cloud_firestore.dart'; // ✅ مضاف
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:path/path.dart' as p;
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
-
 import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
 import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model.dart';
 import 'package:optialeader/feature/employee/data/repo/NominationRequestRepository/employee_nomination_repo.dart';
 import 'package:optialeader/feature/employee/logic/EmployeenNominationCubit/employee_nomination_state.dart';
-import 'package:optialeader/feature/notification/data/model/app_notification_model.dart';
 import 'package:optialeader/feature/notification/data/repo/notification_repo.dart';
+import 'package:optialeader/feature/notification/data/model/app_notification_model.dart'; // ✅ مضاف
+import 'package:firebase_auth/firebase_auth.dart';
+class EmployeeNominationCubit extends Cubit<EmployeeNominationState> {
+  final EmployeeNominationRepository repo;
+  final NotificationRepo notificationRepo;
 
-class EmployeeNominationCubit
-    extends Cubit<EmployeeNominationState> {
-
-  final EmployeeNominationRepository _repository;
-  final NotificationRepo _notificationRepo;
-
-  EmployeeNominationCubit(
-    this._repository,
-    this._notificationRepo,
-  ) : super(EmployeeNominationInitial());
-  // ============================================================
-  // جلب طلبات الموظفين عند الأدمن
-  // ============================================================
-
-  void fetchAdminRequests({
-    required String status,
-  }) {
-    emit(EmployeeNominationLoading());
-
-    _repository
-        .getAdminRequests(status: status)
-        .listen(
-      (requests) {
-        emit(EmployeeNominationLoaded(requests));
-      },
-      onError: (e) {
-        emit(
-          EmployeeNominationError(
-            'error_fetch_employee_requests',
-          ),
-        );
-      },
-    );
-  }
+  EmployeeNominationCubit({required this.repo, required this.notificationRepo})
+      : super(EmployeeNominationInitial());
 
   // ============================================================
-  // جلب طلبات الموظفين عند المحكم
-  // ============================================================
-
-  void fetchEvaluatorRequests(
-    String evaluatorId,
-  ) {
-    emit(EmployeeNominationLoading());
-
-    _repository
-        .getEvaluatorRequests(evaluatorId)
-        .listen(
-      (requests) {
-        emit(EmployeeNominationLoaded(requests));
-      },
-      onError: (e) {
-        emit(
-          EmployeeNominationError(
-            'error_fetch_employee_evaluator_requests',
-          ),
-        );
-      },
-    );
-  }
-
-  // ============================================================
-  // إرسال طلب ترشح الموظف
+  // Submit Nomination Request
   // ============================================================
 
   Future<void> submitNominationRequest({
     required AnnouncementModel announcement,
     required String employeeId,
     required String employeeName,
-    String? employeeImageUrl,
-    String? currentJob,
-    String? sectorName,
-    String? departmentName,
-    String? visionStatement,
+    required String? employeeImageUrl,
+    required String? currentJob,
+    required String? sectorName,
+    required String? departmentName,
+    required String? visionStatement,
+    required Map<String, File> requiredFiles,
   }) async {
     emit(EmployeeNominationLoading());
 
     try {
-      // ----------------------------------------------------------
-      // منع الموظف من التقديم أكثر من مرة على نفس الإعلان
-      // ----------------------------------------------------------
+      // 1. رفع جميع الملفات على Supabase وجلب الروابط
+      Map<String, String> uploadedUrls = {};
 
-      final existingRequest = await FirebaseFirestore.instance
-          .collection('nomination_requests')
-          .where(
-            'applicantType',
-            isEqualTo: 'employee',
-          )
-          .where(
-            'employeeId',
-            isEqualTo: employeeId,
-          )
-          .where(
-            'announcementId',
-            isEqualTo: announcement.id,
-          )
-          .where(
-            'status',
-            whereIn: [
-              EmployeeNominationRequestModel.statusPendingAdmin,
-              EmployeeNominationRequestModel.statusPendingEvaluator,
-              EmployeeNominationRequestModel.statusEvaluated,
-            ],
-          )
-          .limit(1)
-          .get();
+      for (var entry in requiredFiles.entries) {
+        final String docType = entry.key;
+        final File file = entry.value;
 
-      if (existingRequest.docs.isNotEmpty) {
-        emit(
-          EmployeeNominationError(
-            'employee_nomination.error_duplicate_request',
-          ),
+        final String fileUrl = await _uploadFileToStorage(
+          file: file,
+          uid: employeeId,
+          folder: 'nomination_docs',
         );
-        return;
+
+        uploadedUrls[docType] = fileUrl;
       }
 
-      // ----------------------------------------------------------
-      // إنشاء الطلب
-      // ----------------------------------------------------------
-
-      final request = EmployeeNominationRequestModel(
+      // 2. تجهيز الـ Model مع وضع روابط الملفات فيه
+      final requestModel = EmployeeNominationRequestModel(
         employeeId: employeeId,
         employeeName: employeeName,
         employeeImageUrl: employeeImageUrl,
+        applicantType: 'employee',
         currentJob: currentJob,
         sectorName: sectorName,
         departmentName: departmentName,
-
         announcementId: announcement.id ?? '',
-        announcementTitle: announcement.title,
-        targetRole: announcement.targetRole,
-
+        announcementTitle: announcement.title ?? '',
+        targetRole: announcement.targetRole ?? '',
         visionStatement: visionStatement,
-
-        applicantType: 'employee',
-
-        status:
-            EmployeeNominationRequestModel.statusPendingAdmin,
-
+        uploadedDocuments: uploadedUrls,
+        status: EmployeeNominationRequestModel.statusPendingAdmin,
         createdAt: DateTime.now(),
       );
 
-      // ----------------------------------------------------------
-      // حفظ الطلب
-      // ----------------------------------------------------------
-
-      final result = await _repository.submitRequest(request);
+      // 3. إرسال الـ Model للـ Repo لحفظه في Firestore
+      final result = await repo.submitRequest(requestModel);
 
       result.fold(
-        (error) {
-          emit(
-            EmployeeNominationError(
-              'error_submit_employee_nomination',
-            ),
-          );
-        },
-        (generatedId) {
-          final savedRequest = request.copyWith(
-            id: generatedId,
-          );
-
-          emit(
-            EmployeeNominationActionSuccess(
-              'employee_nomination.success',
-            ),
-          );
-
-          // إشعار الأدمن
-          _sendNewRequestNotification(
-            savedRequest,
-          );
-        },
-      );
-    } catch (e) {
-      emit(
-        EmployeeNominationError(
-          'error_unexpected',
+        (error) => emit(EmployeeNominationError(error)),
+        (docId) async {
+          // ✅ إرسال إشعار للأدمن بوجود طلب ترشح جديد
+              // ✅✅✅ الكود الصحيح (بيلقي الإشعار لكل أدمن في ملفه الحقيقي)
+      await notificationRepo.sendRoleBasedNotification(
+        AppNotificationModel(
+          id: '',
+          title: 'طلب ترشح جديد',
+          message: 'تم تقديم طلب ترشح جديد من $employeeName لوظيفة مدير إدارة',
+          receiverId: '', // مفيش داعي نكتب حاجة هنا، الدالة هتعملها لوحدها
+          target: NotificationTarget.adminOnly, // ✅ نخليه يعرف إن المطلوب أدمن فقط
+          type: NotificationType.activityStatusUpdated,
+          timestamp: Timestamp.now(),
         ),
       );
+
+          emit( EmployeeNominationActionSuccess('تم إرسال طلب الترشح بنجاح'));
+        },
+      );
+    } 
+    // ✅ بلوك معالجة الأخطاء الناقص
+    catch (e) {
+      emit(EmployeeNominationError('فشل إرسال الطلب: ${e.toString()}'));
     }
   }
 
   // ============================================================
-  // إجراء الأدمن
+  // دالة مساعدة لرفع الملفات (نفس المنطق المعتمد عندك)
   // ============================================================
 
-  Future<void> adminTakeAction({
+  Future<String> _uploadFileToStorage({
+    required File file,
+    required String uid,
+    required String folder,
+  }) async {
+    final extension = p.extension(file.path).toLowerCase();
+    final bool isPdf = extension == '.pdf';
+    Uint8List? fileBytes;
+
+    if (isPdf) {
+      fileBytes = await file.readAsBytes();
+    } else {
+      fileBytes = await FlutterImageCompress.compressWithFile(
+        file.absolute.path,
+        minWidth: 1200,
+        minHeight: 1200,
+        quality: 80,
+      );
+    }
+
+    if (fileBytes == null || fileBytes.isEmpty) {
+      throw Exception('فشل معالجة الملف');
+    }
+
+    final fileName = '${DateTime.now().millisecondsSinceEpoch}$extension';
+    final storagePath = '$folder/$uid/$fileName';
+
+    await Supabase.instance.client.storage.from('images').uploadBinary(
+          storagePath,
+          fileBytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+
+    return Supabase.instance.client.storage.from('images').getPublicUrl(storagePath);
+  }
+    // ============================================================
+  // Submit Evaluation (لتقييم المقابلة من المحكم)
+  // ============================================================
+
+    Future<void> submitEvaluation({
     required EmployeeNominationRequestModel request,
-    required String newStatus,
-    String? rejectionReason,
-    String? evaluatorId,
-    String? evaluatorName,
-    String? adminNotes,
+    required double points,
+    required String? notes,
+    required Map<String, dynamic> evaluationData,
   }) async {
     emit(EmployeeNominationLoading());
 
     try {
       final updatedRequest = request.copyWith(
-        status: newStatus,
-        rejectionReason: rejectionReason,
-        evaluatorId: evaluatorId,
-        evaluatorName: evaluatorName,
-        adminNotes: adminNotes,
+        evaluatorPoints: points,
+        evaluatorNotes: notes,
+        interviewEvaluation: evaluationData,
+        status: EmployeeNominationRequestModel.statusEvaluated,
         updatedAt: DateTime.now(),
       );
 
-      final result =
-          await _repository.updateRequest(updatedRequest);
+      final result = await repo.updateRequest(updatedRequest);
 
       result.fold(
-        (error) {
-          emit(
-            EmployeeNominationError(
-              'error_update_employee_request',
+        (error) => emit(EmployeeNominationError(error)),
+        (_) async {
+          // 1. إرسال إشعار للأدمن
+          await notificationRepo.sendNotification(
+            AppNotificationModel(
+              id: '',
+              title: 'تقييم مقابلة مكتمل',
+              message: 'قام المحكم بإكمال تقييم طلب ترشح الموظف ${request.employeeName} لوظيفة ${request.announcementTitle}',
+              receiverId: 'admins',
+              target: NotificationTarget.specificUser,
+              type: NotificationType.activityStatusUpdated,
+              timestamp: Timestamp.now(),
             ),
           );
-        },
-        (_) {
-          emit(
-            EmployeeNominationActionSuccess(
-              'success_action_taken',
+
+          // 2. إرسال إشعار للموظف
+          await notificationRepo.sendNotification(
+            AppNotificationModel(
+              id: '',
+              title: 'تم تقييم مقابلتك',
+              message: 'تم الانتهاء من تقييم المقابلة لطلب الترشح على وظيفة ${request.announcementTitle}',
+              receiverId: request.employeeId,
+              target: NotificationTarget.specificUser,
+              type: NotificationType.activityStatusUpdated,
+              timestamp: Timestamp.now(),
             ),
           );
 
-          // تحويل للمحكم
-          if (newStatus ==
-              EmployeeNominationRequestModel
-                  .statusPendingEvaluator) {
-            _sendToEvaluatorNotification(
-              updatedRequest,
-            );
-          }
+          emit(const EmployeeNominationActionSuccess('تم إرسال التقييم بنجاح'));
 
-          // رفض من الأدمن
-          else if (newStatus ==
-              EmployeeNominationRequestModel
-                  .statusRejectedByAdmin) {
-            _sendStatusUpdateToEmployee(
-              updatedRequest,
-              isAccepted: false,
-            );
-          }
-
-          // تقييم انتهى
-          else if (newStatus ==
-              EmployeeNominationRequestModel.statusEvaluated) {
-            _sendEvaluationDoneToAdmin(
-              updatedRequest,
-            );
-          }
-
-          // قبول نهائي
-          else if (newStatus ==
-              EmployeeNominationRequestModel.statusFinalApproved) {
-            _sendStatusUpdateToEmployee(
-              updatedRequest,
-              isAccepted: true,
-            );
-          }
-
-          // رفض نهائي
-          else if (newStatus ==
-              EmployeeNominationRequestModel.statusFinalRejected) {
-            _sendStatusUpdateToEmployee(
-              updatedRequest,
-              isAccepted: false,
-            );
+          // ✅ 3. إعادة تحميل القائمة بشكل آلي عشان الطلب يختفي فوراً من الشاشة اللي قبلها
+          final uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+          if (uid.isNotEmpty) {
+            await fetchEvaluatorRequests(uid);
           }
         },
       );
     } catch (e) {
-      emit(
-        EmployeeNominationError(
-          'error_unexpected',
-        ),
-      );
+      emit(EmployeeNominationError('فشل إرسال التقييم: ${e.toString()}'));
     }
   }
-
+  // Fetch Evaluator Requests (لجلب طلبات الترشح للمحكم)
   // ============================================================
-  // تحديد موعد المقابلة
+
+  Future<void> fetchEvaluatorRequests(String evaluatorId) async {
+    emit(EmployeeNominationLoading());
+
+    try {
+      // استدعاء الـ Stream من الـ Repo وتحويله لـ List مرة واحدة
+      final requests = await repo.getEvaluatorRequests(evaluatorId).first;
+
+      emit(EmployeeNominationLoaded(requests: requests));
+    } catch (e) {
+      emit(EmployeeNominationError('فشل جلب الطلبات: ${e.toString()}'));
+    }
+  }
+    // ============================================================
+  // Schedule Interview (تحديد موعد المقابلة)
+  // ============================================================
+
+   // ============================================================
+  // Schedule Interview (تحديد موعد المقابلة)
   // ============================================================
 
   Future<void> scheduleInterview({
@@ -307,535 +245,32 @@ class EmployeeNominationCubit
         updatedAt: DateTime.now(),
       );
 
-      final result =
-          await _repository.updateRequest(updatedRequest);
+      final result = await repo.updateRequest(updatedRequest);
 
       result.fold(
-        (error) {
-          emit(
-            EmployeeNominationError(
-              'error_schedule_interview',
-            ),
-          );
-        },
-        (_) {
-          emit(
-            EmployeeNominationActionSuccess(
-              'success_interview_scheduled',
-            ),
-          );
-
-          _sendInterviewScheduledNotification(
-            updatedRequest,
-          );
-        },
-      );
-    } catch (e) {
-      emit(
-        EmployeeNominationError(
-          'error_unexpected',
-        ),
-      );
-    }
-  }
-
-  // ============================================================
-  // جلب المحكمين
-  // ============================================================
-
-  Future<void> fetchEvaluators() async {
-    emit(EmployeeEvaluatorsLoading());
-
-    final result = await _repository.getEvaluators();
-
-    result.fold(
-      (failure) {
-        emit(
-          EmployeeEvaluatorsError(failure),
-        );
-      },
-      (evaluators) {
-        emit(
-          EmployeeEvaluatorsLoaded(evaluators),
-        );
-      },
-    );
-  }
-
-  // ============================================================
-  // تقييم المحكم للموظف
-  // ============================================================
-
-  Future<void> submitEvaluation({
-    required EmployeeNominationRequestModel request,
-    required double points,
-    String? notes,
-    Map<String, dynamic>? evaluationData,
-  }) async {
-    emit(EmployeeNominationLoading());
-
-    try {
-      final updatedRequest = request.copyWith(
-        status:
-            EmployeeNominationRequestModel.statusEvaluated,
-        evaluatorPoints: points,
-        evaluatorNotes: notes,
-        interviewEvaluation: evaluationData,
-        updatedAt: DateTime.now(),
-      );
-
-      final result =
-          await _repository.updateRequest(updatedRequest);
-
-      result.fold(
-        (error) {
-          emit(
-            EmployeeNominationError(
-              'error_evaluation_submit',
-            ),
-          );
-        },
+        (error) => emit(EmployeeNominationError(error)),
         (_) async {
-          emit(
-            EmployeeNominationActionSuccess(
-              'success_evaluation_submitted',
+          
+          // ✅ إرسال إشعار للموظف بتحديد موعد المقابلة (زي نظام الأطباء بالظبط)
+          await notificationRepo.sendNotification(
+            AppNotificationModel(
+              id: '',
+              title: 'تحديد موعد مقابلة',
+              message: 'تم تحديد موعد مقابلتك لوظيفة ${request.announcementTitle} ليوم ${DateFormat('yyyy-MM-dd').format(interviewDate)} الساعة $time في $location',
+              receiverId: request.employeeId,
+              target: NotificationTarget.specificUser,
+              type: NotificationType.activityStatusUpdated,
+              timestamp: Timestamp.now(),
             ),
           );
 
-          await _sendEvaluationDoneToAdmin(
-            updatedRequest,
-          );
-
-          await _checkAndNotifyIfAllEvaluated(
-            updatedRequest,
-          );
+          emit(const EmployeeNominationActionSuccess('تم تحديد موعد المقابلة بنجاح'));
         },
       );
     } catch (e) {
-      emit(
-        EmployeeNominationError(
-          'error_evaluation_submit',
-        ),
-      );
+      emit(EmployeeNominationError('فشل تحديد الموعد: ${e.toString()}'));
     }
-  }
+  } 
 
-  // ============================================================
-  // إعلان النتائج
-  // ============================================================
 
-  Future<void> announceCompetitionResults({
-    required String announcementId,
-    required String announcementTitle,
-  }) async {
-    emit(EmployeeNominationLoading());
-
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('nomination_requests')
-          .where(
-            'applicantType',
-            isEqualTo: 'employee',
-          )
-          .where(
-            'announcementId',
-            isEqualTo: announcementId,
-          )
-          .where(
-            'status',
-            isEqualTo:
-                EmployeeNominationRequestModel.statusEvaluated,
-          )
-          .get();
-
-      final requests = snapshot.docs
-          .map(
-            (doc) =>
-                EmployeeNominationRequestModel.fromMap(
-              doc.data(),
-              doc.id,
-            ),
-          )
-          .toList();
-
-      if (requests.isEmpty) {
-        emit(
-          EmployeeNominationError(
-            'لا توجد طلبات موظفين مُقيّمة',
-          ),
-        );
-        return;
-      }
-
-      // ----------------------------------------------------------
-      // ترتيب حسب درجة المحكم
-      // ----------------------------------------------------------
-
-      requests.sort(
-        (a, b) => (b.evaluatorPoints ?? 0)
-            .compareTo(a.evaluatorPoints ?? 0),
-      );
-
-      // ----------------------------------------------------------
-      // أول 3 فائزين
-      // ----------------------------------------------------------
-
-      final topThree = requests.take(3).toList();
-
-      final winnerIds =
-          topThree.map((e) => e.id).toSet();
-
-      // ----------------------------------------------------------
-      // Batch تحديث الحالات
-      // ----------------------------------------------------------
-
-      final batch =
-          FirebaseFirestore.instance.batch();
-
-      for (final request in requests) {
-        final newStatus = winnerIds.contains(request.id)
-            ? EmployeeNominationRequestModel
-                .statusFinalApproved
-            : EmployeeNominationRequestModel
-                .statusFinalRejected;
-
-        batch.update(
-          FirebaseFirestore.instance
-              .collection('nomination_requests')
-              .doc(request.id),
-          {
-            'status': newStatus,
-            'updatedAt': FieldValue.serverTimestamp(),
-          },
-        );
-      }
-
-      await batch.commit();
-
-      // ----------------------------------------------------------
-      // تحديث الإعلان
-      // ----------------------------------------------------------
-
-      await FirebaseFirestore.instance
-          .collection('announcements')
-          .doc(announcementId)
-          .update({
-        'employeeWinners': topThree
-            .asMap()
-            .entries
-            .map(
-              (entry) {
-                final index = entry.key;
-                final request = entry.value;
-
-                return {
-                  'employeeId': request.employeeId,
-                  'employeeName': request.employeeName,
-                  'employeeImageUrl':
-                      request.employeeImageUrl,
-                  'totalScore':
-                      request.evaluatorPoints ?? 0,
-                  'rank': index + 1,
-                };
-              },
-            )
-            .toList(),
-        'employeeResultsAnnounced': true,
-        'employeeResultsAnnouncedAt':
-            FieldValue.serverTimestamp(),
-      });
-
-      // ----------------------------------------------------------
-      // إرسال إشعار لكل موظف
-      // ----------------------------------------------------------
-
-      final notificationBatch =
-          FirebaseFirestore.instance.batch();
-
-      final notificationCollection =
-          FirebaseFirestore.instance.collection(
-        'notifications',
-      );
-
-      for (final request in requests) {
-        final isWinner =
-            winnerIds.contains(request.id);
-
-        final rank = isWinner
-            ? topThree
-                    .indexWhere(
-                      (e) => e.id == request.id,
-                    ) +
-                1
-            : 0;
-
-        final message = isWinner
-            ? '🎉 مبروك! حصلت على المركز $rank في مسابقة "$announcementTitle".'
-            : 'نأسف، لم تكن من الفائزين في مسابقة "$announcementTitle".';
-
-        final ref =
-            notificationCollection.doc();
-
-        notificationBatch.set(
-          ref,
-          {
-            'title': '🏆 إعلان نتيجة المسابقة',
-            'message': message,
-            'type': 'competitionResult',
-            'target': 'specificUser',
-            'timestamp':
-                FieldValue.serverTimestamp(),
-            'receiverId': request.employeeId,
-            'relatedId': announcementId,
-            'isRead': false,
-            'data': {
-              'screen': 'competition_results',
-              'announcementId': announcementId,
-              'isWinner': isWinner,
-              'rank': rank,
-            },
-          },
-        );
-      }
-
-      await notificationBatch.commit();
-
-      emit(
-        EmployeeNominationActionSuccess(
-          'تم إعلان النتيجة وإرسال الإشعارات بنجاح',
-        ),
-      );
-    } catch (e) {
-      emit(
-        EmployeeNominationError(
-          'فشل إعلان النتيجة: ${e.toString()}',
-        ),
-      );
-    }
-  }
-
-  // ============================================================
-  // إشعار طلب جديد للأدمن
-  // ============================================================
-
-  Future<void> _sendNewRequestNotification(
-    EmployeeNominationRequestModel request,
-  ) async {
-    try {
-      final notification = AppNotificationModel(
-        id: '',
-        title: 'طلب ترشح موظف جديد',
-        message:
-            'قدم الموظف ${request.employeeName} على مسابقة "${request.announcementTitle}"',
-        type: NotificationType.newDoctorRequest,
-        target: NotificationTarget.adminOnly,
-        timestamp: Timestamp.now(),
-        receiverId: '',
-        relatedId: request.id,
-      );
-
-      await _notificationRepo
-          .sendRoleBasedNotification(notification);
-    } catch (e) {
-      print(
-        'فشل إرسال إشعار طلب الموظف للأدمن: $e',
-      );
-    }
-  }
-
-  // ============================================================
-  // إشعار المحكم
-  // ============================================================
-
-  Future<void> _sendToEvaluatorNotification(
-    EmployeeNominationRequestModel request,
-  ) async {
-    try {
-      if (request.evaluatorId == null ||
-          request.evaluatorId!.isEmpty) {
-        return;
-      }
-
-      final notification = AppNotificationModel(
-        id: '',
-        title: 'طلب تقييم موظف جديد',
-        message:
-            'تم تحويل طلب الموظف ${request.employeeName} إليك للتقييم',
-        type: NotificationType.newArbitrationRequest,
-        target: NotificationTarget.specificUser,
-        timestamp: Timestamp.now(),
-        receiverId: request.evaluatorId!,
-        relatedId: request.id,
-      );
-
-      await _notificationRepo
-          .sendNotification(notification);
-    } catch (e) {
-      print(
-        'فشل إرسال إشعار للمحكم: $e',
-      );
-    }
-  }
-
-  // ============================================================
-  // إشعار الموظف بالقبول / الرفض
-  // ============================================================
-
-  Future<void> _sendStatusUpdateToEmployee(
-    EmployeeNominationRequestModel request, {
-    required bool isAccepted,
-  }) async {
-    try {
-      final notification = AppNotificationModel(
-        id: '',
-        title: isAccepted
-            ? 'قبول طلب الترشح'
-            : 'رفض طلب الترشح',
-        message: isAccepted
-            ? 'تمت الموافقة النهائية على طلب ترشحك'
-            : 'تم رفض طلب ترشحك. السبب: '
-                '${request.rejectionReason ?? "غير محدد"}',
-        type: NotificationType.requestStatusUpdate,
-        target: NotificationTarget.specificUser,
-        timestamp: Timestamp.now(),
-        receiverId: request.employeeId,
-        relatedId: request.id,
-      );
-
-      await _notificationRepo
-          .sendNotification(notification);
-    } catch (e) {
-      print(
-        'فشل إرسال إشعار للموظف: $e',
-      );
-    }
-  }
-
-  // ============================================================
-  // إشعار الأدمن بانتهاء التقييم
-  // ============================================================
-
-  Future<void> _sendEvaluationDoneToAdmin(
-    EmployeeNominationRequestModel request,
-  ) async {
-    try {
-      final notification = AppNotificationModel(
-        id: '',
-        title: 'تم إنهاء تقييم موظف',
-        message:
-            'قام المحكم بتقييم طلب الموظف ${request.employeeName}',
-        type: NotificationType.judgeRequestCompleted,
-        target: NotificationTarget.adminOnly,
-        timestamp: Timestamp.now(),
-        receiverId: '',
-        relatedId: request.id,
-      );
-
-      await _notificationRepo
-          .sendRoleBasedNotification(notification);
-    } catch (e) {
-      print(
-        'فشل إرسال إشعار للإدمن: $e',
-      );
-    }
-  }
-
-  // ============================================================
-  // إشعار موعد المقابلة
-  // ============================================================
-
-  Future<void> _sendInterviewScheduledNotification(
-    EmployeeNominationRequestModel request,
-  ) async {
-    try {
-      if (request.interviewDate == null) {
-        return;
-      }
-
-      final dateStr = DateFormat('yyyy-MM-dd')
-          .format(request.interviewDate!);
-
-      final notification = AppNotificationModel(
-        id: '',
-        title: 'تحديد موعد مقابلة',
-        message:
-            'تم تحديد مقابلتك بتاريخ $dateStr '
-            'الساعة ${request.interviewTime ?? "-"} '
-            'بمكان: ${request.interviewLocation ?? "-"}',
-        type: NotificationType.requestStatusUpdate,
-        target: NotificationTarget.specificUser,
-        timestamp: Timestamp.now(),
-        receiverId: request.employeeId,
-        relatedId: request.id,
-      );
-
-      await _notificationRepo
-          .sendNotification(notification);
-    } catch (e) {
-      print(
-        'فشل إرسال إشعار الموعد: $e',
-      );
-    }
-  }
-
-  // ============================================================
-  // التأكد من انتهاء كل التقييمات
-  // ============================================================
-
-  Future<void> _checkAndNotifyIfAllEvaluated(
-    EmployeeNominationRequestModel evaluatedRequest,
-  ) async {
-    try {
-      final snapshot = await FirebaseFirestore.instance
-          .collection('nomination_requests')
-          .where(
-            'applicantType',
-            isEqualTo: 'employee',
-          )
-          .where(
-            'announcementId',
-            isEqualTo: evaluatedRequest.announcementId,
-          )
-          .where(
-            'status',
-            isEqualTo:
-                EmployeeNominationRequestModel
-                    .statusPendingEvaluator,
-          )
-          .limit(1)
-          .get();
-
-      if (snapshot.docs.isEmpty) {
-        final announcementDoc =
-            await FirebaseFirestore.instance
-                .collection('announcements')
-                .doc(evaluatedRequest.announcementId)
-                .get();
-
-        final announcementTitle =
-            announcementDoc.data()?['title'] ?? '';
-
-        final notification = AppNotificationModel(
-          id: '',
-          title: '🏆 اكتملت تقييمات الموظفين',
-          message:
-              'تم تقييم جميع الموظفين المرشحين في مسابقة '
-              '"$announcementTitle". يرجى مراجعة النتائج.',
-          type: NotificationType.judgeRequestCompleted,
-          target: NotificationTarget.adminOnly,
-          timestamp: Timestamp.now(),
-          receiverId: '',
-          relatedId:
-              evaluatedRequest.announcementId,
-        );
-
-        await _notificationRepo
-            .sendRoleBasedNotification(notification);
-      }
-    } catch (e) {
-      print(
-        '⚠️ خطأ في فحص تقييمات الموظفين: $e',
-      );
-    }
-  }
 }

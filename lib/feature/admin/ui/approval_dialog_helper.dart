@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 class ApprovalDialogHelper {
@@ -13,10 +14,10 @@ class ApprovalDialogHelper {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
-          title: const Text(
-            'اختر نوع الاعتماد',
+          title: Text(
+            'approval_dialog.title'.tr(),
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18,
             ),
@@ -25,26 +26,34 @@ class ApprovalDialogHelper {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.school, color: Colors.blue),
-                title: const Text(
-                  'اعتماد أوراق أطباء / أعضاء هيئة تدريس',
-                  style: TextStyle(fontSize: 14),
+                leading: const Icon(
+                  Icons.school,
+                  color: Colors.blue,
+                ),
+                title: Text(
+                  'approval_dialog.doctor'.tr(),
+                  style: const TextStyle(fontSize: 14),
                 ),
                 onTap: () {
-                  Navigator.pop(dialogContext); // إغلاق الديالوج
-                  onDoctorTap(); // تنفيذ الانتقال لشاشة الأطباء
+                  Navigator.pop(dialogContext);
+                  onDoctorTap();
                 },
               ),
+
               const Divider(),
+
               ListTile(
-                leading: const Icon(Icons.badge, color: Colors.green),
-                title: const Text(
-                  'اعتماد دورات موظفين',
-                  style: TextStyle(fontSize: 14),
+                leading: const Icon(
+                  Icons.badge,
+                  color: Colors.green,
+                ),
+                title: Text(
+                  'approval_dialog.employee'.tr(),
+                  style: const TextStyle(fontSize: 14),
                 ),
                 onTap: () {
-                  Navigator.pop(dialogContext); // إغلاق الديالوج
-                  onEmployeeTap(); // تنفيذ الانتقال لشاشة الموظفين
+                  Navigator.pop(dialogContext);
+                  onEmployeeTap();
                 },
               ),
             ],

@@ -4,8 +4,16 @@
       "new": "طلبات جديدة",
       "reviewing": "تحت التحكيم",
       "evaluated": "تم تحكيمها",
+      "rejected": "مرفوضة",
       "request": "طلب"
     }
+  },
+  "doctor": "عضو هيئة تدريس",
+  "employee": "موظف",
+  "employee_categories": {
+    "error_message": "حدث خطأ أثناء تحميل البيانات",
+    "retry": "إعادة المحاولة",
+    "admin_manager_job": "مدير إدارة"
   },
   "dashboardJudge": {
     "welcome": "أهلاً بك",
@@ -19,6 +27,11 @@
     "no_requests": "لا توجد طلبات لتقييمها حالياً",
     "nomination_for_role": "ترشح لدور: {role}",
     "notifications": "التنبيهات",
+    "choose_request_type": "اختر نوع الطلب",
+    "doctors": "عضو هيئة تدريس",
+    "doctors_requests": "",
+    "employees": "الموظفين",
+    "employee_managers_requests": "",
     "cards": {
       "under_review": "طلبات قيد المراجعة"
     },
@@ -33,24 +46,28 @@
       "dean": "عميد الكلية",
       "vice_dean": "وكيل الكلية",
       "head_dept": "رئيس القسم",
-
       "other": "أخرى",
       "quality_manager": "مدير الجودة",
       "admin_manager": "مدير الإدارة",
       "university_president": "رئيس الجامعة",
-"vice_university_president": "نائب رئيس الجامعة",
-"error_message": "حدث خطأ في تحميل البيانات",
-  "retry": "إعادة المحاولة",
-  "view":"عرض"
-
+      "vice_university_president": "نائب رئيس الجامعة",
+      "error_message": "حدث خطأ في تحميل البيانات",
+      "retry": "إعادة المحاولة",
+      "view": "عرض",
+      "doctor_requests": "ترشحات وطلبات الأطباء",
+      "employee_requests": "ترشحات وطلبات الموظفين",
+      "admin_manager_job": ""
     }
   },
   "judge_orders": {
-    "title": "الطلبات المحولة",
+    "choose_type": "الطلبات المحولة",
+    "title": "الطلبات المحولة ",
     "no_requests": "لا توجد طلبات لتقييمها حالياً",
     "evaluate": "تقييم",
     "role_label": "ترشح لدور:",
-      "view": "عرض"
-
+    "view": "عرض",
+    "applicants_list_title": "قائمة المتقدمين",
+    "doctor_requests": "",
+    "employee_requests": ""
   }
 }

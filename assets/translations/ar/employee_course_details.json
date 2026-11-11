@@ -1,0 +1,172 @@
+{
+  "employee_course_details": {
+    "title": "تفاصيل الدورة التدريبية",
+    "employee_data": "بيانات الموظف",
+    "name": "الاسم",
+    "employee_id": "الرقم الوظيفي",
+    "department": "الإدارة",
+    "course_data": "بيانات الدورة",
+    "course_name": "اسم الدورة",
+    "organization": "الجهة المنظمة",
+    "course_date": "تاريخ الدورة",
+    "course_type": "نوع الدورة",
+    "hours": "عدد الساعات",
+    "status": "الحالة",
+    "view_certificate": "عرض الشهادة",
+    "approve": "اعتماد",
+    "reject": "رفض",
+    "rejection_reason": "سبب الرفض",
+    "cancel": "إلغاء"
+  },
+
+  "employee_course_approval": {
+    "title": "اعتماد الدورات التدريبية",
+    "no_pending_courses": "لا توجد دورات معلقة",
+    "employee_id": "الرقم الوظيفي",
+    "department": "الإدارة",
+    "course_name": "اسم الدورة",
+    "organization": "الجهة المنظمة",
+    "course_date": "تاريخ الدورة",
+    "hours": "عدد الساعات",
+    "course_type": "نوع الدورة",
+    "view_certificate": "عرض الشهادة",
+    "approve": "اعتماد",
+    "reject": "رفض",
+    "rejection_reason": "سبب الرفض",
+    "rejection_hint": "اكتب سبب الرفض",
+    "cancel": "إلغاء"
+  },
+
+  "employee_evaluators": {
+    "select_evaluator": "اختيار المحكم",
+    "search": "البحث عن محكم",
+    "available_evaluators": "المحكمون المتاحون",
+    "confirm_title": "تأكيد اختيار المحكم",
+    "confirm_message": "هل تريد اختيار المحكم التالي؟",
+    "no_evaluators": "لا يوجد محكمون متاحون",
+    "no_search_results": "لا توجد نتائج مطابقة للبحث",
+    "load_error": "حدث خطأ أثناء تحميل المحكمين"
+  },
+
+  "common": {
+    "cancel": "إلغاء",
+    "confirm": "تأكيد"
+  },
+
+   "employee_pending_request": {
+    "employee_request_details": "تفاصيل طلب ترشح الموظف",
+    "attached_files": "الملفات والمستندات المرفقة",
+    "employee_data": "بيانات الموظف",
+    "name": "الاسم",
+    "employee_id": "الرقم الوظيفي",
+    "current_job": "الوظيفة الحالية",
+    "sector": "القطاع",
+    "department": "الإدارة",
+
+    "nomination_data": "بيانات الترشح",
+    "announcement": "الإعلان",
+    "target_role": "المنصب المستهدف",
+    "vision_statement": "الرؤية المستقبلية",
+
+    "interview_data": "بيانات المقابلة",
+    "date": "التاريخ",
+    "time": "الوقت",
+    "location": "المكان",
+
+    "rejection_reason": "سبب الرفض",
+    "admin_notes": "ملاحظات الإدارة",
+
+    "request_information": "معلومات الطلب",
+    "created_at": "تاريخ الإنشاء",
+    "updated_at": "آخر تحديث",
+
+    "pending_admin": "في انتظار مراجعة الإدارة",
+    "pending_admin_description": "طلب الترشح في انتظار مراجعة واعتماد الإدارة.",
+
+    "pending_evaluator": "في انتظار تقييم المحكم",
+    "pending_evaluator_description": "تم اعتماد الطلب وتحويله إلى المحكم للتقييم.",
+
+    "rejected_by_admin": "مرفوض من الإدارة",
+    "rejected_by_admin_description": "تم رفض طلب الترشح من قبل الإدارة.",
+
+    "evaluated": "تم التقييم",
+    "evaluated_description": "قام المحكم بتقييم طلب الترشح.",
+
+    "final_approved": "تم الاعتماد النهائي",
+    "final_approved_description": "تم اعتماد طلب الترشح بشكل نهائي.",
+
+    "final_rejected": "مرفوض نهائيًا",
+    "final_rejected_description": "تم رفض طلب الترشح بشكل نهائي.",
+
+    "final_approved_pending_announcement": "معتمد في انتظار الإعلان",
+    "final_approved_pending_announcement_description": "تم اعتماد الطلب نهائيًا وهو في انتظار إعلان النتيجة.",
+
+    "evaluator_selection": "اختيار المحكم",
+    "evaluator_selection_description": "قم باختيار المحكم المسؤول عن تقييم طلب ترشح الموظف.",
+    "view_evaluators": "عرض قائمة المحكمين",
+    "change_evaluator": "تغيير المحكم",
+
+    "selected_evaluator": "المحكم المختار",
+    "evaluator_name": "الاسم",
+    "evaluator_email": "البريد الإلكتروني",
+
+    "final_approval": "اعتماد وتحويل للمحكم",
+    "approving_and_sending": "جاري الاعتماد والتحويل...",
+
+    "request_id_missing": "معرف الطلب غير موجود",
+    "evaluator_required": "يجب اختيار المحكم أولاً",
+    "evaluator_name_missing": "اسم المحكم غير موجود",
+
+    "confirm_approval": "تأكيد الاعتماد",
+    "confirm_approval_message": "هل أنت متأكد من اعتماد الطلب وتحويله إلى المحكم؟",
+
+    "evaluator_assigned_success": "تم اعتماد الطلب وتحويله إلى المحكم بنجاح",
+
+    "pending_requests_title": "طلبات ترشح الموظفين",
+    "no_pending_requests": "لا توجد طلبات ترشح معلقة",
+    "no_pending_requests_description": "ستظهر هنا طلبات الموظفين التي تحتاج إلى مراجعة الإدارة.",
+    "load_error": "حدث خطأ أثناء تحميل الطلبات",
+    "pending_status": "معلق",
+
+    "current_job_label": "الوظيفة الحالية",
+    "sector_label": "القطاع",
+    "department_label": "الإدارة",
+    "nomination_information": "بيانات الترشح",
+    "target_position": "المنصب المستهدف",
+    "created_date": "تاريخ الإنشاء",
+
+    "evaluation_result": "نتيجة التقييم",
+    "total_score": "المجموع الكلي",
+    "evaluator_notes": "ملاحظات المحكم",
+    "final_approve": "موافقة نهائية",
+    "final_reject": "رفض نهائي",
+    "confirm_final_approval": "تأكيد الموافقة النهائية",
+    "confirm_final_approval_message": "هل أنت متأكد من اعتماد هذا الطلب نهائياً؟",
+    "confirm_final_rejection": "تأكيد الرفض النهائي",
+    "confirm_final_rejection_message": "هل أنت متأكد من رفض هذا الطلب نهائياً؟",
+    "rejection_hint": "اكتب سبب الرفض..."
+  },
+
+  "admin_request_type": {
+    "title": "اختيار نوع الطلبات",
+    "description": "اختار نوع طلبات الترشح التي تريد إدارتها",
+    "doctor_requests": "طلبات ترشيح الأطباء",
+    "employee_requests": "طلبات ترشيح الموظفين",
+    "cancel": "إلغاء"
+  },
+
+  "approval_dialog": {
+    "title": "اختر نوع الاعتماد",
+    "doctor": "اعتماد أوراق أعضاء هيئة التدريس",
+    "employee": "اعتماد أوراق الموظفين"
+  },
+  "admin_approval_type":{
+    "title":"اختر نوع الطلب",
+    "description":"اختار نوع الطلبات التي تريد إدارتها",
+    "doctor_title":"اعتماد دورات اعضاء هيئة التدريس ",
+    "doctor_subtitle":"",
+    "employee_title":"اعتماد دورات الموظقين",
+    "employee_subtitle":""
+    
+  }
+}

@@ -9,7 +9,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:optialeader/core/routing/routes.dart';
 import 'package:optialeader/core/theming/logic/theme_cubit.dart';
-import 'package:optialeader/core/theming/logic/theme_state.dart';
 import 'package:optialeader/feature/auth/logic/cubits/auth_cubit.dart'; 
 import 'package:optialeader/feature/setting/data/models/user_setting_model.dart';
 import 'package:optialeader/feature/setting/logic/setting_cubit.dart';
@@ -91,7 +90,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   //  دالة عرض رسالة التأكيد قبل تسجيل الخروج
   void _showLogoutDialog() {
-    final colorScheme = Theme.of(context).colorScheme;
 
     showDialog(
       context: context,
@@ -134,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final isDark = theme.brightness == Brightness.dark; // ✅ ضيف السطر ده
+    final isDark = theme.brightness == Brightness.dark; 
     return BlocListener<SettingCubit, SettingState>(
       listener: (context, state) {
         if (!context.mounted) return;

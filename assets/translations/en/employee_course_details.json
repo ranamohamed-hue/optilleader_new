@@ -1,0 +1,173 @@
+{
+  "employee_course_details": {
+    "title": "Course Details",
+    "employee_data": "Employee Information",
+    "name": "Name",
+    "employee_id": "Employee ID",
+    "department": "Department",
+    "course_data": "Course Information",
+    "course_name": "Course Name",
+    "organization": "Organizing Entity",
+    "course_date": "Course Date",
+    "course_type": "Course Type",
+    "hours": "Number of Hours",
+    "status": "Status",
+    "view_certificate": "View Certificate",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejection_reason": "Rejection Reason",
+    "cancel": "Cancel"
+  },
+
+  "employee_course_approval": {
+    "title": "Training Course Approval",
+    "no_pending_courses": "No pending courses",
+    "employee_id": "Employee ID",
+    "department": "Department",
+    "course_name": "Course Name",
+    "organization": "Organizing Entity",
+    "course_date": "Course Date",
+    "hours": "Number of Hours",
+    "course_type": "Course Type",
+    "view_certificate": "View Certificate",
+    "approve": "Approve",
+    "reject": "Reject",
+    "rejection_reason": "Rejection Reason",
+    "rejection_hint": "Write the rejection reason",
+    "cancel": "Cancel"
+  },
+
+  "employee_evaluators": {
+    "select_evaluator": "Select Evaluator",
+    "search": "Search for an evaluator",
+    "available_evaluators": "Available Evaluators",
+    "confirm_title": "Confirm Evaluator Selection",
+    "confirm_message": "Do you want to select the following evaluator?",
+    "no_evaluators": "No evaluators available",
+    "no_search_results": "No matching results found",
+    "load_error": "An error occurred while loading evaluators"
+  },
+
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm"
+  },
+
+   "employee_pending_request": {
+    "employee_request_details": "Employee Nomination Request Details",
+    "attached_files": "Attached Files and Documents",
+    "employee_data": "Employee Information",
+    "name": "Name",
+    "employee_id": "Employee ID",
+    "current_job": "Current Job",
+    "sector": "Sector",
+    "department": "Department",
+
+    "nomination_data": "Nomination Information",
+    "announcement": "Announcement",
+    "target_role": "Target Position",
+    "vision_statement": "Vision Statement",
+
+    "interview_data": "Interview Information",
+    "date": "Date",
+    "time": "Time",
+    "location": "Location",
+
+    "rejection_reason": "Rejection Reason",
+    "admin_notes": "Admin Notes",
+
+    "request_information": "Request Information",
+    "created_at": "Created At",
+    "updated_at": "Last Updated",
+
+    "pending_admin": "Pending Admin Review",
+    "pending_admin_description": "The nomination request is pending admin review and approval.",
+
+    "pending_evaluator": "Pending Evaluator",
+    "pending_evaluator_description": "The request has been approved and sent to the evaluator for assessment.",
+
+    "rejected_by_admin": "Rejected by Admin",
+    "rejected_by_admin_description": "The nomination request has been rejected by the administration.",
+
+    "evaluated": "Evaluated",
+    "evaluated_description": "The nomination request has been evaluated by the evaluator.",
+
+    "final_approved": "Final Approval",
+    "final_approved_description": "The nomination request has been finally approved.",
+
+    "final_rejected": "Final Rejection",
+    "final_rejected_description": "The nomination request has been finally rejected.",
+
+    "final_approved_pending_announcement": "Approved - Pending Announcement",
+    "final_approved_pending_announcement_description": "The request has been finally approved and is pending result announcement.",
+
+    "evaluator_selection": "Evaluator Selection",
+    "evaluator_selection_description": "Select the evaluator responsible for assessing the employee nomination request.",
+    "view_evaluators": "View Evaluators",
+    "change_evaluator": "Change Evaluator",
+
+    "selected_evaluator": "Selected Evaluator",
+    "evaluator_name": "Name",
+    "evaluator_email": "Email",
+
+    "final_approval": "Approve and Send to Evaluator",
+    "approving_and_sending": "Approving and Sending...",
+
+    "request_id_missing": "Request ID is missing",
+    "evaluator_required": "Please select an evaluator first",
+    "evaluator_name_missing": "Evaluator name is missing",
+
+    "confirm_approval": "Confirm Approval",
+    "confirm_approval_message": "Are you sure you want to approve the request and send it to the evaluator?",
+
+    "evaluator_assigned_success": "Request approved and successfully sent to the evaluator",
+
+    "pending_requests_title": "Employee Nomination Requests",
+    "no_pending_requests": "No Pending Nomination Requests",
+    "no_pending_requests_description": "Employee requests that require admin review will appear here.",
+    "load_error": "An error occurred while loading requests",
+    "pending_status": "Pending",
+
+    "current_job_label": "Current Job",
+    "sector_label": "Sector",
+    "department_label": "Department",
+    "nomination_information": "Nomination Information",
+    "target_position": "Target Position",
+    "created_date": "Created At",
+
+    "evaluation_result": "Evaluation Result",
+    "total_score": "Total Score",
+    "evaluator_notes": "Evaluator Notes",
+    "final_approve": "Final Approve",
+    "final_reject": "Final Reject",
+    "confirm_final_approval": "Confirm Final Approval",
+    "confirm_final_approval_message": "Are you sure you want to finally approve this request?",
+    "confirm_final_rejection": "Confirm Final Rejection",
+    "confirm_final_rejection_message": "Are you sure you want to finally reject this request?",
+    "rejection_hint": "Enter the reason for rejection..."
+  },
+
+  "admin_request_type": {
+    "title": "Request Type",
+    "description": "Choose the type of requests you want to manage",
+    "doctor_requests": "Doctor Nomination Requests",
+    "employee_requests": "Employee Nomination Requests",
+    "cancel": "Cancel"
+  },
+
+  "approval_dialog": {
+    "title": "Select Approval Type",
+    "doctor": "Approve Doctors' and Faculty Members' Documents",
+    "employee": "Approve Employee Training Courses"
+  },
+  
+  "admin_approval_type": {
+    "title": "Request Type",
+    "description": "Choose the type of requests you want to manage",
+    "doctor_title": "Doctor Achievements",
+    "doctor_subtitle": "",
+    "employee_title": "Employee Achievement",
+    "employee_subtitle": ""
+  }
+
+}

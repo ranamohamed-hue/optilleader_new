@@ -320,9 +320,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (diff.inDays == 0) {
       String hour = date.hour.toString().padLeft(2, '0');
       String minute = date.minute.toString().padLeft(2, '0');
+      //////////////////////////////////////////
       return 'notifications.time.today'.tr(args: ['$hour:$minute']);
     } else if (diff.inDays == 1) {
-      return 'notification.time.yesterday'.tr();
+      return 'notificatios.time.yesterday'.tr();
     } else {
       return '${date.day}/${date.month}/${date.year}';
     }

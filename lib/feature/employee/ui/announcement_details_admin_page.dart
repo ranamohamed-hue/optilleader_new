@@ -6,7 +6,6 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:optialeader/feature/employee/ui/employee_nomination_page.dart';
 import 'package:optialeader/core/routing/routes.dart';
 import 'package:optialeader/feature/admin/data/model/announcement_model.dart';
 import 'package:optialeader/feature/admin/ui/announces/mansoura_universities_data.dart';
@@ -14,6 +13,7 @@ import 'package:optialeader/feature/database_admin/data/models/employee_model.da
 import 'package:optialeader/feature/database_admin/logic/employee_logic/employee_cubit.dart';
 import 'package:optialeader/feature/database_admin/logic/employee_logic/employee_state.dart';
 import 'package:optialeader/feature/database_admin/logic/leadership_scoring_engine/leadership_criteria_engine.dart';
+import 'package:optialeader/core/services/criteria/admin_manager_criteria.dart';
 
 class AnnouncementDetailsEmployeePage extends StatefulWidget {
   final String announcementId;
@@ -61,106 +61,92 @@ class _AnnouncementDetailsEmployeePageState
 
   // ═══════════════════════════════════════════════════════
   // ✅✅✅ دالة فحص الشروط للموظف (مطابقة للمحرك بالظبط) ✅✅✅
-  // ═══════════════════════════════════════════════════════
-  List<CriterionStatus> _checkEmployeeEligibility(EmployeeModel employee, String targetRole) {
-    if (targetRole != 'admin_manager') {
-      return [
-        CriterionStatus(
-          titleAr: 'هذا الإعلان غير متاح للموظفين الإداريين',
-          titleEn: 'This announcement is not available for administrative employees',
-          isMet: false,
-          isAutoChecked: true,
-        )
-      ];
-    }
-
-    // ✅ نفس شروط _getAdminManagerCriteria الموجودة في المحرك
-    final criteria = [
+List<CriterionStatus> _checkEmployeeEligibility(
+  EmployeeModel employee,
+  String targetRole,
+) {
+  if (targetRole != 'admin_manager') {
+    return [
       CriterionStatus(
-        titleAr: 'خبرة موثقة في مجال العمل الإداري بالجامعات',
-        titleEn: 'Documented experience in university administrative work',
-        isMet: employee.hasAdminExperience ?? false,
-        isAutoChecked: false,
-        details: 'يتطلب مراجعة السيرة الذاتية',
-      ),
-      CriterionStatus(
-        titleAr: 'إجادة التعامل المحترف مع برمجيات الحاسب الآلي ونظم التحول الرقمي',
-        titleEn: 'Professional proficiency in computer software',
-        isMet: employee.hasICDL ?? false,
+        titleAr: 'هذا الإعلان غير متاح للموظفين الإداريين',
+        titleEn: 'This announcement is not available for administrative employees',
+        isMet: false,
         isAutoChecked: true,
-      ),
-      CriterionStatus(
-        titleAr: 'الحصول على مؤهل جامعي عالٍ مناسب لطبيعة الوظيفة',
-        titleEn: 'Must hold an appropriate higher university degree',
-        isMet: true,
-        isAutoChecked: true,
-        details: 'مستوفي - موظف إداري',
-      ),
-      CriterionStatus(
-        titleAr: 'تقدير امتياز في تقارير تقييم الأداء عن آخر 4 سنوات',
-        titleEn: 'Excellent rating in performance reports for the last 4 years',
-        isMet: employee.hasExcellentPerformanceReports ?? false,
-        isAutoChecked: true,
-      ),
-      CriterionStatus(
-        titleAr: 'خلو السجل الوظيفي من أي جزاءات تأديبية',
-        titleEn: 'Clean disciplinary record',
-        isMet: employee.disciplinaryClearance,
-        isAutoChecked: true,
-      ),
-      CriterionStatus(
-        titleAr: 'دورات تدريبية متخصصة في الإدارة الحديثة وحل الأزمات والموارد البشرية',
-        titleEn: 'Specialized training in modern management, crisis management, and HR',
-        isMet: employee.hasAdminTraining ?? false,
-        isAutoChecked: true,
-        details: (employee.hasAdminTraining == true) ? 'يوجد دورات مطابقة' : 'لم يتم العثور على دورات مطابقة',
-      ),
-      CriterionStatus(
-        titleAr: 'مشاركة إيجابية في تطوير منظومة العمل الإداري خلال آخر 3 سنوات',
-        titleEn: 'Positive participation in developing the administrative system over the last 3 years',
-        isMet: employee.hasParticipationProof ?? false,
-        isAutoChecked: false,
-        details: 'يتطلب تقديم أوراق ثبوتية للأدمن',
       ),
     ];
-
-    return criteria.where((c) => !c.isMet).toList();
   }
 
+  // نجلّب كل الشروط من الكالكوليتر
+  final allCriteria = AdminManagerCriteriaCalculator.getCriteria(employee);
+
+  // نفلتر بس الشروط المانعة: اللي هي false ومش مجرد ملف مطلوب رفعه
+  return allCriteria.where((c) => !c.isMet && !c.needsDocument).toList();
+}
   // ═══════════════════════════════════════════════════════
   // ✅✅✅ دالة الضغط على زر الترشح ✅✅✅
   // ═══════════════════════════════════════════════════════
-  Future<void> _handleApply(AnnouncementModel announcement) async {
-    final targetRole = announcement.targetRole;
-    if (targetRole.isEmpty || targetRole == 'general') {
-      _showErrorDialog("invalid_announcement_role".tr());
+Future<void> _handleApply(
+  AnnouncementModel announcement,
+) async {
+  final targetRole = announcement.targetRole;
+
+  if (targetRole.isEmpty || targetRole == 'general') {
+    _showErrorDialog(
+      "invalid_announcement_role".tr(),
+    );
+    return;
+  }
+
+  setState(() => _isCheckingEligibility = true);
+
+  try {
+    final state =
+        context.read<EmployeeDataCubit>().state;
+
+    if (state is! EmployeeLoaded) {
       return;
     }
 
-    setState(() => _isCheckingEligibility = true);
+    final employee = state.employee;
 
-    try {
-      final state = context.read<EmployeeDataCubit>().state;
-      if (state is! EmployeeLoaded) return;
+    final unmetCriteria =
+        _checkEmployeeEligibility(
+      employee,
+      targetRole,
+    );
 
-      final unmetCriteria = _checkEmployeeEligibility(state.employee, targetRole);
-      final isEligible = unmetCriteria.isEmpty;
+    final isEligible =
+        unmetCriteria.isEmpty;
 
-      if (!mounted) return;
+    if (!mounted) return;
 
-      if (isEligible) {
-      // ✅ صح
-context.push(Routes.employeeNominationPage);
-      } else {
-        _showIneligibleDialog(unmetCriteria);
-      }
-    } catch (e) {
-      if (mounted) _showErrorDialog("generic_error".tr());
-    } finally {
-      if (mounted) setState(() => _isCheckingEligibility = false);
+    if (isEligible) {
+      context.push(
+        Routes.employeeNominationPage,
+        extra: {
+          'announcement': announcement,
+          'employee': employee,
+        },
+      );
+    } else {
+      _showIneligibleDialog(
+        unmetCriteria,
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      _showErrorDialog(
+        "generic_error".tr(),
+      );
+    }
+  } finally {
+    if (mounted) {
+      setState(
+        () => _isCheckingEligibility = false,
+      );
     }
   }
-
+}
   void _showIneligibleDialog(List<CriterionStatus> unmetCriteria) {
     showDialog(
       context: context,

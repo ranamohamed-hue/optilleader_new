@@ -39,6 +39,7 @@ class _EmployeeDashboardScreenState extends State<EmployeeDashboardScreen> {
       final uid = FirebaseAuth.instance.currentUser?.uid;
       if (uid != null) {
         context.read<EmployeeDataCubit>().getEmployeeProfile(uid);
+        context.read<NotificationCubit>().updateUserIdAndFetch(uid);
 
         // ❌❌❌ شيلنا السطر ده لأن الكيوبت الجديد هيشتغل لوحده ❌❌❌
       }
@@ -234,10 +235,10 @@ class _HomeTab extends StatelessWidget {
                           icon: Icons.school_rounded,
                           title: 'employee_dashboard.actions.courses'.tr(),
                           color: colorGold,
-                          onTap: () => context.push(
-                            Routes.employeeCourses,
-                            extra: employee,
-                          ),
+                         onTap: () => context.push(
+  Routes.employeeCoursePage,
+  extra: employee,
+),
                         ),
                       ),
                     ],

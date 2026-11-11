@@ -10,13 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:optialeader/feature/admin/logic/admin_approval/admin_approval_cubit.dart';
 import 'package:optialeader/feature/admin/logic/admin_approval/admin_approval_state.dart';
-// ✅ استورد ملف المسارات هنا (غيّر المسار حسب مكان الملف عندك)
 
-/// ============================================================
-/// صفحة تفاصيل الإنجاز (للأدمن) والموافقة / الرفض
-/// ملاحظة: عند اختيار نوع "بحث علمي" يتم التحويل تلقائياً
-///         لصفحة إدخال درجة الأدمن (PendingRequestDetailsScreen)
-/// ============================================================
 class AdminDetailsPage extends StatefulWidget {
   final dynamic item;
   final String doctorUid;
@@ -37,7 +31,6 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
   bool _navigatedToPaper = false;
 
   @override
-    @override
   void initState() {
     super.initState();
     if (widget.type == 'paper') {
@@ -58,13 +51,13 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
       });
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final primaryNavy = theme.primaryColor;
     final goldAccent = theme.colorScheme.secondary;
 
-    // ✅ لو بحث علمي نعرض شاشة تحميل بسيطة أثناء التحويل
     if (widget.type == 'paper') {
       return Scaffold(
         appBar: AppBar(
@@ -125,7 +118,6 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
     );
   }
 
-  /// تحديد عنوان الـ AppBar بناءً على نوع النشاط
   String _getTitle() {
     switch (widget.type) {
       case 'conference':
@@ -139,7 +131,6 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
     }
   }
 
-  /// توجيه بناء الويدجت للدالة المناسبة حسب نوع النشاط
   Widget _buildDetailsContent() {
     switch (widget.type) {
       case 'conference':
@@ -154,7 +145,7 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
   }
 
   // ==========================================
-  // 2. تفاصيل المؤتمر
+  // 1. تفاصيل المؤتمر + زر VerifyMe
   // ==========================================
   Widget _buildConferenceDetails(ConferenceModel conf) {
     return _buildInfoCard(
@@ -194,12 +185,15 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
             conf.proceedingsUrl!,
             'pdf',
           ),
+        
+        SizedBox(height: 16.h),
+        _buildVerifyMeButton(),
       ],
     );
   }
 
   // ==========================================
-  // 3. تفاصيل الدورة
+  // 2. تفاصيل الدورة + زر VerifyMe
   // ==========================================
   Widget _buildCourseDetails(CourseModel course) {
     return _buildInfoCard(
@@ -235,12 +229,15 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
           course.certificateUrl,
           course.certificateFileType,
         ),
+
+        SizedBox(height: 16.h),
+        _buildVerifyMeButton(),
       ],
     );
   }
 
   // ==========================================
-  // 4. تفاصيل المعرض الفني
+  // 3. تفاصيل المعرض الفني + زر VerifyMe
   // ==========================================
   Widget _buildExhibitionDetails(ArtExhibitionModel exh) {
     return _buildInfoCard(
@@ -264,13 +261,44 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
           exh.proofFileUrl,
           exh.proofFileType,
         ),
+
+        SizedBox(height: 16.h),
+        _buildVerifyMeButton(),
       ],
     );
   }
 
-  // ==========================================
-  // 5. ويدجات مساعدة وبناء الواجهة
-  // ==========================================
+  // 🛠️ دالة موحدة لزرار التحقق عشان نمنع تكرار الكود
+  Widget _buildVerifyMeButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.blue.shade700,
+          side: BorderSide(color: Colors.blue.shade700, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          padding: EdgeInsets.symmetric(vertical: 12.h),
+        ),
+        onPressed: () async {
+          final url = Uri.parse('https://verifyme-secure.lovable.app/');
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+          }
+        },
+        icon: const Icon(Icons.security, size: 20, color: Colors.blue),
+        label: Text(
+          'التحقق من المستندات (VerifyMe)',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 14.sp,
+            color: Colors.blue.shade700,
+          ),
+        ),
+      ),
+    );
+  }
 
   Widget _buildInfoCard({
     required String title,
@@ -370,10 +398,6 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
     );
   }
 
-  // ==========================================
-  // 6. دوال المنطق (الموافقة، الرفض، الترجمة)
-  // ==========================================
-
   Widget _buildActionButtons(
     BuildContext context,
     Color primaryNavy,
@@ -419,7 +443,7 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
                     SizedBox(width: 12.w),
                     Expanded(
                       child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
+                        style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.red.shade700,
                           side: BorderSide(
                             color: Colors.red.shade700,
@@ -484,10 +508,6 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
     }
   }
 
-  // ==========================================
-  // دوال الترجمة للقوائم المنسدلة
-  // ==========================================
-
   String _getParticipationTypeAr(ParticipationType type) {
     switch (type) {
       case ParticipationType.paperPresentation:
@@ -523,7 +543,7 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
     }
   }
 
-   String _getVenueAr(ExhibitionVenue venue) {
+  String _getVenueAr(ExhibitionVenue venue) {
     switch (venue) {
       case ExhibitionVenue.internationalAbroad:
         return 'admin_details.venue_intl_abroad'.tr();
@@ -546,9 +566,6 @@ class _AdminDetailsPageState extends State<AdminDetailsPage> {
     }
   }
 
-  // ==========================================
-  // 7. ديلوج كتابة سبب الرفض
-  // ==========================================
   Future<String?> _showRejectDialog(BuildContext context) async {
     final controller = TextEditingController();
     return showDialog<String>(

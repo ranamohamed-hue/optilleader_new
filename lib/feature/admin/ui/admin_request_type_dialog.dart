@@ -1,6 +1,8 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+
 import 'package:optialeader/core/theming/app_color.dart';
 import 'package:optialeader/core/routing/routes.dart';
 
@@ -10,19 +12,18 @@ class AdminRequestTypeDialog extends StatelessWidget {
   static Future<void> show(BuildContext context) async {
     await showDialog(
       context: context,
+      barrierDismissible: true,
       builder: (_) => const AdminRequestTypeDialog(),
     );
   }
 
   void _openDoctorRequests(BuildContext context) {
     Navigator.of(context).pop();
-
     context.push(Routes.ordersList);
   }
 
   void _openEmployeeRequests(BuildContext context) {
     Navigator.of(context).pop();
-
     context.push(Routes.employeePendingRequests);
   }
 
@@ -32,7 +33,9 @@ class AdminRequestTypeDialog extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(24.r),
+      ),
       child: Padding(
         padding: EdgeInsets.all(24.w),
         child: Column(
@@ -47,7 +50,7 @@ class AdminRequestTypeDialog extends StatelessWidget {
             SizedBox(height: 12.h),
 
             Text(
-              'اختيار نوع الطلبات',
+              'admin_request_type.title'.tr(),
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -57,7 +60,7 @@ class AdminRequestTypeDialog extends StatelessWidget {
             SizedBox(height: 8.h),
 
             Text(
-              'اختاري نوع الطلبات التي تريدين إدارتها',
+              'admin_request_type.description'.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withOpacity(0.7),
               ),
@@ -68,7 +71,7 @@ class AdminRequestTypeDialog extends StatelessWidget {
 
             _RequestTypeButton(
               icon: Icons.school_rounded,
-              title: 'طلبات ترشيح الأطباء',
+              title: 'admin_request_type.doctor_requests'.tr(),
               color: colorScheme.primary,
               onTap: () => _openDoctorRequests(context),
             ),
@@ -77,7 +80,7 @@ class AdminRequestTypeDialog extends StatelessWidget {
 
             _RequestTypeButton(
               icon: Icons.badge_rounded,
-              title: 'طلبات ترشيح الموظفين',
+              title: 'admin_request_type.employee_requests'.tr(),
               color: AppColors.darkGold,
               onTap: () => _openEmployeeRequests(context),
             ),
@@ -86,7 +89,9 @@ class AdminRequestTypeDialog extends StatelessWidget {
 
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('إلغاء'),
+              child: Text(
+                'admin_request_type.cancel'.tr(),
+              ),
             ),
           ],
         ),
@@ -118,7 +123,10 @@ class _RequestTypeButton extends StatelessWidget {
         icon: Icon(icon),
         label: Text(
           title,
-          style: TextStyle(fontSize: 15.sp, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 15.sp,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,

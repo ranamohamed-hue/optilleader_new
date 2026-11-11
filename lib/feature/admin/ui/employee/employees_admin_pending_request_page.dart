@@ -1,38 +1,41 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:optialeader/core/theming/app_color.dart';
+import 'package:optialeader/core/routing/routes.dart';
 import 'package:optialeader/feature/employee/data/models/employee_nomination_request_model.dart';
 
 class EmployeesAdminPendingRequestPage extends StatelessWidget {
-  const EmployeesAdminPendingRequestPage({
-    super.key,
-  });
+  const EmployeesAdminPendingRequestPage({super.key});
+
+  String _tr(String key) {
+    return 'employee_pending_request.$key'.tr();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'طلبات ترشح الموظفين',
-        ),
+        title: Text(_tr('pending_requests_title')),
+        centerTitle: true,
       ),
       body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
         stream: FirebaseFirestore.instance
             .collection('employee_nomination_requests')
             .where(
               'status',
-              isEqualTo:
-                  EmployeeNominationRequestModel.statusPendingAdmin,
+              isEqualTo: EmployeeNominationRequestModel.statusPendingAdmin,
             )
             .snapshots(),
         builder: (context, snapshot) {
-          if (snapshot.connectionState ==
-              ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: CircularProgressIndicator(color: colorScheme.primary),
             );
           }
 
@@ -41,48 +44,39 @@ class EmployeesAdminPendingRequestPage extends StatelessWidget {
               child: Padding(
                 padding: EdgeInsets.all(20.w),
                 child: Text(
-                  'حدث خطأ أثناء تحميل الطلبات\n${snapshot.error}',
+                  '${_tr('load_error')}\n${snapshot.error}',
                   textAlign: TextAlign.center,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: colorScheme.error,
+                  ),
                 ),
               ),
             );
           }
 
-          final documents =
-              snapshot.data?.docs ?? [];
+          final documents = snapshot.data?.docs ?? [];
 
           if (documents.isEmpty) {
-            return _buildEmptyState();
+            return _buildEmptyState(colorScheme, theme);
           }
 
           final requests = documents.map((doc) {
-            return EmployeeNominationRequestModel.fromMap(
-              doc.data(),
-              doc.id,
-            );
+            return EmployeeNominationRequestModel.fromMap(doc.data(), doc.id);
           }).toList();
 
-          requests.sort(
-            (a, b) => b.createdAt.compareTo(
-              a.createdAt,
-            ),
-          );
+          requests.sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
           return RefreshIndicator(
+            color: colorScheme.primary,
             onRefresh: () async {
-              await Future.delayed(
-                const Duration(milliseconds: 500),
-              );
+              await Future.delayed(const Duration(milliseconds: 500));
             },
             child: ListView.builder(
-              physics:
-                  const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.all(14.w),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: EdgeInsets.all(12.w),
               itemCount: requests.length,
               itemBuilder: (context, index) {
-                return _EmployeeRequestCard(
-                  request: requests[index],
-                );
+                return _EmployeeRequestCard(request: requests[index]);
               },
             ),
           );
@@ -91,38 +85,24 @@ class EmployeesAdminPendingRequestPage extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(ColorScheme colorScheme, ThemeData theme) {
     return Center(
-      child: Padding(
-        padding: EdgeInsets.all(24.w),
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.inbox_outlined,
-              size: 70.sp,
-              color: AppColors.darkGold,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.inbox_outlined,
+            size: 64.sp,
+            color: colorScheme.outline,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            _tr('no_pending_requests'),
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: colorScheme.onSurfaceVariant,
             ),
-            SizedBox(height: 16.h),
-            Text(
-              'لا توجد طلبات ترشح معلقة',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 17.sp,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 8.h),
-            Text(
-              'ستظهر هنا طلبات الموظفين التي تحتاج إلى مراجعة الإدارة.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 13.sp,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -131,62 +111,53 @@ class EmployeesAdminPendingRequestPage extends StatelessWidget {
 class _EmployeeRequestCard extends StatelessWidget {
   final EmployeeNominationRequestModel request;
 
-  const _EmployeeRequestCard({
-    required this.request,
-  });
+  const _EmployeeRequestCard({required this.request});
+
+  String _tr(String key) {
+    return 'employee_pending_request.$key'.tr();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark =
-        theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
-    return Card(
-      margin: EdgeInsets.only(
-        bottom: 12.h,
+    String initial =
+        request.employeeName.isNotEmpty ? request.employeeName[0] : '?';
+
+    return Container(
+      margin: EdgeInsets.only(bottom: 12.w),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow,
+        borderRadius: BorderRadius.circular(16.r),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withOpacity(0.5),
+        ),
       ),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius:
-            BorderRadius.circular(20.r),
-      ),
+      clipBehavior: Clip.antiAlias,
       child: InkWell(
-        borderRadius:
-            BorderRadius.circular(20.r),
-
-        // ======================================================
-        // GO ROUTER
-        // ======================================================
-
         onTap: () {
           context.push(
-            'details',
+            Routes.employeePendingRequestDetails,
             extra: request,
           );
         },
-
         child: Padding(
           padding: EdgeInsets.all(16.w),
           child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Container(
-                    width: 48.w,
-                    height: 48.w,
-                    decoration: BoxDecoration(
-                      color: AppColors.darkGold
-                          .withOpacity(0.12),
-                      borderRadius:
-                          BorderRadius.circular(14.r),
-                    ),
-                    child: Icon(
-                      Icons.person_outline_rounded,
-                      color:
-                          AppColors.darkGold,
-                      size: 25.sp,
+                  CircleAvatar(
+                    backgroundColor: colorScheme.primaryContainer,
+                    child: Text(
+                      initial,
+                      style: TextStyle(
+                        color: colorScheme.onPrimaryContainer,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18.sp,
+                      ),
                     ),
                   ),
 
@@ -194,178 +165,95 @@ class _EmployeeRequestCard extends StatelessWidget {
 
                   Expanded(
                     child: Column(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           request.employeeName,
                           maxLines: 1,
-                          overflow:
-                              TextOverflow.ellipsis,
-                          style: theme
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(
-                            fontWeight:
-                                FontWeight.bold,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
                           ),
                         ),
 
                         SizedBox(height: 4.h),
 
                         Text(
-                          'الرقم الوظيفي: ${request.employeeId}',
-                          style: theme
-                              .textTheme
-                              .bodySmall,
+                          '${_tr('employee_id')}: ${request.employeeId}',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
                         ),
                       ],
                     ),
                   ),
 
                   Container(
-                    padding:
-                        EdgeInsets.symmetric(
-                      horizontal: 10.w,
-                      vertical: 6.h,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 2.h,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.darkGold
-                          .withOpacity(0.12),
-                      borderRadius:
-                          BorderRadius.circular(20.r),
+                      color: Colors.orange.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4.r),
                     ),
                     child: Text(
-                      'معلق',
+                      _tr('pending_status'),
                       style: TextStyle(
-                        color:
-                            AppColors.darkGold,
-                        fontSize: 11.sp,
-                        fontWeight:
-                            FontWeight.bold,
+                        color: Colors.orange,
+                        fontSize: 12.sp,
                       ),
                     ),
                   ),
                 ],
               ),
 
-              SizedBox(height: 14.h),
+              SizedBox(height: 12.h),
 
-              Divider(
-                color:
-                    theme.dividerColor
-                        .withOpacity(0.4),
+              _infoRow(
+                Icons.work_outline_rounded,
+                _tr('current_job'),
+                request.currentJob,
+                colorScheme,
+              ),
+
+              _infoRow(
+                Icons.account_balance_outlined,
+                _tr('sector'),
+                request.sectorName,
+                colorScheme,
+              ),
+
+              _infoRow(
+                Icons.business_outlined,
+                _tr('department'),
+                request.departmentName,
+                colorScheme,
               ),
 
               SizedBox(height: 8.h),
-
-              _infoRow(
-                context,
-                Icons.work_outline_rounded,
-                'الوظيفة',
-                request.currentJob,
-              ),
-
-              _infoRow(
-                context,
-                Icons.account_balance_outlined,
-                'القطاع',
-                request.sectorName,
-              ),
-
-              _infoRow(
-                context,
-                Icons.business_outlined,
-                'الإدارة',
-                request.departmentName,
-              ),
-
-              SizedBox(height: 6.h),
-
-              Container(
-                width: double.infinity,
-                padding: EdgeInsets.all(12.w),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? AppColors.darkBackground
-                      : AppColors.navyDark
-                          .withOpacity(0.04),
-                  borderRadius:
-                      BorderRadius.circular(14.r),
-                ),
-                child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'بيانات الترشح',
-                      style: theme
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(
-                        fontWeight:
-                            FontWeight.bold,
-                        color:
-                            AppColors.navyDark,
-                      ),
-                    ),
-
-                    SizedBox(height: 8.h),
-
-                    Text(
-                      request.announcementTitle,
-                      maxLines: 2,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style: theme
-                          .textTheme
-                          .bodyMedium,
-                    ),
-
-                    SizedBox(height: 5.h),
-
-                    Text(
-                      'الوظيفة المستهدفة: ${request.targetRole}',
-                      maxLines: 2,
-                      overflow:
-                          TextOverflow.ellipsis,
-                      style: theme
-                          .textTheme
-                          .bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 12.h),
 
               Row(
                 children: [
                   Icon(
                     Icons.calendar_today_outlined,
                     size: 16.sp,
-                    color:
-                        AppColors.darkGold,
+                    color: colorScheme.onSurfaceVariant,
                   ),
-
                   SizedBox(width: 6.w),
-
                   Expanded(
                     child: Text(
-                      _formatDate(
-                        request.createdAt,
+                      _formatDate(request.createdAt),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                      style: theme
-                          .textTheme
-                          .bodySmall,
                     ),
                   ),
-
                   Icon(
-                    Icons.arrow_forward_ios_rounded,
-                    size: 15.sp,
-                    color:
-                        theme.iconTheme.color,
+                    Icons.arrow_forward_ios,
+                    size: 16,
+                    color: colorScheme.onSurfaceVariant,
                   ),
                 ],
               ),
@@ -377,49 +265,33 @@ class _EmployeeRequestCard extends StatelessWidget {
   }
 
   Widget _infoRow(
-    BuildContext context,
     IconData icon,
     String title,
     String? value,
+    ColorScheme colorScheme,
   ) {
-    if (value == null ||
-        value.trim().isEmpty) {
+    if (value == null || value.trim().isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final theme = Theme.of(context);
-
     return Padding(
-      padding:
-          EdgeInsets.symmetric(vertical: 5.h),
+      padding: EdgeInsets.only(bottom: 8.h),
       child: Row(
-        crossAxisAlignment:
-            CrossAxisAlignment.start,
         children: [
-          Icon(
-            icon,
-            size: 18.sp,
-            color: AppColors.darkGold,
-          ),
-
+          Icon(icon, size: 18.sp, color: colorScheme.onSurfaceVariant),
           SizedBox(width: 8.w),
-
           Text(
             '$title: ',
-            style: theme
-                .textTheme
-                .bodyMedium
-                ?.copyWith(
-              fontWeight:
-                  FontWeight.w600,
+            style: TextStyle(
+              fontSize: 13.sp,
+              fontWeight: FontWeight.w600,
+              color: colorScheme.onSurfaceVariant,
             ),
           ),
-
           Expanded(
             child: Text(
               value,
-              style:
-                  theme.textTheme.bodyMedium,
+              style: TextStyle(fontSize: 13.sp),
             ),
           ),
         ],
@@ -428,12 +300,8 @@ class _EmployeeRequestCard extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) {
-    final day =
-        date.day.toString().padLeft(2, '0');
-
-    final month =
-        date.month.toString().padLeft(2, '0');
-
+    final day = date.day.toString().padLeft(2, '0');
+    final month = date.month.toString().padLeft(2, '0');
     return '$day/$month/${date.year}';
   }
 }

@@ -20,8 +20,13 @@ class EmployeeNominationAdminLoaded
 class EmployeeNominationAdminActionLoading
     extends EmployeeNominationAdminState {}
 
+// ✅ تم إضافة الـ message هنا
 class EmployeeNominationAdminActionSuccess
-    extends EmployeeNominationAdminState {}
+    extends EmployeeNominationAdminState {
+  final String message;
+
+   EmployeeNominationAdminActionSuccess({this.message = 'تمت العملية بنجاح'});
+}
 
 class EmployeeNominationAdminError
     extends EmployeeNominationAdminState {

@@ -29,54 +29,44 @@ class NotificationCubit extends Cubit<NotificationState> with WidgetsBindingObse
     }
   }
 
-  void updateUserIdAndFetch(String newUserId) {
-    if (newUserId.isNotEmpty && newUserId != userId) {
-      userId = newUserId; 
-      fetchNotifications(); 
-    }
+ void updateUserIdAndFetch(String newUserId) {
+  if (newUserId.isNotEmpty) {
+    userId = newUserId;
+    fetchNotifications();
   }
-
- void fetchNotifications() {
-  final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
-
-  print('🔥 FETCH NOTIFICATIONS');
-  print('🔥 Firebase UID = $currentUid');
-
-  if (currentUid.isEmpty) {
-    print('❌ NO CURRENT USER');
-    emit(NotificationError("المستخدم غير مسجل الدخول"));
-    return;
-  }
-
-  userId = currentUid;
-
-  emit(NotificationLoading());
-
-  _notificationSubscription?.cancel();
-
-  _notificationSubscription = notificationRepo
-      .getNotifications(currentUid)
-      .listen(
-        (notifications) {
-          print(
-            '✅ NOTIFICATIONS RECEIVED = ${notifications.length}',
-          );
-
-          emit(NotificationLoaded(notifications));
-        },
-               onError: (error, stackTrace) {
-          print('🚨 NOTIFICATION STREAM ERROR: $error');
-          
-          // ✅ لا تطلع خطأ للواجهة لو كان السبب انتهاء صلاحية الجلسة (مثلاً أثناء تغيير كلمة السر)
-          if (error.toString().contains('PERMISSION_DENIED')) {
-            print('⚠️ تم تجاهل خطأ الصلاحيات (ربما المستخدم غير مفعل مؤقتاً)');
-            return; 
-          }
-          
-          emit(NotificationError("فشل جلب الإشعارات: $error"));
-        },
-      );
 }
+  void fetchNotifications() {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid ?? '';
+
+    print('🔥 FETCH NOTIFICATIONS');
+    print('🔥 Firebase UID = $currentUid');
+
+    if (currentUid.isEmpty) {
+      print('❌ NO CURRENT USER');
+      emit( NotificationError("المستخدم غير مسجل الدخول"));
+      return;
+    }
+
+    userId = currentUid;
+
+    emit(NotificationLoading());
+
+    _notificationSubscription?.cancel();
+
+    _notificationSubscription = notificationRepo
+        .getNotifications(currentUid)
+        .listen(
+          (notifications) {
+            print('✅ NOTIFICATIONS RECEIVED = ${notifications.length}');
+            emit(NotificationLoaded(notifications));
+          },
+          onError: (error, stackTrace) {
+            print('🚨 NOTIFICATION STREAM ERROR: $error');
+            // ✅ شيلنا الـ return وخليينا نطلع رسالة خطأ عادية للشاشة عشان متتجمدش
+            emit(NotificationError("فشل جلب الإشعارات"));
+          },
+        );
+  }
   @override
   
 

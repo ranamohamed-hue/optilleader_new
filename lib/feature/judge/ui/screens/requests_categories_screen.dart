@@ -74,6 +74,7 @@ class _RequestsCategoriesScreenState extends State<RequestsCategoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🔥 RequestsCategoriesScreen OPENED');
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final navy = colorScheme.primary;

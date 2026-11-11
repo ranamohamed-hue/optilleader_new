@@ -413,99 +413,116 @@ class EmployeeDataCubit extends Cubit<EmployeeDataState> {
     // ═══════════════════════════════════════════════════════
   // ✅ دالة رفع ملفات الأرشيف (صور + PDF) للموظفين
   // ═══════════════════════════════════════════════════════
-  Future<void> uploadArchiveFile({
-    required String uid,
-    required File file,
-    required String title,
-    required String description,
-    required String category,
-  }) async {
-    emit(EmployeeLoading());
-    try {
-      String storagePath;
-      Uint8List fileBytes;
+Future<void> uploadArchiveFile({
+  required String uid,
+  required File file,
+  required String title,
+  required String description,
+  required String category,
+}) async {
+  emit(EmployeeLoading());
 
-      // التحقق مما إذا كان الملف صورة أم PDF
-      final ext = p.extension(file.path).toLowerCase();
-      final isImage = ['.jpg', '.jpeg', '.png', '.gif', '.webp'].contains(ext);
-      
-      if (isImage) {
-        // ضغط الصورة لتقليل حجمها
-        final compressedBytes = await FlutterImageCompress.compressWithFile(
-          file.absolute.path,
-          minWidth: 1200,
-          minHeight: 1200,
-          quality: 80,
-        );
-        if (compressedBytes == null) {
-          emit(EmployeeError(error: "فشل ضغط الصورة"));
-          return;
-        }
-        fileBytes = compressedBytes;
-        storagePath = 'archives/$uid/images/${DateTime.now().millisecondsSinceEpoch}$ext';
-      } else {
-        // قراءة ملف PDF كـ بايتات بدون ضغط
-        fileBytes = await file.readAsBytes();
-        storagePath = 'archives/$uid/pdfs/${DateTime.now().millisecondsSinceEpoch}$ext';
+  try {
+    String storagePath;
+    Uint8List fileBytes;
+
+    final ext = p.extension(file.path).toLowerCase();
+
+    final isImage = [
+      '.jpg',
+      '.jpeg',
+      '.png',
+      '.gif',
+      '.webp',
+    ].contains(ext);
+
+    if (isImage) {
+      final compressedBytes =
+          await FlutterImageCompress.compressWithFile(
+        file.absolute.path,
+        minWidth: 1200,
+        minHeight: 1200,
+        quality: 80,
+      );
+
+      if (compressedBytes == null) {
+        emit(EmployeeError(error: "فشل ضغط الصورة"));
+        return;
       }
 
-      // رفع الملف للـ Firebase Storage
-      final uploadResult = await employeeRepo.uploadFile(
-        fileBytes,
-        storagePath,
-        bucketName: 'images', // تأكد أن هذا هو اسم الباكت الخاص بك
-      );
+      fileBytes = compressedBytes;
+      storagePath =
+          'archives/$uid/images/${DateTime.now().millisecondsSinceEpoch}$ext';
+    } else {
+      fileBytes = await file.readAsBytes();
 
-           uploadResult.fold(
-        (error) => emit(EmployeeError(error: error)),
-        (fileUrl) async {
-          
-          // 1. جلب بيانات الموظف الحالية من Firestore
-          final empResult = await employeeRepo.getEmployeeProfile(uid);
-          empResult.fold(
-            (error) => emit(EmployeeError(error: error)),
-            (employee) async {
-              if (employee == null) {
-                emit(EmployeeError(error: "الموظف غير موجود"));
-                return;
-              }
-
-              // ملف الأرشيف الجديد (رابط السوبابيز + البيانات)
-              final newArchiveEntry = {
-                'url': fileUrl,
-                'title': title,
-                'description': description,
-                'category': category,
-                'uploadedAt': DateTime.now().toIso8601String(),
-              };
-
-              // 2. تجهيز القائمة القديمة (تأكد أن هذا الحقل موجود في EmployeeModel)
-              // إذا لم يكن موجوداً في الموديل، اجعلها قائمة فارغة []
-              List<dynamic> currentFiles = employee.archiveFiles ?? [];
-
-              // 3. إضافة الملف الجديد
-              currentFiles.add(newArchiveEntry);
-
-              // 4. تحديث قاعدة البيانات بالقائمة الكاملة
-              final updateResult = await employeeRepo.updateEmployeeProfileData(
-                uid, 
-                {'archiveFiles': currentFiles}, // حفظ القائمة المحدثة
-              );
-
-              updateResult.fold(
-                (error) => emit(EmployeeError(error: error)),
-                (_) => getEmployeeProfile(uid), // تحديث الواجهة
-              );
-            },
-          );
-        },
-      );
-   
-   
-   
-   
-    } catch (e) {
-      emit(EmployeeError(error: "فشل رفع الملف: ${e.toString()}"));
+      storagePath =
+          'archives/$uid/pdfs/${DateTime.now().millisecondsSinceEpoch}$ext';
     }
+
+    final uploadResult = await employeeRepo.uploadFile(
+      fileBytes,
+      storagePath,
+      bucketName: 'images',
+    );
+
+    await uploadResult.fold(
+      (error) async {
+        emit(EmployeeError(error: error));
+      },
+      (fileUrl) async {
+        final empResult =
+            await employeeRepo.getEmployeeProfile(uid);
+
+        await empResult.fold(
+          (error) async {
+            emit(EmployeeError(error: error));
+          },
+          (employee) async {
+            if (employee == null) {
+              emit(EmployeeError(error: "الموظف غير موجود"));
+              return;
+            }
+
+            final newArchiveEntry = {
+              'url': fileUrl,
+              'title': title,
+              'description': description,
+              'category': category,
+              'uploadedAt': DateTime.now().toIso8601String(),
+            };
+
+            final List<dynamic> currentFiles =
+                List<dynamic>.from(employee.archiveFiles);
+
+            currentFiles.add(newArchiveEntry);
+
+            final updateResult =
+                await employeeRepo.updateEmployeeProfileData(
+              uid,
+              {
+                'archiveFiles': currentFiles,
+              },
+            );
+
+            updateResult.fold(
+              (error) => emit(EmployeeError(error: error)),
+              (_) async {
+                emit(EmployeeSuccess());
+
+                await getEmployeeProfile(uid);
+              },
+            );
+          },
+        );
+      },
+    );
+  } catch (e) {
+    emit(
+      EmployeeError(
+        error: "فشل رفع الملف: ${e.toString()}",
+      ),
+    );
   }
+}
 }

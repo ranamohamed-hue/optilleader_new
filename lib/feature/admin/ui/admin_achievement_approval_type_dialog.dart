@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
@@ -8,10 +9,6 @@ import 'package:optialeader/core/theming/app_color.dart';
 class AdminApprovalTypeDialog extends StatelessWidget {
   const AdminApprovalTypeDialog({super.key});
 
-  // ============================================================
-  // SHOW
-  // ============================================================
-
   static Future<void> show(BuildContext context) async {
     await showDialog(
       context: context,
@@ -20,33 +17,15 @@ class AdminApprovalTypeDialog extends StatelessWidget {
     );
   }
 
-  // ============================================================
-  // DOCTOR
-  // ============================================================
-
   void _openDoctorApprovals(BuildContext context) {
     Navigator.of(context).pop();
-
-    context.push(
-      Routes.adminPendingRequestsPage,
-    );
+    context.push(Routes.adminPendingRequestsPage);
   }
-
-  // ============================================================
-  // EMPLOYEE
-  // ============================================================
 
   void _openEmployeeApprovals(BuildContext context) {
     Navigator.of(context).pop();
-
-    context.push(
-      Routes.employeeCourseApprovalPage,
-    );
+    context.push(Routes.employeeCourseApprovalPage);
   }
-
-  // ============================================================
-  // BUILD
-  // ============================================================
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +33,12 @@ class AdminApprovalTypeDialog extends StatelessWidget {
     final colorScheme = theme.colorScheme;
 
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24.r),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24.r)),
       child: Padding(
         padding: EdgeInsets.all(24.w),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ==================================================
-            // HEADER ICON
-            // ==================================================
-
             Container(
               width: 70.w,
               height: 70.w,
@@ -82,12 +55,8 @@ class AdminApprovalTypeDialog extends StatelessWidget {
 
             SizedBox(height: 14.h),
 
-            // ==================================================
-            // TITLE
-            // ==================================================
-
             Text(
-              'الموافقات',
+              'admin_approval_type.title'.tr(),
               style: theme.textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
                 fontSize: 21.sp,
@@ -98,7 +67,7 @@ class AdminApprovalTypeDialog extends StatelessWidget {
             SizedBox(height: 8.h),
 
             Text(
-              'اختاري نوع الإنجازات التي تريدين مراجعة طلبات الموافقة عليها',
+              'admin_approval_type.description'.tr(),
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: colorScheme.onSurface.withOpacity(0.7),
                 fontSize: 14.sp,
@@ -108,49 +77,29 @@ class AdminApprovalTypeDialog extends StatelessWidget {
 
             SizedBox(height: 24.h),
 
-            // ==================================================
-            // DOCTOR APPROVALS
-            // ==================================================
-
             _ApprovalButton(
               icon: Icons.school_rounded,
-              title: 'موافقات إنجازات الأطباء',
-              subtitle: 'الأبحاث والأنشطة والإنجازات الأكاديمية',
+              title: 'admin_approval_type.doctor_title'.tr(),
+              subtitle: 'admin_approval_type.doctor_subtitle'.tr(),
               color: colorScheme.primary,
-              onTap: () {
-                _openDoctorApprovals(context);
-              },
+              onTap: () => _openDoctorApprovals(context),
             ),
 
             SizedBox(height: 14.h),
 
-            // ==================================================
-            // EMPLOYEE APPROVALS
-            // ==================================================
-
             _ApprovalButton(
               icon: Icons.badge_rounded,
-              title: 'موافقات إنجازات الموظفين',
-              subtitle: 'الدورات والإنجازات الخاصة بالموظفين',
+              title: 'admin_approval_type.employee_title'.tr(),
+              subtitle: 'admin_approval_type.employee_subtitle'.tr(),
               color: AppColors.darkGold,
-              onTap: () {
-                _openEmployeeApprovals(context);
-              },
+              onTap: () => _openEmployeeApprovals(context),
             ),
 
             SizedBox(height: 12.h),
 
-            // ==================================================
-            // CANCEL
-            // ==================================================
-
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text(
-                'إلغاء',
-              ),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('common.cancel'.tr()),
             ),
           ],
         ),
@@ -158,10 +107,6 @@ class AdminApprovalTypeDialog extends StatelessWidget {
     );
   }
 }
-
-// ================================================================
-// APPROVAL BUTTON
-// ================================================================
 
 class _ApprovalButton extends StatelessWidget {
   final IconData icon;
@@ -191,20 +136,13 @@ class _ApprovalButton extends StatelessWidget {
           onTap: onTap,
           borderRadius: BorderRadius.circular(18.r),
           child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: 16.w,
-              vertical: 15.h,
-            ),
+            padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 15.h),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(18.r),
-              border: Border.all(
-                color: color.withOpacity(0.25),
-                width: 1.2,
-              ),
+              border: Border.all(color: color.withOpacity(0.25), width: 1.2),
             ),
             child: Row(
               children: [
-                // Icon
                 Container(
                   width: 48.w,
                   height: 48.w,
@@ -212,20 +150,14 @@ class _ApprovalButton extends StatelessWidget {
                     color: color.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 25.sp,
-                  ),
+                  child: Icon(icon, color: color, size: 25.sp),
                 ),
 
                 SizedBox(width: 14.w),
 
-                // Text
                 Expanded(
                   child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         title,
@@ -242,8 +174,7 @@ class _ApprovalButton extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurface
-                              .withOpacity(0.65),
+                          color: theme.colorScheme.onSurface.withOpacity(0.65),
                           fontSize: 12.sp,
                         ),
                       ),

@@ -76,13 +76,17 @@ class EmployeeCourseApprovalRepo {
   // Approve Course
   // ============================================================
 
-  Future<Either<String, Unit>>
-      approveCourse({
+    // ============================================================
+  // Approve Course
+  // ============================================================
+
+  Future<Either<String, Unit>> approveCourse({
     required String employeeUid,
     required String courseId,
     required String courseTitle,
   }) async {
     try {
+      // 1. تحديث حالة الدورة نفسها في الساب كولكشن
       await firestore
           .collection('users')
           .doc(employeeUid)
@@ -93,17 +97,23 @@ class EmployeeCourseApprovalRepo {
         'rejectionReason': null,
       });
 
+      // 2. ✅ تحديث شرط الترشح الرئيسي في بيانات الموظف
+      await firestore
+          .collection('users')
+          .doc(employeeUid)
+          .update({
+        'admin_proofs.has_admin_training': true, // ← ده اللي هيفتحلك باب الترشح
+      });
+
+      // 3. إرسال الإشعار
       await notificationRepo.sendNotification(
         AppNotificationModel(
           id: '',
           title: 'اعتماد دورة',
-          message:
-              'تم اعتماد الدورة $courseTitle',
+          message: 'تم اعتماد الدورة $courseTitle',
           receiverId: employeeUid,
-          target:
-              NotificationTarget.specificUser,
-          type:
-              NotificationType.activityStatusUpdated,
+          target: NotificationTarget.specificUser,
+          type: NotificationType.activityStatusUpdated,
           timestamp: Timestamp.now(),
         ),
       );
@@ -115,7 +125,6 @@ class EmployeeCourseApprovalRepo {
       );
     }
   }
-
   // ============================================================
   // Reject Course
   // ============================================================

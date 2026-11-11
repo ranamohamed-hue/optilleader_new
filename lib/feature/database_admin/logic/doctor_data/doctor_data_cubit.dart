@@ -17,8 +17,66 @@ import 'package:optialeader/feature/database_admin/logic/leadership_scoring_engi
 class DoctorDataCubit extends Cubit<DoctorDataState> {
   final DoctorRepo doctorRepo;
   StreamSubscription? _doctorsSubscription;
+  StreamSubscription? _searchSubscription;
+  Timer? _debounceTimer;
 
   DoctorDataCubit(this.doctorRepo) : super(DoctorInitial());
+
+  // ✅✅✅ بحث عن الأطباء بالاسم أو الرقم الوظيفي ✅✅✅
+  void searchDoctors(String query) {
+    // إلغاء التايمر القديم (debounce)
+    _debounceTimer?.cancel();
+
+    if (query.trim().isEmpty) {
+      clearSearch();
+      return;
+    }
+
+    emit(DoctorLoading());
+
+    // debounce: استنى 500ms قبل ما تبدأ البحث
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _searchSubscription?.cancel();
+
+      _searchSubscription = FirebaseFirestore.instance
+          .collection('users')
+          .where('role', isEqualTo: 'doctor')
+          .snapshots()
+          .listen((snapshot) {
+        final allDoctors = snapshot.docs
+            .map((doc) => DoctorProfileModel.fromJson(doc.data(), doc.id))
+            .toList();
+
+        final lowerQuery = query.trim().toLowerCase();
+
+        final filtered = allDoctors.where((doctor) {
+          final nameMatch =
+              doctor.nameAr.toLowerCase().contains(lowerQuery) ||
+              doctor.nameEn.toLowerCase().contains(lowerQuery);
+          final idMatch =
+              doctor.employeeId.toLowerCase().contains(lowerQuery);
+          final emailMatch =
+              doctor.email.toLowerCase().contains(lowerQuery);
+          final jobMatch =
+              doctor.currentJobAr.toLowerCase().contains(lowerQuery) ||
+              doctor.currentJobEn.toLowerCase().contains(lowerQuery);
+
+          return nameMatch || idMatch || emailMatch || jobMatch;
+        }).toList();
+
+        emit(DoctorSearchLoaded(doctors: filtered));
+      }, onError: (error) {
+        emit(DoctorError(error: error.toString()));
+      });
+    });
+  }
+
+  // ✅✅✅ مسح البحث والرجوع للحالة الابتدائية ✅✅✅
+  void clearSearch() {
+    _debounceTimer?.cancel();
+    _searchSubscription?.cancel();
+    emit(DoctorInitial());
+  }
 
   Future<void> getDoctorProfile(String uid) async {
     emit(DoctorLoading());
@@ -62,7 +120,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     return (unmetCriteria.isEmpty, unmetCriteria);
   }
 
-  // ✅ الدالة المحدثة عشان الشاشة تقفل وتظهر رسالة النجاح
   Future<void> saveDoctorData(DoctorProfileModel doctor) async {
     emit(DoctorLoading());
     try {
@@ -70,7 +127,7 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
           .collection('users')
           .doc(doctor.uid)
           .set(doctor.toMap(), SetOptions(merge: true));
-      
+
       emit(DoctorSuccess());
     } catch (e) {
       emit(DoctorError(error: e.toString()));
@@ -81,7 +138,8 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     String uid,
     Map<String, dynamic> updatedFields,
   ) async {
-    final result = await doctorRepo.updateDoctorProfileData(uid, updatedFields);
+    final result =
+        await doctorRepo.updateDoctorProfileData(uid, updatedFields);
     result.fold((error) => emit(DoctorError(error: error)), (_) {
       getDoctorProfile(uid);
     });
@@ -109,14 +167,16 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
         storagePath,
         bucketName: 'images',
       );
-      uploadResult.fold((error) => emit(DoctorError(error: error)), (
-        imageUrl,
-      ) async {
-        final updateResult = await doctorRepo.updateDoctorImage(uid, imageUrl);
-        updateResult.fold((error) => emit(DoctorError(error: error)), (_) {
-          getDoctorProfile(uid);
-        });
-      });
+      uploadResult.fold(
+        (error) => emit(DoctorError(error: error)),
+        (imageUrl) async {
+          final updateResult = await doctorRepo.updateDoctorImage(uid, imageUrl);
+          updateResult.fold(
+            (error) => emit(DoctorError(error: error)),
+            (_) => getDoctorProfile(uid),
+          );
+        },
+      );
     } catch (e) {
       emit(DoctorError(error: e.toString()));
     }
@@ -189,7 +249,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
     );
   }
 
-  // ✅✅✅ الدالة المعدلة لقبول الصورة ورفعها ✅✅✅
   Future<void> createNewDoctor(
     DoctorProfileModel doctor, {
     File? profileImageFile,
@@ -234,7 +293,6 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
           emit(DoctorError(error: error));
         },
         (_) async {
-          // ✅ رفع الصورة لو موجودة
           if (profileImageFile != null) {
             try {
               final Uint8List? compressedBytes =
@@ -245,7 +303,8 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
                     quality: 85,
                   );
               if (compressedBytes != null) {
-                final String fileExtension = p.extension(profileImageFile.path);
+                final String fileExtension =
+                    p.extension(profileImageFile.path);
                 final String storagePath =
                     'profiles/$newUid/profile$fileExtension';
                 final uploadResult = await doctorRepo.uploadFile(
@@ -253,11 +312,12 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
                   storagePath,
                   bucketName: 'images',
                 );
-                uploadResult.fold((error) => print("فشل رفع الصورة: $error"), (
-                  imageUrl,
-                ) async {
-                  await doctorRepo.updateDoctorImage(newUid, imageUrl);
-                });
+                uploadResult.fold(
+                  (error) => print("فشل رفع الصورة: $error"),
+                  (imageUrl) async {
+                    await doctorRepo.updateDoctorImage(newUid, imageUrl);
+                  },
+                );
               }
             } catch (e) {
               print("خطأ في ضغط الصورة: $e");
@@ -316,6 +376,8 @@ class DoctorDataCubit extends Cubit<DoctorDataState> {
   @override
   Future<void> close() {
     _doctorsSubscription?.cancel();
+    _searchSubscription?.cancel();
+    _debounceTimer?.cancel();
     return super.close();
   }
 }

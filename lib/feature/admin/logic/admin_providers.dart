@@ -82,10 +82,12 @@ class AdminProviders {
             context.read<NotificationRepo>(),
           ),
         ),
+        // ... باقي البروفايدرز ...
 
         BlocProvider(
           create: (context) => EmployeeNominationAdminCubit(
-            context.read<EmployeeNominationAdminRepo>(),
+            repo: context.read<EmployeeNominationAdminRepo>(),
+            notificationRepo: context.read<NotificationRepo>(),
           ),
         ),
 
